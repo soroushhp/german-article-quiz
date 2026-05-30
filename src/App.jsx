@@ -52,7 +52,7 @@ export default function App() {
     setGameOver(false);
     setIsNewHigh(false);
     setIsLevelComplete(false);
-    setHearts(0);
+    setHearts(3);
     setHeartNotification(null);
     setShowQuitPopup(false);
     setScreen("game");
@@ -158,7 +158,7 @@ export default function App() {
           <img src="/favicon.svg" style={{ width: 64, height: 64, marginBottom: 24 }} />
           <h1 style={{ fontSize: 36, fontWeight: 800, letterSpacing: "-1px", margin: "0 0 28px" }}>Article Fever</h1>
           <p style={{ color: "#666", marginBottom: 42, lineHeight: 1.4, fontSize: 15 }}>
-            Build your streak.<br />Earn hearts.<br />Master German articles.
+            Build your streak.<br />Earn a hearts every 10 correct answers.<br />Master German articles.
           </p>
           <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
             {["beginner", "intermediate", "advanced"].map(d => (
