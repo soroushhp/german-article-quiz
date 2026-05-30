@@ -183,10 +183,10 @@ export default function App() {
       {/* ── MENU ── */}
       {screen === "menu" && (
         <div style={{ textAlign: "center", maxWidth: 420, width: "100%", background: "#F5F5F5", borderRadius: 28, padding: "48px 28px", boxShadow: "0 10px 30px rgba(0,0,0,0.08)" }}>
-          <img src="/favicon.svg" style={{ width: 64, height: 64, marginBottom: 24 }} />
-          <h1 style={{ fontSize: 36, fontWeight: 800, color: "#323232", letterSpacing: "-1px", margin: "0 0 8px" }}>Article Fever</h1>
+          <img src="/favicon.svg" style={{ width: 64, height: 64, marginBottom: 20 }} />
+          <h1 style={{ fontSize: 36, fontWeight: 800, color: "#323232", letterSpacing: "-1px", margin: "0 0 16px" }}>Article Fever</h1>
           <p style={{ color: "#666", marginBottom: 42, lineHeight: 1.4, fontSize: 15 }}>
-            Build your streak.<br />Earn a hearts every 10 correct answers.<br />Master German articles.
+            Build your streak.<br />Earn a heart every 10 correct answers.<br />Master German articles.
           </p>
           <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
             {["beginner", "intermediate", "advanced"].map(d => (
@@ -213,7 +213,7 @@ export default function App() {
             display: "flex", justifyContent: "space-between", alignItems: "center", padding: "16px 8px", zIndex: 10 }}>
             <button onClick={() => setShowQuitPopup(true)}
             style={{ border: "none", background: "transparent", fontSize: 32, color: "#777", cursor: "pointer", lineHeight: 1}}>
-            x
+            ×
             </button>
             <span style={{ fontSize: 14, color: "#777" }}>
             {DIFFICULTY_LABELS[difficulty]} • Best: {highScores[difficulty]}
