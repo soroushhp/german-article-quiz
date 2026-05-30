@@ -37,11 +37,18 @@ export default function App() {
   const [hearts, setHearts] = useState(0);
   const [heartNotification, setHeartNotification] = useState(null);
   const [showQuitPopup, setShowQuitPopup] = useState(false);
+  const [userName, setUserName] = useState("");
 
   const triggerHeartNotification = (type) => {
     setHeartNotification(type);
     setTimeout(() => setHeartNotification(null), 900);
   };
+
+  useEffect(() => {
+  const handleEsc = e => e.key === "Escape" && setShowQuitPopup(false);
+  if (showQuitPopup) window.addEventListener("keydown", handleEsc);
+  return () => window.removeEventListener("keydown", handleEsc);
+  }, [showQuitPopup]);
 
   const startGame = (diff) => {
     setDifficulty(diff);
@@ -135,6 +142,17 @@ export default function App() {
     }, 100);
   };
 
+  const shareScore = () => {
+  const text = `🔥 I scored ${finalStreak} in Article Fever!\nCan you beat me?\n\nhttps://t.me/ArticleFever_bot`;
+  
+  if (window.Telegram?.WebApp) {
+    window.open(`https://t.me/share/url?url=&text=${encodeURIComponent(text)}`);
+  } else {
+    navigator.clipboard.writeText(text);
+    alert("Score copied to clipboard!");
+  }
+};
+
   const current = queue[idx];
 
   const btnStyle = (art) => {
@@ -157,6 +175,7 @@ export default function App() {
         <div style={{ textAlign: "center", maxWidth: 420, width: "100%", background: "#F5F5F5", borderRadius: 28, padding: "48px 28px", boxShadow: "0 10px 30px rgba(0,0,0,0.08)" }}>
           <img src="/favicon.svg" style={{ width: 64, height: 64, marginBottom: 24 }} />
           <h1 style={{ fontSize: 36, fontWeight: 800, letterSpacing: "-1px", margin: "0 0 28px" }}>Article Fever</h1>
+          {userName && (<p style={{ color: "#777", marginTop: -20, marginBottom: 24 }}>Ready, {userName}?</p>)}
           <p style={{ color: "#666", marginBottom: 42, lineHeight: 1.4, fontSize: 15 }}>
             Build your streak.<br />Earn a hearts every 10 correct answers.<br />Master German articles.
           </p>
@@ -172,7 +191,7 @@ export default function App() {
               </motion.button>
             ))}
           </div>
-          <p style={{ marginTop: 48, fontSize: 11, color: "#999", letterSpacing: 0.5 }}>v0.9 beta</p>
+          <p style={{ marginTop: 48, fontSize: 11, color: "#999", letterSpacing: 0.5 }}>v1.1</p>
         </div>
       )}
 
@@ -185,7 +204,7 @@ export default function App() {
             display: "flex", justifyContent: "space-between", alignItems: "center", padding: "16px 8px", zIndex: 10 }}>
             <button onClick={() => setShowQuitPopup(true)}
             style={{ border: "none", background: "transparent", fontSize: 32, color: "#777", cursor: "pointer", lineHeight: 1}}>
-            ×
+            x
             </button>
             <span style={{ fontSize: 14, color: "#777" }}>
             {DIFFICULTY_LABELS[difficulty]} • Best: {highScores[difficulty]}
@@ -309,6 +328,11 @@ export default function App() {
                   <button onClick={() => startGame(difficulty)}
                     style={{ flex: 1, padding: "13px 0", borderRadius: 10, border: "none", background: "#111", color: "#fff", fontSize: 15, fontWeight: 600, cursor: "pointer" }}>
                     Play Again
+                  </button>
+                  <button
+                  onClick={shareScore}
+                  style={{flex: 1, padding: "13px 0", borderRadius: 10, border: "none", background: "#f5a623", color: "#fff", fontSize: 15, fontWeight: 600, cursor: "pointer"}}>
+                  Share
                   </button>
                   <button onClick={() => setScreen("menu")}
                     style={{ flex: 1, padding: "13px 0", borderRadius: 10, border: "none", background: "#D0D0D0", color: "#111", fontSize: 15, fontWeight: 600, cursor: "pointer" }}>
