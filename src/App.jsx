@@ -181,7 +181,8 @@ export default function App() {
         <div style={{ width: "100%", maxWidth: 480 }}>
 
           {/* Top bar */}
-          <div style={{ position: "fixed", top: 0, left: 0, right: 0, maxWidth: 480, margin: "0 auto", display: "flex", justifyContent: "space-between", alignItems: "center", padding: "16px 8px", zIndex: 10 }}>
+          <div style={{ position: "fixed", top: 0, left: 0, right: 0, maxWidth: 480, margin: "0 auto",
+            display: "flex", justifyContent: "space-between", alignItems: "center", padding: "16px 8px", zIndex: 10 }}>
             <button onClick={() => setShowQuitPopup(true)}
             style={{ border: "none", background: "transparent", fontSize: 32, color: "#777", cursor: "pointer", lineHeight: 1}}>
             ×
@@ -235,7 +236,7 @@ export default function App() {
                 <h2 style={{ margin: 0, fontSize: 40, fontWeight: 700, color: "#323232" }}>{current.word}</h2>
                 <p style={{ margin: "8px 0 0", fontSize: 13, color: "#555" }}>({current.meaning})</p>
               </div>
-              <div style={{ display: "flex", gap: 12, marginBottom: 24 }}>
+              <div style={{ display: "flex", gap: 12, marginBottom: 64 }}>
                 {ARTICLES.map(art => {
                   const { bg, color, border } = btnStyle(art);
                   return (
