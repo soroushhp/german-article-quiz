@@ -184,8 +184,8 @@ export default function App() {
       {screen === "menu" && (
         <div style={{ textAlign: "center", maxWidth: 420, width: "100%", background: "#F5F5F5", borderRadius: 28, padding: "48px 28px", boxShadow: "0 10px 30px rgba(0,0,0,0.08)" }}>
           <img src="/favicon.svg" style={{ width: 64, height: 64, marginBottom: 24 }} />
-          <h1 style={{ fontSize: 36, fontWeight: 800, color: "#323232", letterSpacing: "-1px", margin: "0 0 28px" }}>Article Fever</h1>
-          {userName && (<h3 style={{ color: "#777", marginTop: -20, marginBottom: 8 }}>Ready, {userName}?</h3>)}
+          <h1 style={{ fontSize: 36, fontWeight: 800, color: "#323232", letterSpacing: "-1px", margin: "0 0 8px" }}>Article Fever</h1>
+          {userName && (<h3 style={{ color: "#777", margin: "0 0 8px" }}>Ready, {userName}?</h3>)}
           <p style={{ color: "#666", marginBottom: 42, lineHeight: 1.4, fontSize: 15 }}>
             Build your streak.<br />Earn a hearts every 10 correct answers.<br />Master German articles.
           </p>
