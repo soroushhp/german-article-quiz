@@ -147,19 +147,21 @@ export default function App() {
     }, 100);
   };
 
-          const shareScore = () => {
-            const text = `🔥 I scored ${finalStreak} in Article Fever!\nCan you beat me?`;
-            const url = `https://t.me/ArticleFever_bot`;
+        const shareScore = () => {
+          const text = `🔥 I scored ${finalStreak} in Article Fever!\nCan you beat me?`;
+          const url = `https://t.me/ArticleFever_bot`;
 
-            if (window.Telegram?.WebApp) {
-              window.Telegram.WebApp.openTelegramLink(
-                `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`
-              );
-            } else {
-              navigator.clipboard.writeText(`${text}\n${url}`);
-              alert("Score copied to clipboard!");
-            }
-          };
+          const tg = window.Telegram?.WebApp;
+
+          if (tg?.openTelegramLink) {
+            tg.openTelegramLink(
+              `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`
+            );
+          } else {
+            navigator.clipboard.writeText(`${text}\n${url}`);
+            alert("Score copied to clipboard!");
+          }
+        };
 
   const current = queue[idx];
 
