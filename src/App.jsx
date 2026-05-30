@@ -45,7 +45,6 @@ export default function App() {
   };
 
   useEffect(() => {
-    alert(window.Telegram?.WebApp?.initData);
     const tg = window.Telegram?.WebApp;
     if (tg) {
       tg.ready();
