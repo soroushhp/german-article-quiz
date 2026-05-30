@@ -45,7 +45,7 @@ export default function App() {
   };
 
   useEffect(() => {
-    alert(JSON.stringify(window.Telegram?.WebApp?.initDataUnsafe));
+    alert(window.Telegram?.WebApp?.initData);
     const tg = window.Telegram?.WebApp;
     if (tg) {
       tg.ready();
