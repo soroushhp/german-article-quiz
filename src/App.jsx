@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import NOUNS from "./data/nouns.json";
 import confetti from "canvas-confetti";
@@ -45,10 +45,13 @@ export default function App() {
   };
 
   useEffect(() => {
-  const handleEsc = e => e.key === "Escape" && setShowQuitPopup(false);
-  if (showQuitPopup) window.addEventListener("keydown", handleEsc);
-  return () => window.removeEventListener("keydown", handleEsc);
-  }, [showQuitPopup]);
+  const tg = window.Telegram?.WebApp;
+  if (tg) {
+    tg.ready();
+    const user = tg.initDataUnsafe?.user;
+    if (user?.first_name) setUserName(user.first_name);
+  }
+  }, []);
 
   const startGame = (diff) => {
     setDifficulty(diff);
@@ -174,7 +177,7 @@ export default function App() {
       {screen === "menu" && (
         <div style={{ textAlign: "center", maxWidth: 420, width: "100%", background: "#F5F5F5", borderRadius: 28, padding: "48px 28px", boxShadow: "0 10px 30px rgba(0,0,0,0.08)" }}>
           <img src="/favicon.svg" style={{ width: 64, height: 64, marginBottom: 24 }} />
-          <h1 style={{ fontSize: 36, fontWeight: 800, letterSpacing: "-1px", margin: "0 0 28px" }}>Article Fever</h1>
+          <h1 style={{ fontSize: 36, fontWeight: 800, color: "#323232", letterSpacing: "-1px", margin: "0 0 28px" }}>Article Fever</h1>
           {userName && (<p style={{ color: "#777", marginTop: -20, marginBottom: 24 }}>Ready, {userName}?</p>)}
           <p style={{ color: "#666", marginBottom: 42, lineHeight: 1.4, fontSize: 15 }}>
             Build your streak.<br />Earn a hearts every 10 correct answers.<br />Master German articles.
@@ -198,7 +201,7 @@ export default function App() {
       {/* ── GAME ── */}
       {screen === "game" && current && (
         <div style={{ width: "100%", maxWidth: 480 }}>
-
+          
           {/* Top bar */}
           <div style={{ position: "fixed", top: 0, left: 0, right: 0, maxWidth: 480, margin: "0 auto",
             display: "flex", justifyContent: "space-between", alignItems: "center", padding: "16px 8px", zIndex: 10 }}>
