@@ -2,6 +2,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import NOUNS from "./data/nouns.json";
 import confetti from "canvas-confetti";
+import { Howl } from "howler";
 
 const ARTICLES = ["der", "die", "das"];
 const DIFFICULTY_LABELS = { beginner: "Beginner", intermediate: "Intermediate", advanced: "Advanced" };
