@@ -45,12 +45,14 @@ export default function App() {
   };
 
   useEffect(() => {
-  const tg = window.Telegram?.WebApp;
-  if (tg) {
-    tg.ready();
-    const user = tg.initDataUnsafe?.user;
-    if (user?.first_name) setUserName(user.first_name);
-  }
+    const tg = window.Telegram?.WebApp;
+    if (tg) {
+      tg.ready();
+      setTimeout(() => {
+        const user = tg.initDataUnsafe?.user;
+        if (user?.first_name) setUserName(user.first_name);
+      }, 300);
+    }
   }, []);
 
   const startGame = (diff) => {
@@ -145,16 +147,19 @@ export default function App() {
     }, 100);
   };
 
-  const shareScore = () => {
-  const text = `🔥 I scored ${finalStreak} in Article Fever!\nCan you beat me?\n\nhttps://t.me/ArticleFever_bot`;
-  
-  if (window.Telegram?.WebApp) {
-    window.open(`https://t.me/share/url?url=&text=${encodeURIComponent(text)}`);
-  } else {
-    navigator.clipboard.writeText(text);
-    alert("Score copied to clipboard!");
-  }
-};
+          const shareScore = () => {
+            const text = `🔥 I scored ${finalStreak} in Article Fever!\nCan you beat me?`;
+            const url = `https://t.me/ArticleFever_bot`;
+
+            if (window.Telegram?.WebApp) {
+              window.Telegram.WebApp.openTelegramLink(
+                `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`
+              );
+            } else {
+              navigator.clipboard.writeText(`${text}\n${url}`);
+              alert("Score copied to clipboard!");
+            }
+          };
 
   const current = queue[idx];
 
