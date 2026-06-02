@@ -219,7 +219,7 @@ export default function App() {
         {/* Row 1: X button and level/best */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
           <button onClick={() => setShowQuitPopup(true)}
-            style={{ border: "none", background: "transparent", fontSize: 32, color: "#777", cursor: "pointer", lineHeight: 1, padding: 12 }}>
+            style={{ border: "none", background: "transparent", fontSize: 32, color: "#777", cursor: "pointer", lineHeight: 1, padding: 12, paddingLeft: 0 }}>
             ×
           </button>
           <span style={{ fontSize: 14, color: "#777" }}>
