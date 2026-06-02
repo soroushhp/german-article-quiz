@@ -29,6 +29,7 @@ export default function App() {
   const [idx, setIdx] = useState(0);
   const [selected, setSelected] = useState(null);
   const [streak, setStreak] = useState(0);
+  const [heartStreak, setHeartStreak] = useState(0);
   const [highScores, setHighScores] = useState({ beginner: getHS("beginner"), intermediate: getHS("intermediate"), advanced: getHS("advanced") });
   const [gameOver, setGameOver] = useState(false);
   const [isNewHigh, setIsNewHigh] = useState(false);
@@ -61,6 +62,7 @@ export default function App() {
     setIdx(0);
     setSelected(null);
     setStreak(0);
+    setHeartStreak(0);
     setGameOver(false);
     setIsNewHigh(false);
     setIsLevelComplete(false);
@@ -74,7 +76,7 @@ export default function App() {
     if (selected !== null || gameOver) return;
 
     const isCorrect = art === queue[idx].article;
-    const isHeartMoment = isCorrect && (streak + 1) % 10 === 0;
+    const isHeartMoment = isCorrect && (heartStreak + 1) % 10 === 0 && hearts < 3;
     const isHeartLose = !isCorrect && hearts > 0;
 
     setSelected(art);
@@ -87,6 +89,7 @@ export default function App() {
       if (!isCorrect) {
         if (hearts > 0) {
           setHearts(h => h - 1);
+          setHeartStreak(0);
           triggerHeartNotification("lose");
           setTimeout(() => {
             const nextIdx = idx + 1;
@@ -122,8 +125,10 @@ export default function App() {
       } else {
         const newStreak = streak + 1;
         setStreak(newStreak);
-        if (newStreak % 10 === 0) {
-          setHearts(h => Math.min(h + 1, 3));
+        const newHeartStreak = heartStreak + 1;
+        setHeartStreak(newHeartStreak);
+        if (newHeartStreak % 10 === 0 && hearts < 3) {
+          setHearts(h => h + 1);
           triggerHeartNotification("gain");
         }
 
@@ -200,57 +205,67 @@ export default function App() {
               </motion.button>
             ))}
           </div>
-          <p style={{ marginTop: 48, fontSize: 11, color: "#999", letterSpacing: 0.5 }}>v1.1</p>
+          <p style={{ marginTop: 48, fontSize: 11, color: "#999", letterSpacing: 0.5 }}>v1.12</p>
         </div>
       )}
 
       {/* ── GAME ── */}
       {screen === "game" && current && (
-        <div style={{ width: "100%", maxWidth: 480 }}>
+        <div style={{ width: "100%", maxWidth: 480, height: "100vh", paddingLeft: 16, paddingRight: 16, boxSizing: "border-box", display: "flex", flexDirection: "column", alignItems: "stretch", justifyContent: "center", paddingTop: 140 }}>
           
-          {/* Top bar */}
-          <div style={{ position: "fixed", top: 0, left: 0, right: 0, maxWidth: 480, margin: "0 auto",
-            display: "flex", justifyContent: "space-between", alignItems: "center", padding: "16px 8px", zIndex: 10 }}>
-            <button onClick={() => setShowQuitPopup(true)}
-            style={{ border: "none", background: "transparent", fontSize: 32, color: "#777", cursor: "pointer", lineHeight: 1}}>
+        {/* Top bar */}
+      <div style={{ position: "fixed", top: 0, left: "50%", transform: "translateX(-50%)", width: "100%", maxWidth: 480, background: "#ffffff", zIndex: 10, padding: "12px 16px" }}>
+        
+        {/* Row 1: X button and level/best */}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+          <button onClick={() => setShowQuitPopup(true)}
+            style={{ border: "none", background: "transparent", fontSize: 32, color: "#777", cursor: "pointer", lineHeight: 1, padding: 12 }}>
             ×
-            </button>
-            <span style={{ fontSize: 14, color: "#777" }}>
+          </button>
+          <span style={{ fontSize: 14, color: "#777" }}>
             {DIFFICULTY_LABELS[difficulty]} • Best: {highScores[difficulty]}
-            </span>
+          </span>
+        </div>
+
+        {/* Row 2: Hearts and streak */}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+            {[1, 2, 3].map(n => (
+              <img key={n} src="/images/heart.png" style={{ width: 32, height: 32, opacity: n <= hearts ? 1 : 0.25 }} />
+            ))}
           </div>
-          {/* Hearts & streak */}
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-              {[1, 2, 3].map(n => (
-                <img key={n} src="/images/heart.png" style={{ width: 32, height: 32, opacity: n <= hearts ? 1 : 0.25 }} />
-              ))}
-            </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-              <img src="/images/streak.png" style={{ width: 32, height: 32 }} />
-              <span style={{ fontSize: 28, fontWeight: 700, color: "#f5a623" }}>{streak}</span>
-            </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+            <img src="/images/streak.png" style={{ width: 32, height: 32 }} />
+            <span style={{ fontSize: 28, fontWeight: 700, color: "#f5a623" }}>{streak}</span>
           </div>
+        </div>
+
+        {/* Row 3: Progress bar */}
+        <div style={{ width: "100%", height: 4, background: "#E0E0E0", borderRadius: 4, transition: "opacity 0.5s ease" }}>
+          <div style={{ height: "100%", width: `${hearts === 3 ? 100 : (heartStreak % 10) * 10}%`, background: GREEN, borderRadius: 4, transition: "width 0.3s ease" }} />
+        </div>
+
+      </div>
 
           {/* Heart notification overlay */}
           <AnimatePresence>
-            {heartNotification && (
+          {heartNotification && (
+            <div style={{ position: "fixed", top: 140, left: 0, right: 0, bottom: 0, display: "flex", alignItems: "center", justifyContent: "center", zIndex: 50, pointerEvents: "none", paddingBottom: 180 }}>
               <motion.div
-                key={heartNotification + Date.now()}
+                key={heartNotification}
                 initial={{ opacity: 0, scale: 0.6 }}
                 animate={{ opacity: 0.85, scale: 1 }}
                 exit={{ opacity: 0, scale: 1.2 }}
                 transition={{ duration: 0.35, ease: "easeOut" }}
-                style={{ position: "fixed", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", zIndex: 50, pointerEvents: "none" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 10, background: heartNotification === "gain" ? "rgba(19,171,94,0.15)" : "rgba(255,0,0,0.1)", borderRadius: 24, padding: "16px 28px" }}>
-                  <img src="/images/heart.png" style={{ width: 64, height: 64 }} />
-                  <span style={{ fontSize: 42, fontWeight: 800, color: heartNotification === "gain" ? GREEN : RED }}>
-                    {heartNotification === "gain" ? "+1" : "-1"}
-                  </span>
-                </div>
+                style={{ display: "flex", alignItems: "center", gap: 10, background: heartNotification === "gain" ? "rgba(19,171,94,0.15)" : "rgba(255,0,0,0.1)", borderRadius: 24, padding: "16px 28px" }}>
+                <img src="/images/heart.png" style={{ width: 64, height: 64 }} />
+                <span style={{ fontSize: 42, fontWeight: 800, color: heartNotification === "gain" ? GREEN : RED }}>
+                  {heartNotification === "gain" ? "+1" : "-1"}
+                </span>
               </motion.div>
-            )}
-          </AnimatePresence>
+            </div>
+          )}
+        </AnimatePresence>
 
           {/* Word card & buttons */}
           <AnimatePresence mode="wait">
@@ -259,9 +274,9 @@ export default function App() {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -30 }}
               transition={{ duration: 0.22, ease: "easeInOut" }}>
-              <div style={{ background: "#D0D0D0", borderRadius: 16, padding: "40px 24px", textAlign: "center", marginBottom: 28 }}>
+              <div style={{ background: "#D0D0D0", borderRadius: 16, padding: "40px 24px", textAlign: "center", marginBottom: 28, height: 100, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
                 <p style={{ margin: "0 0 4px", fontSize: 12, color: "#666", textTransform: "uppercase", letterSpacing: 1 }}>What is the article for...</p>
-                <h2 style={{ margin: 0, fontSize: 40, fontWeight: 700, color: "#323232" }}>{current.word}</h2>
+                <h2 style={{ margin: 0, fontSize: current.word.length > 15 ? 28 : current.word.length > 10 ? 36 : 40, fontWeight: 700, color: "#323232", wordBreak: "break-word" }}>{current.word}</h2>
                 <p style={{ margin: "8px 0 0", fontSize: 13, color: "#555" }}>({current.meaning})</p>
               </div>
               <div style={{ display: "flex", gap: 12, marginBottom: 64 }}>
@@ -269,7 +284,7 @@ export default function App() {
                   const { bg, color, border } = btnStyle(art);
                   return (
                     <motion.button whileTap={{ scale: 0.95 }} key={art} onClick={() => handleAnswer(art)}
-                      style={{ flex: 1, padding: "18px 0", borderRadius: 12, border, background: bg, color: "#323232", fontSize: 22, fontWeight: 700, cursor: selected ? "default" : "pointer", transition: "background 0.15s, color 0.15s, transform 0.1s" }}>
+                      style={{ flex: 1, padding: "18px 0", borderRadius: 12, border, background: bg, color, fontSize: 22, fontWeight: 700, cursor: selected ? "default" : "pointer", transition: "background 0.15s, color 0.15s, transform 0.1s" }}>
                       {art}
                     </motion.button>
                   );
@@ -314,12 +329,12 @@ export default function App() {
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ duration: 0.25, ease: "easeOut" }}
                 style={{ background: "#fff", borderRadius: 20, padding: "48px 36px", maxWidth: 360, width: "100%", textAlign: "center", boxShadow: "0 8px 40px rgba(0,0,0,0.2)" }}>
-                <div style={{ fontSize: 52, marginBottom: 16 }}>{modalEmoji}</div>
+                <div style={{ fontSize: 42, marginBottom: 16 }}>{modalEmoji}</div>
                 <h2 style={{ margin: "0 0 24px", fontSize: 24, color: "#323232" }}>{modalTitle}</h2>
-                <p style={{ color: "#777", margin: "0 0 16px", fontSize: 14 }}>{DIFFICULTY_LABELS[difficulty]}</p>
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10, marginBottom: 12 }}>
-                  <img src="/images/streak.png" style={{ width: 64, height: 64 }} />
-                  <div style={{ fontSize: 52, fontWeight: 700, color: "#f5a623" }}>{finalStreak}</div>
+                <p style={{ color: "#777", margin: "0 0 0px", fontSize: 14 }}>{DIFFICULTY_LABELS[difficulty]}</p>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 4 }}>
+                  <img src="/images/streak.png" style={{ width: 48, height: 48 }} />
+                  <div style={{ fontSize: 48, fontWeight: 700, color: "#f5a623" }}>{finalStreak}</div>
                 </div>
                 <p style={{ color: "#999", fontSize: 13, marginBottom: 16 }}>
                   {isLevelComplete
