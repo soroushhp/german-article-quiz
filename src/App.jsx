@@ -211,7 +211,7 @@ export default function App() {
 
       {/* ── GAME ── */}
       {screen === "game" && current && (
-        <div style={{ width: "100%", maxWidth: 480, height: "100vh", paddingLeft: 16, paddingRight: 16, boxSizing: "border-box", display: "flex", flexDirection: "column", alignItems: "stretch", justifyContent: "center", paddingTop: 140 }}>
+        <div style={{ width: "100%", maxWidth: 480, height: "100vh", paddingLeft: 16, paddingRight: 16, boxSizing: "border-box", display: "flex", flexDirection: "column", alignItems: "stretch", justifyContent: "center", paddingTop: 60 }}>
           
         {/* Top bar */}
         <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "#ffffff", zIndex: 10, padding: "12px 16px" }}>
@@ -250,7 +250,7 @@ export default function App() {
           {/* Heart notification overlay */}
           <AnimatePresence>
           {heartNotification && (
-            <div style={{ position: "fixed", top: 140, left: 0, right: 0, bottom: 0, display: "flex", alignItems: "center", justifyContent: "center", zIndex: 50, pointerEvents: "none", paddingBottom: 180 }}>
+            <div style={{ position: "fixed", top: 140, left: 0, right: 0, bottom: 0, display: "flex", alignItems: "center", justifyContent: "center", zIndex: 50, pointerEvents: "none", paddingBottom: 200 }}>
               <motion.div
                 key={heartNotification}
                 initial={{ opacity: 0, scale: 0.6 }}
