@@ -211,7 +211,7 @@ export default function App() {
 
       {/* ── GAME ── */}
       {screen === "game" && current && (
-        <div style={{ width: "100%", maxWidth: 480, height: "100vh", padding: 0, boxSizing: "border-box", display: "flex", flexDirection: "column", alignItems: "stretch", justifyContent: "center", paddingTop: 60 }}>
+        <div style={{ width: "100%", maxWidth: 480, height: "100vh", padding: 16, boxSizing: "border-box", display: "flex", flexDirection: "column", alignItems: "stretch", justifyContent: "center", paddingTop: 60 }}>
           
         {/* Top bar */}
         <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "#ffffff", zIndex: 10, padding: "12px 16px" }}>
