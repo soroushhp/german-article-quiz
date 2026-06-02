@@ -214,7 +214,7 @@ export default function App() {
         <div style={{ width: "100%", maxWidth: 480, height: "100vh", paddingLeft: 16, paddingRight: 16, boxSizing: "border-box", display: "flex", flexDirection: "column", alignItems: "stretch", justifyContent: "center", paddingTop: 140 }}>
           
         {/* Top bar */}
-      <div style={{ position: "fixed", top: 0, left: "50%", transform: "translateX(-50%)", width: "100%", maxWidth: 480, background: "#ffffff", zIndex: 10, padding: "12px 16px" }}>
+      <div style={{ position: "fixed", top: 0, left: "50%", transform: "translateX(-50%)", width: "100%", maxWidth: 480, background: "#ffffff", zIndex: 10, padding: "12px 24px" }}>
         
         {/* Row 1: X button and level/best */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
@@ -276,7 +276,7 @@ export default function App() {
               transition={{ duration: 0.22, ease: "easeInOut" }}>
               <div style={{ background: "#D0D0D0", borderRadius: 16, padding: "40px 24px", textAlign: "center", marginBottom: 28, height: 100, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
                 <p style={{ margin: "0 0 4px", fontSize: 12, color: "#666", textTransform: "uppercase", letterSpacing: 1 }}>What is the article for...</p>
-                <h2 style={{ margin: 0, fontSize: current.word.length > 15 ? 28 : current.word.length > 10 ? 36 : 40, fontWeight: 700, color: "#323232", wordBreak: "break-word" }}>{current.word}</h2>
+                <h2 style={{ margin: 0, fontSize: current.word.length > 15 ? 28 : current.word.length > 10 ? 32 : 40, fontWeight: 700, color: "#323232", wordBreak: "break-word" }}>{current.word}</h2>
                 <p style={{ margin: "8px 0 0", fontSize: 13, color: "#555" }}>({current.meaning})</p>
               </div>
               <div style={{ display: "flex", gap: 12, marginBottom: 64 }}>
