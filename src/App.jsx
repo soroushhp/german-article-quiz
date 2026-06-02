@@ -211,7 +211,7 @@ export default function App() {
 
       {/* ── GAME ── */}
       {screen === "game" && current && (
-        <div style={{ width: "100%", maxWidth: 480, height: "100vh", paddingLeft: 16, paddingRight: 16, boxSizing: "border-box", display: "flex", flexDirection: "column", alignItems: "stretch", justifyContent: "center", paddingTop: 60 }}>
+        <div style={{ width: "100%", maxWidth: 480, height: "100vh", padding: 0, boxSizing: "border-box", display: "flex", flexDirection: "column", alignItems: "stretch", justifyContent: "center", paddingTop: 60 }}>
           
         {/* Top bar */}
         <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "#ffffff", zIndex: 10, padding: "12px 16px" }}>
@@ -284,7 +284,7 @@ export default function App() {
                   const { bg, color, border } = btnStyle(art);
                   return (
                     <motion.button whileTap={{ scale: 0.95 }} key={art} onClick={() => handleAnswer(art)}
-                      style={{ flex: 1, padding: "18px 0", borderRadius: 12, border, background: bg, color, fontSize: 22, fontWeight: 700, cursor: selected ? "default" : "pointer", transition: "background 0.15s, color 0.15s, transform 0.1s" }}>
+                      style={{ flex: 1, padding: "16px 0", borderRadius: 12, border, background: bg, color, fontSize: 22, fontWeight: 700, cursor: selected ? "default" : "pointer", transition: "background 0.15s, color 0.15s, transform 0.1s" }}>
                       {art}
                     </motion.button>
                   );
