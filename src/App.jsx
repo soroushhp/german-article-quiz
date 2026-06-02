@@ -187,7 +187,7 @@ export default function App() {
 
       {/* ── MENU ── */}
       {screen === "menu" && (
-        <div style={{ textAlign: "center", maxWidth: 420, width: "100%", background: "#F5F5F5", borderRadius: 28, padding: "48px 28px", boxShadow: "0 10px 30px rgba(0,0,0,0.08)" }}>
+        <div style={{ textAlign: "center", maxWidth: 420, width: "100%", padding: "48px 28px" }}>
           <img src="/favicon.svg" style={{ width: 64, height: 64, marginBottom: 20 }} />
           <h1 style={{ fontSize: 36, fontWeight: 800, color: "#323232", letterSpacing: "-1px", margin: "0 0 16px" }}>Article Fever</h1>
           <p style={{ color: "#666", marginBottom: 42, lineHeight: 1.4, fontSize: 15 }}>
