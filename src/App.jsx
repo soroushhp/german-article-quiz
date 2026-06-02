@@ -214,7 +214,7 @@ export default function App() {
         <div style={{ width: "100%", maxWidth: 480, height: "100vh", paddingLeft: 16, paddingRight: 16, boxSizing: "border-box", display: "flex", flexDirection: "column", alignItems: "stretch", justifyContent: "center", paddingTop: 140 }}>
           
         {/* Top bar */}
-        <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "#ffffff", zIndex: 10, padding: "12px 32px" }}>
+        <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "#ffffff", zIndex: 10, padding: "12px 16px" }}>
         
         {/* Row 1: X button and level/best */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
