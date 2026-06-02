@@ -183,7 +183,7 @@ export default function App() {
   const modalTitle = isLevelComplete ? "Level Complete!" : isNewHigh ? "New High Score!" : "Streak Broken!";
 
   return (
-    <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Segoe UI', sans-serif", background: "#ffffff", color: "#111", padding: 16, colorScheme: "light" }}>
+    <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Segoe UI', sans-serif", background: "#ffffff", color: "#111", colorScheme: "light" }}>
 
       {/* ── MENU ── */}
       {screen === "menu" && (
