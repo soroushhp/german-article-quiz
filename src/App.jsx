@@ -426,7 +426,7 @@ export default function App() {
                 What is the article for...
               </p>
               <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
-                <h2 style={{ margin: 0, fontSize: current.word.length > 15 ? 32 : current.word.length > 10 ? 38 : 48, fontWeight: 800, color: "#2D2D2D", wordBreak: "break-word", lineHeight: 1.1 }}>
+                <h2 style={{ margin: 0, fontSize: current.word.length > 15 ? 30 : current.word.length > 10 ? 38 : 48, fontWeight: 800, color: "#2D2D2D", wordBreak: "break-word", lineHeight: 1.1 }}>
                   {current.word}
                 </h2>
                 <p style={{ margin: 0, fontSize: 16, fontWeight: 600, color: "#ADADAD" }}>
