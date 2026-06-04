@@ -420,7 +420,7 @@ export default function App() {
               exit={{ opacity: 0, x: -30 }}
               transition={{ duration: 0.22, ease: "easeInOut" }}
               style={{ width: "100%" }}>
-              <div style={{ background: "#FFFFFF", borderRadius: 24, boxShadow: "0 4px 16px rgba(0,0,0,0.06)", padding: "32px 40px", textAlign: "center", height: 300, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "space-between" }}>
+              <div style={{ background: "#FFFFFF", borderRadius: 24, boxShadow: "0 4px 16px rgba(0,0,0,0.06)", padding: "32px 48px", textAlign: "center", height: 300, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "space-between" }}>
   
               <p style={{ margin: 0, fontSize: 11, color: "#ADADAD", textTransform: "uppercase", letterSpacing: 1.5 }}>
                 What is the article for...
