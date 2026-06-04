@@ -209,7 +209,7 @@ export default function App() {
   const modalTitle = isLevelComplete ? "Level Complete!" : isNewHigh ? "New High Score!" : "Streak Broken!";
 
   return (
-    <div style={{ width: "100%", height: "100vh", paddingTop: 152, paddingBottom: 114, paddingLeft: 4, paddingRight: 4, boxSizing: "border-box", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+    <div style={{ width: "100%", height: "100vh", paddingTop: 152, paddingBottom: 98, paddingLeft: 16, paddingRight: 16, boxSizing: "border-box", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
 
   {/* ── MENU ── */}
   {screen === "menu" && (
@@ -269,13 +269,11 @@ export default function App() {
                 width: "100%",
                 maxWidth: 480,
                 height: "100vh",
-                padding: 16,
                 boxSizing: "border-box",
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "stretch",
                 justifyContent: "center",
-                paddingTop: 60,
               }}
             >
                 
