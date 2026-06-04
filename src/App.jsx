@@ -420,13 +420,13 @@ export default function App() {
               exit={{ opacity: 0, x: -30 }}
               transition={{ duration: 0.22, ease: "easeInOut" }}
               style={{ width: "100%" }}>
-              <div style={{ background: "#FFFFFF", borderRadius: 24, boxShadow: "0 4px 16px rgba(0,0,0,0.06)", padding: "32px 48px", textAlign: "center", height: 300, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "space-between" }}>
+              <div style={{ background: "#FFFFFF", borderRadius: 24, boxShadow: "0 4px 16px rgba(0,0,0,0.06)", padding: "32px 16px", textAlign: "center", height: 300, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "space-between" }}>
   
               <p style={{ margin: 0, fontSize: 11, color: "#ADADAD", textTransform: "uppercase", letterSpacing: 1.5 }}>
                 What is the article for...
               </p>
               <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
-                <h2 style={{ margin: 0, fontSize: current.word.length > 15 ? 30 : current.word.length > 10 ? 36 : current.word.length > 8 ? 40 : 44, fontWeight: 800, color: "#2D2D2D", wordBreak: "break-word", lineHeight: 1.1 }}>
+                <h2 style={{ margin: 0, fontSize: current.word.length > 15 ? 30 : current.word.length > 10 ? 32 : current.word.length > 8 ? 36 : 44, fontWeight: 800, color: "#2D2D2D", wordBreak: "break-word", lineHeight: 1.1 }}>
                   {current.word}
                 </h2>
                 <p style={{ margin: 0, fontSize: 16, fontWeight: 600, color: "#ADADAD" }}>
