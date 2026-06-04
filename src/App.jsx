@@ -209,7 +209,7 @@ export default function App() {
   const modalTitle = isLevelComplete ? "Level Complete!" : isNewHigh ? "New High Score!" : "Streak Broken!";
 
   return (
-    <div style={{ width: "100%", height: "100vh", paddingTop: 152, paddingBottom: 114, paddingLeft: 16, paddingRight: 16, boxSizing: "border-box", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+    <div style={{ width: "100%", height: "100vh", paddingTop: 152, paddingBottom: 114, paddingLeft: 8, paddingRight: 8, boxSizing: "border-box", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
 
   {/* ── MENU ── */}
   {screen === "menu" && (
@@ -394,7 +394,7 @@ export default function App() {
           {/* Heart notification overlay */}
           <AnimatePresence>
           {heartNotification && (
-            <div style={{ position: "fixed", top: 152, left: 0, right: 0, bottom: 98, display: "flex", alignItems: "center", justifyContent: "center", zIndex: 50, pointerEvents: "none" }}>
+            <div style={{ position: "fixed", top: 152, left: 0, right: 0, bottom: 192, display: "flex", alignItems: "center", justifyContent: "center", zIndex: 50, pointerEvents: "none" }}>
               <motion.div
                 key={heartNotification}
                 initial={{ opacity: 0, scale: 0.5, y: 20 }}
