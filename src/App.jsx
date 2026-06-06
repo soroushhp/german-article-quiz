@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import NOUNS from "./data/nouns.json";
 import confetti from "canvas-confetti";
 import { Howl } from "howler";
+import { supabase } from "./supabase";
 
 const ARTICLES = ["der", "die", "das"];
 const DIFFICULTY_LABELS = { beginner: "Beginner", intermediate: "Intermediate", advanced: "Advanced" };
@@ -22,6 +23,37 @@ const sounds = {
   levelComplete: new Howl({ src: ["/sounds/levelcomplete.mp3"], volume: 0.2, preload: true }),
 };
 
+async function saveScore(telegramId, username, difficulty, score) {
+  const { data } = await supabase
+    .from("leaderboard")
+    .select("*")
+    .eq("telegram_id", telegramId)
+    .eq("difficulty", difficulty)
+    .maybeSingle();
+
+  if (!data) {
+    await supabase.from("leaderboard").insert({
+      telegram_id: telegramId,
+      username,
+      difficulty,
+      best_score: score
+    });
+
+    return;
+  }
+
+  if (score > data.best_score) {
+    await supabase
+      .from("leaderboard")
+      .update({
+        best_score: score,
+        username,
+        updated_at: new Date().toISOString()
+      })
+      .eq("id", data.id);
+  }
+}
+
 export default function App() {
   const [screen, setScreen] = useState("menu");
   const [difficulty, setDifficulty] = useState(null);
@@ -39,6 +71,7 @@ export default function App() {
   const [heartNotification, setHeartNotification] = useState(null);
   const [showQuitPopup, setShowQuitPopup] = useState(false);
   const [userName, setUserName] = useState("");
+  const [telegramId, setTelegramId] = useState(null);
 
   const triggerHeartNotification = (type) => {
     setHeartNotification(type);
@@ -46,12 +79,13 @@ export default function App() {
   };
 
   useEffect(() => {
-    const tg = window.Telegram?.WebApp;
-    if (tg) {
-      tg.ready();
-      setTimeout(() => {
-        const user = tg.initDataUnsafe?.user;
-        if (user?.first_name) setUserName(user.first_name);
+  const tg = window.Telegram?.WebApp;
+  if (tg) {
+    tg.ready();
+    setTimeout(() => {
+      const user = tg.initDataUnsafe?.user;
+      if (user?.first_name) setUserName(user.first_name);
+      if (user?.id) setTelegramId(String(user.id));
       }, 300);
     }
   }, []);
@@ -116,6 +150,9 @@ export default function App() {
           confetti({ particleCount: 160, spread: 90, origin: { y: 0.6 } });
           sounds.highscore.play();
           saveHS(difficulty, newStreak);
+          if (telegramId) {
+            saveScore(telegramId, userName, difficulty, newStreak);
+          }
           setHighScores(hs => ({ ...hs, [difficulty]: newStreak }));
         }
         setFinalStreak(newStreak);
@@ -137,6 +174,11 @@ export default function App() {
           sounds.levelComplete.play();
           confetti({ particleCount: 160, spread: 90, origin: { y: 0.6 } });
           saveHS(difficulty, newStreak);
+
+          if (telegramId) {
+            saveScore(telegramId, userName, difficulty, newStreak);
+          }
+
           setHighScores(hs => ({ ...hs, [difficulty]: newStreak }));
           setFinalStreak(newStreak);
           setIsLevelComplete(true);
@@ -424,7 +466,7 @@ export default function App() {
                 What is the article for...
               </p>
               <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
-                <h2 style={{ margin: 0, fontSize: current.word.length > 15 ? 30 : current.word.length > 10 ? 32 : current.word.length > 8 ? 36 : 44, fontWeight: 800, color: "#2D2D2D", wordBreak: "break-word", lineHeight: 1.1 }}>
+                <h2 style={{ margin: 0, fontSize: current.word.length > 15 ? 32 : current.word.length > 10 ? 36 : current.word.length > 8 ? 40 : 48, fontWeight: 800, color: "#2D2D2D", wordBreak: "break-word", lineHeight: 1.1 }}>
                   {current.word}
                 </h2>
                 <p style={{ margin: 0, fontSize: 16, fontWeight: 600, color: "#ADADAD" }}>
