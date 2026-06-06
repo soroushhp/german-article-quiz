@@ -145,7 +145,7 @@ export default function App() {
 
         const newStreak = streak;
         const prev = getHS(difficulty);
-        const isNew = true;
+        const isNew = newStreak > prev;
         if (isNew) {
           confetti({ particleCount: 160, spread: 90, origin: { y: 0.6 } });
           sounds.highscore.play();
