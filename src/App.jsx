@@ -334,20 +334,23 @@ export default function App() {
                   <span style={{ fontSize: 13, color: "#767676" }}>🏆 {highScores[d]}</span>
                 </motion.button>
               ))}
-              <motion.button
-                onClick={openLeaderboard}
-                whileTap={{ scale: 0.97 }}
-                whileHover={{ scale: 1.02 }}
-                style={{
-                  ...menuBtnStyle,
-                  marginTop: 16,
-                  background: "#FFF4E8",
-                  border: `2px solid ${GOLD}`,
-                  color: GOLD
-                }}
-              >
-                <span>🏆 Leaderboard</span>
-              </motion.button>
+                <motion.button
+                  onClick={openLeaderboard}
+                  whileTap={{ scale: 0.97 }}
+                  whileHover={{ scale: 1.02 }}
+                  style={{
+                    ...menuBtnStyle,
+                    marginTop: 16,
+                    background: "#FFF4E8",
+                    border: `2px solid ${GOLD}`,
+                    color: GOLD
+                  }}
+                >
+                  <span style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
+                    <span style={{ fontSize: 14 }}>🏆</span>
+                    <span>Leaderboard</span>
+                  </span>
+                </motion.button>
             </div>
             <p style={{ marginTop: 48, fontSize: 11, color: "#767676", opacity: 0.7, letterSpacing: 0.5 }}>v2.0</p>
           </div>
