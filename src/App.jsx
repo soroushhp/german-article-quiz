@@ -318,7 +318,6 @@ export default function App() {
           <div style={{ textAlign: "center", maxWidth: 420, width: "100%" }}>
             <img src="/favicon.svg" style={{ width: 72, height: 72, marginBottom: 20 }} />
             <h1 style={{ fontSize: 36, fontWeight: 800, color: "#2D2D2D", letterSpacing: "-1px", margin: "0 0 16px" }}>Article Fever</h1>
-            {userName && <p style={{ color: "#767676", marginBottom: 8, fontSize: 15 }}>Ready, {userName}?</p>}
             <p style={{ color: "#767676", marginBottom: 42, lineHeight: 1.5, fontSize: 15 }}>
               Build your streak.<br />
               10 correct in a row = +1 heart.<br />
