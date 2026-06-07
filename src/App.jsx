@@ -289,7 +289,7 @@ export default function App() {
 
   // Shared button style for menu
   const menuBtnStyle = {
-    padding: "18px 24px",
+    padding: "16px 24px",
     borderRadius: 48,
     border: "2px solid #D8D1C7",
     background: "#FFFFFF",
@@ -316,14 +316,14 @@ export default function App() {
       {screen === "menu" && (
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "100vh", padding: "48px 24px", boxSizing: "border-box" }}>
           <div style={{ textAlign: "center", maxWidth: 420, width: "100%" }}>
-            <img src="/favicon.svg" style={{ width: 72, height: 72, marginBottom: 20 }} />
+            <img src="/favicon.svg" style={{ width: 72, height: 72, marginBottom: 16 }} />
             <h1 style={{ fontSize: 36, fontWeight: 800, color: "#2D2D2D", letterSpacing: "-1px", margin: "0 0 16px" }}>Article Fever</h1>
-            <p style={{ color: "#767676", marginBottom: 42, lineHeight: 1.5, fontSize: 15 }}>
+            <p style={{ color: "#767676", marginBottom: 32, lineHeight: 1.5, fontSize: 15 }}>
               Build your streak.<br />
               10 correct in a row = +1 heart.<br />
               Master German articles.
             </p>
-            <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               {["beginner", "intermediate", "advanced"].map(d => (
                 <motion.button key={d}
                   onClick={() => setTimeout(() => startGame(d), 120)}
