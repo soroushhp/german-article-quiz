@@ -111,6 +111,7 @@ export default function App() {
   const [isNewHigh, setIsNewHigh]         = useState(false);
   const [isLevelComplete, setIsLevelComplete] = useState(false);
   const [finalStreak, setFinalStreak]     = useState(0);
+  const [answerHistory, setAnswerHistory] = useState([]);
   const [heartNotification, setHeartNotification] = useState(null);
   const [showQuitPopup, setShowQuitPopup] = useState(false);
   const [userName, setUserName]           = useState("");
@@ -183,6 +184,7 @@ export default function App() {
     setStreak(0);
     setHeartStreak(0);
     setHearts(3);
+    setAnswerHistory([]);
     setGameOver(false);
     setIsNewHigh(false);
     setIsLevelComplete(false);
@@ -195,6 +197,16 @@ export default function App() {
     if (selected !== null || gameOver) return;
 
     const isCorrect     = art === queue[idx].article;
+    setAnswerHistory(prev => [
+      ...prev,
+      {
+        word: queue[idx].word,
+        meaning: queue[idx].meaning,
+        article: queue[idx].article,
+        selected: art,
+        correct: isCorrect
+      }
+    ]);
     const isHeartMoment = isCorrect && (heartStreak + 1) % 10 === 0 && hearts < 3;
     const isHeartLose   = !isCorrect && hearts > 0;
 
@@ -307,6 +319,8 @@ export default function App() {
   // ── Leaderboard helpers ────────────────────────────────
   const currentLbData = lbData[lbTab];
   const isUserInTop10 = currentLbData?.top10?.some(p => p.telegram_id === telegramId);
+  const correctCount = answerHistory.filter(a => a.correct).length;
+  const incorrectCount = answerHistory.length - correctCount;
 
   // ── Render ─────────────────────────────────────────────
   return (
@@ -320,7 +334,7 @@ export default function App() {
             <h1 style={{ fontSize: 36, fontWeight: 800, color: "#2D2D2D", letterSpacing: "-1px", margin: "0 0 16px" }}>Article Fever</h1>
             <p style={{ color: "#767676", marginBottom: 32, lineHeight: 1.5, fontSize: 15 }}>
               Build your streak.<br />
-              10 correct in a row = +1 heart.<br />
+              Earn a heart with 10 correct in a row.<br />
               Master German articles.
             </p>
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
@@ -352,67 +366,47 @@ export default function App() {
                   </span>
                 </motion.button>
             </div>
-            <p style={{ marginTop: 48, fontSize: 11, color: "#767676", opacity: 0.7, letterSpacing: 0.5 }}>v2.0</p>
+            <p style={{ marginTop: 48, fontSize: 11, color: "#767676", opacity: 0.7, letterSpacing: 0.5 }}>v2.1</p>
           </div>
         </div>
       )}
 
       {/* ── LEADERBOARD ── */}
       {screen === "leaderboard" && (
-        <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh", padding: "24px 16px", boxSizing: "border-box", maxWidth: 480, margin: "0 auto" }}>
+        <div style={{ display: "flex", flexDirection: "column", height: "100vh", maxWidth: 480, margin: "0 auto", boxSizing: "border-box" }}>
 
           {/* Header */}
-          <div style={{ display: "flex", alignItems: "center", marginBottom: 24 }}>
-            <button onClick={() => setScreen("menu")}
-              style={{ border: "none", background: "transparent", fontSize: 28, color: "#767676", cursor: "pointer", padding: "8px 8px 8px 0", lineHeight: 1 }}>
-              ←
-            </button>
-            <h1 style={{ margin: 0, fontSize: 24, fontWeight: 800, color: "#2D2D2D" }}>🏆 Leaderboard</h1>
+          <div style={{ flexShrink: 0, background: "#FFFAF4", padding: "24px 16px 12px" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 24 }}>
+              <motion.button
+                onClick={() => setScreen("menu")}
+                whileTap={{ scale: 0.95, backgroundColor: "#E6E1DA" }}
+                style={{ border: "none", background: "transparent", borderRadius: 24, fontSize: 28, color: "#767676", cursor: "pointer", padding: 8, lineHeight: 1 }}>
+                ←
+              </motion.button>
+              <h1 style={{ margin: 0, fontSize: 24, fontWeight: 800, color: "#2D2D2D" }}>
+                🏆 Leaderboard
+              </h1>
+            </div>
+
+            {/* Tabs */}
+            <div style={{ display: "flex", background: "#FFFFFF", border: "2px solid #D8D1C7", borderRadius: 48, padding: 4, position: "relative" }}>
+              {["beginner", "intermediate", "advanced"].map(d => (
+                <button key={d} onClick={() => switchTab(d)}
+                  style={{ flex: 1, padding: "10px 0", border: "none", borderRadius: 48, background: "transparent", color: lbTab === d ? "#FFFFFF" : "#767676", fontSize: 14, fontWeight: 800, cursor: "pointer", position: "relative", zIndex: 1 }}>
+                  {lbTab === d && (
+                    <motion.div layoutId="leaderboardTab"
+                      style={{ position: "absolute", inset: 0, background: GOLD, borderRadius: 48, zIndex: -1 }}
+                      transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                    />
+                  )}
+                  {DIFFICULTY_LABELS[d]}
+                </button>
+              ))}
+            </div>
           </div>
 
-          {/* Tabs */}
-          <div style={{ display: "flex", background: "#FFFFFF", border: "2px solid #D8D1C7", borderRadius: 48, padding: 4, marginBottom: 24, position: "relative" }}>
-            {["beginner", "intermediate", "advanced"].map(d => (
-              <button
-                key={d}
-                onClick={() => switchTab(d)}
-                style={{
-                  flex: 1,
-                  padding: "10px 0",
-                  border: "none",
-                  borderRadius: 48,
-                  background: "transparent",
-                  color: lbTab === d ? "#FFFFFF" : "#767676",
-                  fontSize: 13,
-                  fontWeight: 700,
-                  cursor: "pointer",
-                  position: "relative",
-                  zIndex: 1
-                }}
-              >
-                {lbTab === d && (
-                  <motion.div
-                    layoutId="leaderboardTab"
-                    style={{
-                      position: "absolute",
-                      inset: 0,
-                      background: GOLD,
-                      borderRadius: 48,
-                      zIndex: -1
-                    }}
-                    transition={{
-                      type: "spring",
-                      stiffness: 400,
-                      damping: 30
-                    }}
-                  />
-                )}
-                {DIFFICULTY_LABELS[d]}
-              </button>
-            ))}
-          </div>
-
-          {/* Content */}
+          {/* Scrollable list */}
           {lbLoading ? (
             <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center" }}>
               <motion.div
@@ -422,22 +416,21 @@ export default function App() {
               />
             </div>
           ) : currentLbData ? (
-            <div style={{ flex: 1 }}>
-              {currentLbData.top10.length === 0 ? (
-                <p style={{ textAlign: "center", color: "#ADADAD", marginTop: 48 }}>No scores yet. Be the first!</p>
-              ) : (
-                <>
-                  {/* Top 10 */}
-                  {currentLbData.top10.map((player, i) => {
+            <>
+              <div style={{ flex: 1, overflowY: "auto", padding: "12px 16px" }}>
+                {currentLbData.top10.length === 0 ? (
+                  <p style={{ textAlign: "center", color: "#ADADAD", marginTop: 48 }}>No scores yet. Be the first!</p>
+                ) : (
+                  currentLbData.top10.map((player, i) => {
                     const isMe = player.telegram_id === telegramId;
                     return (
                       <div key={player.id}
-                        style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", borderRadius: 16, marginBottom: 8, background: isMe ? "#FFF4E8" : "#FFFFFF", border: `2px solid ${isMe ? GOLD : "#F0EBE3"}` }}>
+                        style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 16px", borderRadius: 16, marginBottom: 4, background: isMe ? "#FFF4E8" : "#FFFFFF", border: `2px solid ${isMe ? GOLD : "#F0EBE3"}` }}>
                         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                           <span style={{ fontSize: 15, fontWeight: 800, color: i < 3 ? GOLD : "#ADADAD", width: 24 }}>
                             {i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `${i + 1}.`}
                           </span>
-                          <span style={{ fontSize: 15, fontWeight: isMe ? 800 : 600, color: isMe ? "#2D2D2D" : "#2D2D2D" }}>
+                          <span style={{ fontSize: 15, fontWeight: isMe ? 800 : 600, color: "#2D2D2D" }}>
                             {player.username || "Anonymous"} {isMe ? "(you)" : ""}
                           </span>
                         </div>
@@ -447,13 +440,17 @@ export default function App() {
                         </div>
                       </div>
                     );
-                  })}
+                  })
+                )}
+              </div>
 
-                  {/* User outside top 10 */}
-                  {!isUserInTop10 && currentLbData.userRow && (
+              {/* Pinned bottom — only when user is outside top 10 */}
+              {!isUserInTop10 && (
+                <div style={{ flexShrink: 0, padding: "8px 16px 32px", borderTop: "1px solid #F0EBE3" }}>
+                  {currentLbData.userRow ? (
                     <>
-                      <div style={{ textAlign: "center", color: "#ADADAD", fontSize: 20, padding: "8px 0" }}>•••</div>
-                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", borderRadius: 16, background: "#FFF4E8", border: `2px solid ${GOLD}` }}>
+                      <div style={{ textAlign: "center", color: "#ADADAD", fontSize: 18, padding: "4px 0 8px" }}>•••</div>
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 16px", borderRadius: 16, background: "#FFF4E8", border: `2px solid ${GOLD}` }}>
                         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                           <span style={{ fontSize: 15, fontWeight: 800, color: GOLD, width: 24 }}>{currentLbData.userRank}.</span>
                           <span style={{ fontSize: 15, fontWeight: 800, color: "#2D2D2D" }}>
@@ -466,21 +463,101 @@ export default function App() {
                         </div>
                       </div>
                     </>
-                  )}
-
-                  {/* User has no score in this difficulty */}
-                  {!isUserInTop10 && !currentLbData.userRow && telegramId && (
-                    <>
-                      <div style={{ textAlign: "center", color: "#ADADAD", fontSize: 20, padding: "8px 0" }}>•••</div>
-                      <p style={{ textAlign: "center", color: "#ADADAD", fontSize: 14, padding: "12px 0" }}>You haven't played this level yet.</p>
-                    </>
-                  )}
-                </>
+                  ) : telegramId ? (
+                    <p style={{ textAlign: "center", color: "#ADADAD", fontSize: 14, padding: "12px 0", margin: 0 }}>
+                      You haven't played this level yet.
+                    </p>
+                  ) : null}
+                </div>
               )}
-            </div>
+            </>
           ) : null}
+
         </div>
       )}
+
+
+    {/* ── SESSION REVIEW ── */}
+    {screen === "review" && (
+      <div style={{ height: "100vh", display: "flex", flexDirection: "column", maxWidth: 480, margin: "0 auto", boxSizing: "border-box" }}>
+
+        {/* Fixed header */}
+        <div style={{ flexShrink: 0, padding: "24px 16px 12px", background: "#FFFAF4" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <motion.button
+              onClick={() => { setScreen("game"); setGameOver(true); }}
+              whileTap={{ scale: 0.95, backgroundColor: "#E6E1DA" }}
+              style={{ border: "none", background: "transparent", borderRadius: 24, fontSize: 28, color: "#767676", cursor: "pointer", padding: 8, lineHeight: 1 }}>
+              ←
+            </motion.button>
+            <h1 style={{ margin: 0, fontSize: 24, fontWeight: 800, color: "#2D2D2D" }}>Session Review</h1>
+          </div>
+        </div>
+
+        {/* Scrollable content with bottom fade */}
+        <div style={{ flex: 1, position: "relative", overflow: "hidden" }}>
+          <div style={{ height: "100%", overflowY: "auto", padding: "12px 16px 48px" }}>
+
+            {/* Wrong answers section */}
+            {incorrectCount > 0 && (
+              <div style={{ marginBottom: 24 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <path d="M3 3L13 13M13 3L3 13" stroke={RED} strokeWidth="2" strokeLinecap="round"/>
+                  </svg>
+                  <span style={{ fontSize: 16, fontWeight: 800, color: RED, textTransform: "uppercase", letterSpacing: 1 }}>
+                    {incorrectCount} mistake{incorrectCount !== 1 ? "s" : ""}
+                  </span>
+                </div>
+                {answerHistory.filter(a => !a.correct).map((answer, i) => (
+                  <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, background: "#FFF0F0", border: "2px solid " + RED, borderRadius: 16, padding: "8px 14px", marginBottom: 4 }}>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: 15, fontWeight: 700, lineHeight: 1.3 }}>
+                        <span style={{ color: RED }}>{answer.selected}</span>
+                        <span style={{ color: "#2D2D2D" }}> {answer.word}</span>
+                        <span style={{ color: "#ADADAD" }}> → </span>
+                        <span style={{ color: GREEN }}>{answer.article}</span>
+                        <span style={{ color: "#2D2D2D" }}> {answer.word}</span>
+                      </div>
+                      <div style={{ fontSize: 12, color: "#2D2D2D", fontWeight: 600 }}>{answer.meaning}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Correct answers section */}
+            {correctCount > 0 && (
+              <div>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <path d="M2 8L6 12L14 4" stroke={GREEN} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                  <span style={{ fontSize: 16, fontWeight: 800, color: GREEN, textTransform: "uppercase", letterSpacing: 1 }}>
+                    {correctCount} correct
+                  </span>
+                </div>
+                {answerHistory.filter(a => a.correct).map((answer, i) => (
+                  <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, background: "#FFFFFF", border: "2px solid #F0EBE3", borderRadius: 16, padding: "8px 14px", marginBottom: 4 }}>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: 15, fontWeight: 700, color: "#2D2D2D", lineHeight: 1.3 }}>
+                        {answer.article} {answer.word}
+                      </div>
+                      <div style={{ fontSize: 12, color: "#2D2D2D", fontWeight: 600 }}>{answer.meaning}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+          </div>
+
+          {/* Bottom fade overlay */}
+          <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: 64, background: "linear-gradient(to bottom, transparent, #FFFAF4)", pointerEvents: "none" }} />
+        </div>
+
+      </div>
+    )}
 
       {/* ── GAME ── */}
       {screen === "game" && current && (
@@ -616,10 +693,11 @@ export default function App() {
                   {isLevelComplete ? `All ${queue.length} words completed!` : isNewHigh ? `Previous best: ${getHS(difficulty) === finalStreak ? 0 : getHS(difficulty)}` : `Best: ${highScores[difficulty]}`}
                 </p>
                 {!isLevelComplete && (
-                  <div style={{ background: "#FFF4E8", borderRadius: 16, padding: "14px 16px", marginBottom: 24 }}>
-                    <p style={{ fontSize: 12, color: "#767676", marginBottom: 8 }}>Last mistake</p>
-                    <div style={{ fontSize: 15, color: RED, marginBottom: 4 }}>✗ {selected} {current.word}</div>
+                  <div onClick={() => setScreen("review")} style={{ background: "#FFF4E8", borderRadius: 16, padding: "14px 16px", marginBottom: 24, cursor: "pointer", border: `1px solid ${GOLD}`, boxShadow: "0 2px 8px rgba(0,0,0,0.06)", transition: "all 0.15s" }}>
+                    <p style={{ fontSize: 12, color: "#767676", marginBottom: 4 }}>Last mistake</p>
+                    <div style={{ fontSize: 15, color: RED, fontWeight: 700 }}>✗ {selected} {current.word}</div>
                     <div style={{ fontSize: 15, color: GREEN, fontWeight: 700 }}>✓ {current.article} {current.word}</div>
+                    <p style={{ fontSize: 14, color: GOLD, marginTop: 8, fontWeight: 700 }}>Review all answers →</p>
                   </div>
                 )}
                 <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
