@@ -333,7 +333,7 @@ export default function App() {
           <div style={{ maxWidth: 420, width: "100%" }}>
 
             {/* Top bar */}
-            <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginBottom: 64 }}>
+            <div style={{ position: "fixed", top: 16, right: 16, display: "flex", gap: 8, zIndex: 10 }}>
               <motion.button
                 onClick={openLeaderboard}
                 whileTap={{ scale: 0.95, backgroundColor: "#fff6eb" }}
@@ -351,7 +351,7 @@ export default function App() {
 
             {/* Logo */}
             <div style={{ textAlign: "center", marginBottom: 32 }}>
-              <img src="/favicon.svg" style={{ width: 72, height: 72, marginBottom: 12 }} />
+              <img src="/favicon.svg" style={{ width: 64, height: 64, marginBottom: 12 }} />
               <h1 style={{ fontSize: 36, fontWeight: 800, color: "#2D2D2D", letterSpacing: "-1px", margin: 0 }}>
                 Article Fever
               </h1>
@@ -374,10 +374,10 @@ export default function App() {
                   }}
                 >
                   <span>
-                    {d === "artikelgott" ? "Artikelgott" : DIFFICULTY_LABELS[d]}
+                    {d === "artikelgott" ? "👑 Artikelgott" : DIFFICULTY_LABELS[d]}
                   </span>
                   <span style={{ fontSize: 13, color: "#767676" }}>
-                    🏆 {highScores[d]}
+                    <img src="/images/streak.png" style={{ width: 16, height: 16, position: "relative", top: 3 }} /> {highScores[d]}
                   </span>
                 </motion.button>
               ))}
