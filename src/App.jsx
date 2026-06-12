@@ -329,16 +329,16 @@ export default function App() {
 
       {/* ── MENU ── */}
       {screen === "menu" && (
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "100vh", padding: "48px 24px", boxSizing: "border-box" }}>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "100vh", padding: "24px 16px", boxSizing: "border-box" }}>
           <div style={{ textAlign: "center", maxWidth: 420, width: "100%" }}>
-            <img src="/favicon.svg" style={{ width: 72, height: 72, marginBottom: 16 }} />
+            <img src="/favicon.svg" style={{ width: 72, height: 72, marginBottom: 12 }} />
             <h1 style={{ fontSize: 36, fontWeight: 800, color: "#2D2D2D", letterSpacing: "-1px", margin: "0 0 16px" }}>Article Fever</h1>
             <p style={{ color: "#767676", marginBottom: 32, lineHeight: 1.5, fontSize: 15 }}>
               Build your streak.<br />
               Earn a heart with 10 correct in a row.<br />
               Master German articles.
             </p>
-            <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               {["beginner", "intermediate", "advanced", "artikelgott"].map(d => (
                 <motion.button
                   key={d}
@@ -391,17 +391,18 @@ export default function App() {
 
           {/* Header */}
           <div style={{ flexShrink: 0, background: "#FFFAF4", padding: "24px 16px 12px" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 24 }}>
-              <motion.button
-                onClick={() => setScreen("menu")}
-                whileTap={{ scale: 0.95, backgroundColor: "#E6E1DA" }}
-                style={{ border: "none", background: "transparent", borderRadius: 24, fontSize: 28, color: "#767676", cursor: "pointer", padding: 8, lineHeight: 1 }}>
-                ←
-              </motion.button>
-              <h1 style={{ margin: 0, fontSize: 24, fontWeight: 800, color: "#2D2D2D" }}>
-                🏆 Leaderboard
-              </h1>
-            </div>
+          <div style={{ display: "flex", alignItems: "center", marginBottom: 24 }}>
+            <motion.button
+              onClick={() => setScreen("menu")}
+              whileTap={{ scale: 0.95, backgroundColor: "#E6E1DA" }}
+              style={{ width: 40, height: 40, border: "none", background: "transparent", borderRadius: "50%", color: "#767676", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", padding: 0 }}>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M20 12H4M10 18L4 12L10 6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
+            </motion.button>
+
+            <h1 style={{ margin: "0 0 0 12px", fontSize: 24, fontWeight: 800, color: "#2D2D2D" }}>
+              🏆 Leaderboard
+            </h1>
+          </div>
 
             {/* Tabs */}
             <div style={{ display: "flex", background: "#FFFFFF", border: "2px solid #D8D1C7", borderRadius: 48, padding: 4, position: "relative" }}>
@@ -497,14 +498,17 @@ export default function App() {
 
         {/* Fixed header */}
         <div style={{ flexShrink: 0, padding: "24px 16px 12px", background: "#FFFAF4" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <div style={{ display: "flex", alignItems: "center" }}>
             <motion.button
               onClick={() => { setScreen("game"); setGameOver(true); }}
               whileTap={{ scale: 0.95, backgroundColor: "#E6E1DA" }}
-              style={{ border: "none", background: "transparent", borderRadius: 24, fontSize: 28, color: "#767676", cursor: "pointer", padding: 8, lineHeight: 1 }}>
-              ←
+              style={{ width: 40, height: 40, border: "none", background: "transparent", borderRadius: "50%", color: "#767676", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", padding: 0 }}>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M20 12H4M10 18L4 12L10 6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
             </motion.button>
-            <h1 style={{ margin: 0, fontSize: 24, fontWeight: 800, color: "#2D2D2D" }}>Session Review</h1>
+
+            <h1 style={{ margin: "0 0 0 12px", fontSize: 24, fontWeight: 800, color: "#2D2D2D" }}>
+              Session Review
+            </h1>
           </div>
         </div>
 
