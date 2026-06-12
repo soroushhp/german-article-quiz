@@ -123,6 +123,11 @@ export default function App() {
   const [lbData, setLbData]               = useState({ beginner: null, intermediate: null, advanced: null, artikelgott: null });
   const [lbLoading, setLbLoading]         = useState(false);
 
+  // Telegram haptic API
+  const haptic = (type = "light") => {
+    window.Telegram?.WebApp?.HapticFeedback?.impactOccurred(type);
+  };
+  
   // Telegram user detection
   useEffect(() => {
     const tg = window.Telegram?.WebApp;
@@ -212,6 +217,12 @@ export default function App() {
     const isHeartLose   = !isCorrect && hearts > 0;
 
     setSelected(art);
+
+    if (isCorrect) {
+      haptic("light");
+    } else {
+      haptic("medium");
+    }
 
     if (isHeartMoment)    sounds.heartGain.play();
     else if (isHeartLose) sounds.heartLose.play();
@@ -335,7 +346,10 @@ export default function App() {
             {/* Top bar */}
             <div style={{ position: "fixed", top: 16, right: 16, display: "flex", gap: 8, zIndex: 10 }}>
               <motion.button
-                onClick={openLeaderboard}
+                onClick={() => {
+                  haptic("light");
+                  openLeaderboard();
+                }}
                 whileTap={{ scale: 0.95, backgroundColor: "#fff6eb" }}
                 style={{ width: 36, height: 36, border: "2px solid #F5A623", background: "transparent", borderRadius: "50%", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", padding: 0, fontSize: 20 }}>
                 <img src="/icons/podium.svg" width={28} height={28} />
