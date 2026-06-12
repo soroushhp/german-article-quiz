@@ -7,7 +7,7 @@ import { supabase } from "./supabase";
 
 // ── Constants ──────────────────────────────────────────────
 const ARTICLES = ["der", "die", "das"];
-const DIFFICULTY_LABELS = { beginner: "Beginner", intermediate: "Intermediate", advanced: "Advanced", artikelgott: "Artikelgott" };
+const DIFFICULTY_LABELS = { beginner: "Easy", intermediate: "Medium", advanced: "Hard", artikelgott: "Artikelgott" };
 const GREEN = "#2E8B57";
 const RED = "#D94A4A";
 const GOLD = "#F5A623";
