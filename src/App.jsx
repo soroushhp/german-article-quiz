@@ -224,8 +224,8 @@ export default function App() {
       haptic("medium");
     }
 
-    if (isHeartMoment)    sounds.heartGain.play();
-    else if (isHeartLose) sounds.heartLose.play();
+    if (isHeartMoment)    sounds.heartGain.play(), haptic("rigid");
+    else if (isHeartLose) sounds.heartLose.play(), haptic("heavy");
     else                  sounds[isCorrect ? "correct" : "wrong"].play();
 
     setTimeout(() => {
@@ -409,21 +409,27 @@ export default function App() {
           <div style={{ flexShrink: 0, background: "#FFFAF4", padding: "24px 16px 12px" }}>
           <div style={{ display: "flex", alignItems: "center", marginBottom: 24 }}>
             <motion.button
-              onClick={() => setScreen("menu")}
+              onClick={() => {
+                haptic("light");
+                setScreen("menu");
+              }}
               whileTap={{ scale: 0.95, backgroundColor: "#E6E1DA" }}
               style={{ width: 40, height: 40, border: "none", background: "transparent", borderRadius: "50%", color: "#767676", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", padding: 0 }}>
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M20 12H4M10 18L4 12L10 6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
             </motion.button>
 
             <h1 style={{ margin: "0 0 0 12px", fontSize: 24, fontWeight: 800, color: "#2D2D2D" }}>
-              🏆 Leaderboard
+              Leaderboard
             </h1>
           </div>
 
             {/* Tabs */}
             <div style={{ display: "flex", background: "#FFFFFF", border: "2px solid #D8D1C7", borderRadius: 48, padding: 4, position: "relative" }}>
               {["beginner", "intermediate", "advanced", "artikelgott"].map(d => (
-                <button key={d} onClick={() => switchTab(d)}
+                <button key={d} onClick={() => {
+                  haptic("light");
+                  switchTab(d);
+                }}
                   style={{ flex: 1, padding: "10px 0", border: "none", borderRadius: 48, background: "transparent", color: lbTab === d ? "#FFFFFF" : "#767676", fontSize: 14, fontWeight: 800, cursor: "pointer", position: "relative", zIndex: 1 }}>
                   {lbTab === d && (
                     <motion.div layoutId="leaderboardTab"
