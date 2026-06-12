@@ -330,57 +330,59 @@ export default function App() {
       {/* ── MENU ── */}
       {screen === "menu" && (
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "100vh", padding: "24px 16px", boxSizing: "border-box" }}>
-          <div style={{ textAlign: "center", maxWidth: 420, width: "100%" }}>
-            <img src="/favicon.svg" style={{ width: 72, height: 72, marginBottom: 12 }} />
-            <h1 style={{ fontSize: 36, fontWeight: 800, color: "#2D2D2D", letterSpacing: "-1px", margin: "0 0 16px" }}>Article Fever</h1>
-            <p style={{ color: "#767676", marginBottom: 32, lineHeight: 1.5, fontSize: 15 }}>
-              Build your streak.<br />
-              Earn a heart with 10 correct in a row.<br />
-              Master German articles.
-            </p>
+          <div style={{ maxWidth: 420, width: "100%" }}>
+
+            {/* Top bar */}
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginBottom: 64 }}>
+              <motion.button
+                onClick={openLeaderboard}
+                whileTap={{ scale: 0.95, backgroundColor: "#fff6eb" }}
+                style={{ width: 36, height: 36, border: "2px solid #F5A623", background: "transparent", borderRadius: "50%", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", padding: 0, fontSize: 20 }}>
+                <img src="/icons/podium.svg" width={28} height={28} />
+              </motion.button>
+
+              <motion.button
+                onClick={() => setShowHelp(true)}
+                whileTap={{ scale: 0.95, backgroundColor: "#D8D1C7" }}
+                style={{ width: 36, height: 36, border: "2px solid #D8D1C7", background: "transparent", borderRadius: "50%", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", padding: 0, fontSize: 20, fontWeight: 800 }}>
+                <img src="/icons/help.svg" width={28} height={28} />
+              </motion.button>
+            </div>
+
+            {/* Logo */}
+            <div style={{ textAlign: "center", marginBottom: 32 }}>
+              <img src="/favicon.svg" style={{ width: 72, height: 72, marginBottom: 12 }} />
+              <h1 style={{ fontSize: 36, fontWeight: 800, color: "#2D2D2D", letterSpacing: "-1px", margin: 0 }}>
+                Article Fever
+              </h1>
+            </div>
+
+            {/* Level buttons */}
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               {["beginner", "intermediate", "advanced", "artikelgott"].map(d => (
                 <motion.button
                   key={d}
                   onClick={() => setTimeout(() => startGame(d), 120)}
                   whileTap={{ scale: 0.97 }}
-                  whileHover={{ scale: 1.02, background: d === "artikelgott" ? "#FDEFD8" : "#FDEFD8" }}
+                  whileHover={{ scale: 1.02, background: "#FDEFD8" }}
                   style={{
                     ...menuBtnStyle,
                     ...(d === "artikelgott" && {
-                      background: "#ffffff",
+                      background: "#fff6eb",
                       border: `2px solid ${GOLD}`
                     })
                   }}
                 >
                   <span>
-                    {d === "artikelgott" ? "👑 Artikelgott" : DIFFICULTY_LABELS[d]}
+                    {d === "artikelgott" ? "Artikelgott" : DIFFICULTY_LABELS[d]}
                   </span>
                   <span style={{ fontSize: 13, color: "#767676" }}>
                     🏆 {highScores[d]}
                   </span>
                 </motion.button>
               ))}
-
-              <motion.button
-                onClick={openLeaderboard}
-                whileTap={{ scale: 0.97 }}
-                whileHover={{ scale: 1.02 }}
-                style={{
-                  ...menuBtnStyle,
-                  marginTop: 16,
-                  background: "#FFF4E8",
-                  border: `2px solid ${GOLD}`,
-                  color: GOLD
-                }}
-              >
-                <span style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
-                  <span style={{ fontSize: 14 }}>🏆</span>
-                  <span>Leaderboard</span>
-                </span>
-              </motion.button>
             </div>
-            <p style={{ marginTop: 48, fontSize: 11, color: "#767676", opacity: 0.7, letterSpacing: 0.5 }}>v2.1</p>
+
           </div>
         </div>
       )}
