@@ -7,7 +7,7 @@ import { supabase } from "./supabase";
 
 // ── Constants ──────────────────────────────────────────────
 const ARTICLES = ["der", "die", "das"];
-const DIFFICULTY_LABELS = { beginner: "Beginner", intermediate: "Intermediate", advanced: "Advanced" };
+const DIFFICULTY_LABELS = { beginner: "Beginner", intermediate: "Intermediate", advanced: "Advanced", artikelgott: "Artikelgott" };
 const GREEN = "#2E8B57";
 const RED = "#D94A4A";
 const GOLD = "#F5A623";
@@ -49,6 +49,7 @@ async function migrateLocalScores(telegramId, username) {
   const beginner = getHS("beginner");
   const intermediate = getHS("intermediate");
   const advanced = getHS("advanced");
+  const artikelgott = getHS("artikelgott");
 
   if (beginner > 0) {
     await saveScore(telegramId, username, "beginner", beginner);
@@ -106,7 +107,7 @@ export default function App() {
   const [streak, setStreak]               = useState(0);
   const [heartStreak, setHeartStreak]     = useState(0);
   const [hearts, setHearts]               = useState(3);
-  const [highScores, setHighScores]       = useState({ beginner: getHS("beginner"), intermediate: getHS("intermediate"), advanced: getHS("advanced") });
+  const [highScores, setHighScores]       = useState({ beginner: getHS("beginner"), intermediate: getHS("intermediate"), advanced: getHS("advanced"), artikelgott: getHS("artikelgott") });
   const [gameOver, setGameOver]           = useState(false);
   const [isNewHigh, setIsNewHigh]         = useState(false);
   const [isLevelComplete, setIsLevelComplete] = useState(false);
@@ -119,7 +120,7 @@ export default function App() {
 
   // Leaderboard state
   const [lbTab, setLbTab]                 = useState("beginner");
-  const [lbData, setLbData]               = useState({ beginner: null, intermediate: null, advanced: null });
+  const [lbData, setLbData]               = useState({ beginner: null, intermediate: null, advanced: null, artikelgott: null });
   const [lbLoading, setLbLoading]         = useState(false);
 
   // Telegram user detection
@@ -337,34 +338,47 @@ export default function App() {
               Earn a heart with 10 correct in a row.<br />
               Master German articles.
             </p>
-            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-              {["beginner", "intermediate", "advanced"].map(d => (
-                <motion.button key={d}
+            <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+              {["beginner", "intermediate", "advanced", "artikelgott"].map(d => (
+                <motion.button
+                  key={d}
                   onClick={() => setTimeout(() => startGame(d), 120)}
                   whileTap={{ scale: 0.97 }}
-                  whileHover={{ scale: 1.02, background: "#FDEFD8" }}
-                  style={menuBtnStyle}>
-                  <span>{DIFFICULTY_LABELS[d]}</span>
-                  <span style={{ fontSize: 13, color: "#767676" }}>🏆 {highScores[d]}</span>
-                </motion.button>
-              ))}
-                <motion.button
-                  onClick={openLeaderboard}
-                  whileTap={{ scale: 0.97 }}
-                  whileHover={{ scale: 1.02 }}
+                  whileHover={{ scale: 1.02, background: d === "artikelgott" ? "#FDEFD8" : "#FDEFD8" }}
                   style={{
                     ...menuBtnStyle,
-                    marginTop: 16,
-                    background: "#FFF4E8",
-                    border: `2px solid ${GOLD}`,
-                    color: GOLD
+                    ...(d === "artikelgott" && {
+                      background: "#ffffff",
+                      border: `2px solid ${GOLD}`
+                    })
                   }}
                 >
-                  <span style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
-                    <span style={{ fontSize: 14 }}>🏆</span>
-                    <span>Leaderboard</span>
+                  <span>
+                    {d === "artikelgott" ? "👑 Artikelgott" : DIFFICULTY_LABELS[d]}
+                  </span>
+                  <span style={{ fontSize: 13, color: "#767676" }}>
+                    🏆 {highScores[d]}
                   </span>
                 </motion.button>
+              ))}
+
+              <motion.button
+                onClick={openLeaderboard}
+                whileTap={{ scale: 0.97 }}
+                whileHover={{ scale: 1.02 }}
+                style={{
+                  ...menuBtnStyle,
+                  marginTop: 16,
+                  background: "#FFF4E8",
+                  border: `2px solid ${GOLD}`,
+                  color: GOLD
+                }}
+              >
+                <span style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
+                  <span style={{ fontSize: 14 }}>🏆</span>
+                  <span>Leaderboard</span>
+                </span>
+              </motion.button>
             </div>
             <p style={{ marginTop: 48, fontSize: 11, color: "#767676", opacity: 0.7, letterSpacing: 0.5 }}>v2.1</p>
           </div>
@@ -391,7 +405,7 @@ export default function App() {
 
             {/* Tabs */}
             <div style={{ display: "flex", background: "#FFFFFF", border: "2px solid #D8D1C7", borderRadius: 48, padding: 4, position: "relative" }}>
-              {["beginner", "intermediate", "advanced"].map(d => (
+              {["beginner", "intermediate", "advanced", "artikelgott"].map(d => (
                 <button key={d} onClick={() => switchTab(d)}
                   style={{ flex: 1, padding: "10px 0", border: "none", borderRadius: 48, background: "transparent", color: lbTab === d ? "#FFFFFF" : "#767676", fontSize: 14, fontWeight: 800, cursor: "pointer", position: "relative", zIndex: 1 }}>
                   {lbTab === d && (
