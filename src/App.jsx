@@ -324,7 +324,7 @@ export default function App() {
     display: "flex",
     justifyContent: "space-between",
     alignItems: "center",
-    transition: "all 0.15s",
+    transition: "all 0.3s",
     width: "100%",
   };
 
@@ -340,7 +340,7 @@ export default function App() {
 
       {/* ── MENU ── */}
       {screen === "menu" && (
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "100vh", padding: "24px 16px", boxSizing: "border-box" }}>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "100vh", padding: "24px 64px", boxSizing: "border-box" }}>
           <div style={{ maxWidth: 420, width: "100%" }}>
 
             {/* Top bar */}
@@ -383,14 +383,14 @@ export default function App() {
                     ...menuBtnStyle,
                     ...(d === "artikelgott" && {
                       background: "#fff6eb",
-                      border: `2px solid ${GOLD}`
+                      border: `2px solid ${GOLD}`,
                     })
                   }}
                 >
                   <span>
                     {d === "artikelgott" ? "👑 Artikelgott" : DIFFICULTY_LABELS[d]}
                   </span>
-                  <span style={{ fontSize: 13, color: "#767676" }}>
+                  <span style={{ fontSize: 14, color: "#767676" }}>
                     <img src="/images/streak.png" style={{ width: 16, height: 16, position: "relative", top: 3 }} /> {highScores[d]}
                   </span>
                 </motion.button>
