@@ -340,7 +340,7 @@ export default function App() {
 
       {/* ── MENU ── */}
       {screen === "menu" && (
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "100vh", padding: "24px 64px", boxSizing: "border-box" }}>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "100vh", padding: "24px 32px", boxSizing: "border-box" }}>
           <div style={{ maxWidth: 420, width: "100%" }}>
 
             {/* Top bar */}
