@@ -79,18 +79,8 @@ async function migrateLocalScores(telegramId, username) {
   localStorage.setItem("leaderboard_migrated", "true");
 }
 
-async function fetchLeaderboardData(diff, telegramId) {
-  // Top 10
-  const { data: top10 } = await supabase
-    .from("leaderboard")
-    .select("*")
-    .eq("difficulty", diff)
-    .order("best_score", { ascending: false })
-    .limit(10);
 
-  if (!telegramId) return { top10: top10 || [], userRow: null, userRank: null };
-
-  async function saveDailyChallenge(data) {
+async function saveDailyChallenge(data) {
   return supabase
     .from("daily_challenges")
     .upsert(data, {
@@ -144,6 +134,17 @@ async function getDailyProgress(
 
   return data;
 }
+
+async function fetchLeaderboardData(diff, telegramId) {
+  // Top 10
+  const { data: top10 } = await supabase
+    .from("leaderboard")
+    .select("*")
+    .eq("difficulty", diff)
+    .order("best_score", { ascending: false })
+    .limit(10);
+
+  if (!telegramId) return { top10: top10 || [], userRow: null, userRank: null };
 
   // User's own row
   const { data: userRow } = await supabase
@@ -277,7 +278,34 @@ export default function App() {
       .slice(0, count);
   }
 
-  const startDaily = (difficulty) => {
+  const startDaily = async (difficulty) => {
+    
+
+      const today = new Date().toISOString().slice(0, 10);
+      const existing = await getDailyProgress(
+        telegramId,
+        today,
+        difficulty
+      );
+
+  console.log("Daily Progress:", existing);
+
+  if (!existing) {
+  await saveDailyProgress({
+    telegram_id: telegramId,
+    date: today,
+    difficulty,
+    status: "in_progress",
+    current_word: 0,
+    score: 0,
+    results: [],
+    answer_history: [],
+    completed: false,
+    passed: false,
+    last_played_at: new Date().toISOString()
+  });
+}
+
     const dailyWords = getDailyWords(
       NOUNS[difficulty],
       10
