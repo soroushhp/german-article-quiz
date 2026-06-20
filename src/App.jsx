@@ -16,6 +16,19 @@ const GOLD = "#F5A623";
 function shuffle(arr) { return [...arr].sort(() => Math.random() - 0.5); }
 function getHS(d) { try { return parseInt(localStorage.getItem(`hs_${d}`) || "0", 10); } catch { return 0; } }
 function saveHS(d, v) { try { localStorage.setItem(`hs_${d}`, String(v)); } catch {} }
+function getDailyWords(words, count = 10) {
+  const seed = new Date().toISOString().slice(0, 10);
+  return [...words]
+    .sort((a, b) => (seed + a.word).localeCompare(seed + b.word))
+    .slice(0, count);
+}
+function hash(str) {
+  let h = 0;
+  for (let i = 0; i < str.length; i++) {
+    h = (h * 31 + str.charCodeAt(i)) >>> 0;
+  }
+  return h;
+}
 
 // ── Sounds ─────────────────────────────────────────────────
 const sounds = {
@@ -77,6 +90,61 @@ async function fetchLeaderboardData(diff, telegramId) {
 
   if (!telegramId) return { top10: top10 || [], userRow: null, userRank: null };
 
+  async function saveDailyChallenge(data) {
+  return supabase
+    .from("daily_challenges")
+    .upsert(data, {
+      onConflict: "telegram_id,date,difficulty"
+    });
+}
+
+async function getDailyChallenge(
+  telegramId,
+  date,
+  difficulty
+) {
+  const { data } = await supabase
+    .from("daily_challenges")
+    .select("*")
+    .eq("telegram_id", telegramId)
+    .eq("date", date)
+    .eq("difficulty", difficulty)
+    .maybeSingle();
+
+  return data;
+}
+
+async function saveDailyProgress(data) {
+  const { error } = await supabase
+    .from("daily_challenges")
+    .upsert(data, {
+      onConflict: "telegram_id,date,difficulty"
+    });
+
+  if (error) console.error(error);
+}
+
+async function getDailyProgress(
+  telegramId,
+  date,
+  difficulty
+) {
+  const { data, error } = await supabase
+    .from("daily_challenges")
+    .select("*")
+    .eq("telegram_id", telegramId)
+    .eq("date", date)
+    .eq("difficulty", difficulty)
+    .maybeSingle();
+
+  if (error) {
+    console.error(error);
+    return null;
+  }
+
+  return data;
+}
+
   // User's own row
   const { data: userRow } = await supabase
     .from("leaderboard")
@@ -99,24 +167,40 @@ async function fetchLeaderboardData(diff, telegramId) {
 
 // ── App ────────────────────────────────────────────────────
 export default function App() {
-  const [screen, setScreen]               = useState("menu");
-  const [difficulty, setDifficulty]       = useState(null);
-  const [queue, setQueue]                 = useState([]);
-  const [idx, setIdx]                     = useState(0);
-  const [selected, setSelected]           = useState(null);
-  const [streak, setStreak]               = useState(0);
-  const [heartStreak, setHeartStreak]     = useState(0);
-  const [hearts, setHearts]               = useState(3);
-  const [highScores, setHighScores]       = useState({ beginner: getHS("beginner"), intermediate: getHS("intermediate"), advanced: getHS("advanced"), artikelgott: getHS("artikelgott") });
-  const [gameOver, setGameOver]           = useState(false);
-  const [isNewHigh, setIsNewHigh]         = useState(false);
+  const [screen, setScreen] = useState("menu");
+  const [mode, setMode] = useState("daily");
+
+  const [dailyResults, setDailyResults] = useState([]);
+  const [dailyPassed, setDailyPassed] = useState(false);
+
+  const [difficulty, setDifficulty] = useState(null);
+  const [queue, setQueue] = useState([]);
+  const [idx, setIdx] = useState(0);
+  const [selected, setSelected] = useState(null);
+
+  const [streak, setStreak] = useState(0);
+  const [heartStreak, setHeartStreak] = useState(0);
+  const [hearts, setHearts] = useState(3);
+
+  const [highScores, setHighScores] = useState({
+    beginner: getHS("beginner"),
+    intermediate: getHS("intermediate"),
+    advanced: getHS("advanced"),
+    artikelgott: getHS("artikelgott")
+  });
+
+  const [gameOver, setGameOver] = useState(false);
+  const [isNewHigh, setIsNewHigh] = useState(false);
   const [isLevelComplete, setIsLevelComplete] = useState(false);
-  const [finalStreak, setFinalStreak]     = useState(0);
+
+  const [finalScore, setFinalScore] = useState(0);
+
   const [answerHistory, setAnswerHistory] = useState([]);
   const [heartNotification, setHeartNotification] = useState(null);
   const [showQuitPopup, setShowQuitPopup] = useState(false);
-  const [userName, setUserName]           = useState("");
-  const [telegramId, setTelegramId]       = useState(null);
+
+  const [userName, setUserName] = useState("");
+  const [telegramId, setTelegramId] = useState(null);
 
   // Leaderboard state
   const [lbTab, setLbTab]                 = useState("beginner");
@@ -182,6 +266,33 @@ export default function App() {
   };
 
   // ── Game control ───────────────────────────────────────
+
+  function getDailyWords(words, count = 10) {
+    const seed = new Date().toISOString().slice(0, 10);
+
+    return [...words]
+      .sort((a, b) =>
+        hash(seed + a.word) - hash(seed + b.word)
+      )
+      .slice(0, count);
+  }
+
+  const startDaily = (difficulty) => {
+    const dailyWords = getDailyWords(
+      NOUNS[difficulty],
+      10
+    );
+
+    console.log(dailyWords);
+    setDailyResults([]);
+    setDailyPassed(false);
+    setDifficulty(difficulty);
+    setQueue(dailyWords);
+    setIdx(0);
+    setScreen("game");
+  };
+
+
   const startGame = (diff) => {
     setDifficulty(diff);
     setQueue(shuffle(NOUNS[diff]));
@@ -199,10 +310,76 @@ export default function App() {
     setScreen("game");
   };
 
+
+const handleDailyAnswer = (isCorrect) => {
+  setDailyResults(prev => [...prev, isCorrect]);
+  setTimeout(() => {
+    const nextIdx = idx + 1;
+
+    if (nextIdx >= queue.length) {
+      const score =
+      [...dailyResults, isCorrect].filter(Boolean).length;
+
+      setFinalScore(score);
+      setDailyPassed(score >= 8);
+      setGameOver(true);
+      return;
+    }
+
+    setTimeout(() => {
+      setIdx(nextIdx);
+      setSelected(null);
+    }, 600);
+  }, 100);
+}; 
+
+const handleFreeAnswer = (isCorrect) => {
+    setTimeout(() => {
+      if (!isCorrect) {
+        if (hearts > 0) {
+          setHearts(h => h - 1);
+          setHeartStreak(0);
+          triggerHeartNotification("lose");
+          setTimeout(() => {
+            const nextIdx = idx + 1;
+            if (nextIdx >= queue.length) {
+              endLevelComplete(streak);
+              return;
+            }
+            setIdx(nextIdx);
+            setSelected(null);
+          }, 500);
+          return;
+        }
+        endGameOver();
+      } else {
+        const newStreak      = streak + 1;
+        const newHeartStreak = heartStreak + 1;
+        setStreak(newStreak);
+        setHeartStreak(newHeartStreak);
+        if (newHeartStreak % 10 === 0 && hearts < 3) {
+          setHearts(h => h + 1);
+          triggerHeartNotification("gain");
+        }
+        const nextIdx = idx + 1;
+        if (nextIdx >= queue.length) {
+          endLevelComplete(newStreak);
+          return;
+        }
+        setTimeout(() => { setIdx(nextIdx); setSelected(null); }, 600);
+      }
+    }, 100);
+};
+
+
+
+
+
   const handleAnswer = (art) => {
     if (selected !== null || gameOver) return;
 
     const isCorrect     = art === queue[idx].article;
+
     setAnswerHistory(prev => [
       ...prev,
       {
@@ -228,35 +405,11 @@ export default function App() {
     else if (isHeartLose) sounds.heartLose.play(), haptic("heavy");
     else                  sounds[isCorrect ? "correct" : "wrong"].play();
 
-    setTimeout(() => {
-      if (!isCorrect) {
-        if (hearts > 0) {
-          setHearts(h => h - 1);
-          setHeartStreak(0);
-          triggerHeartNotification("lose");
-          setTimeout(() => {
-            const nextIdx = idx + 1;
-            if (nextIdx >= queue.length) { endLevelComplete(streak); return; }
-            setIdx(nextIdx);
-            setSelected(null);
-          }, 500);
-          return;
-        }
-        endGameOver();
-      } else {
-        const newStreak      = streak + 1;
-        const newHeartStreak = heartStreak + 1;
-        setStreak(newStreak);
-        setHeartStreak(newHeartStreak);
-        if (newHeartStreak % 10 === 0 && hearts < 3) {
-          setHearts(h => h + 1);
-          triggerHeartNotification("gain");
-        }
-        const nextIdx = idx + 1;
-        if (nextIdx >= queue.length) { endLevelComplete(newStreak); return; }
-        setTimeout(() => { setIdx(nextIdx); setSelected(null); }, 600);
-      }
-    }, 100);
+    if (mode === "daily") {
+  handleDailyAnswer(isCorrect);
+} else {
+  handleFreeAnswer(isCorrect);
+}
   };
 
   const endGameOver = () => {
@@ -269,7 +422,7 @@ export default function App() {
       if (telegramId) saveScore(telegramId, userName || "Anonymous", difficulty, streak);
       setHighScores(hs => ({ ...hs, [difficulty]: streak }));
     }
-    setFinalStreak(streak);
+    setFinalScore(streak);
     setIsNewHigh(isNew);
     setGameOver(true);
   };
@@ -280,13 +433,13 @@ export default function App() {
     saveHS(difficulty, finalStr);
     if (telegramId) saveScore(telegramId, userName || "Anonymous", difficulty, finalStr);
     setHighScores(hs => ({ ...hs, [difficulty]: finalStr }));
-    setFinalStreak(finalStr);
+    setFinalScore(finalStr);
     setIsLevelComplete(true);
     setGameOver(true);
   };
 
   const shareScore = () => {
-    const text = `🔥 I scored ${finalStreak} on ${DIFFICULTY_LABELS[difficulty]} in Article Fever!\nCan you beat me?`;
+    const text = `🔥 I scored ${finalScore} on ${DIFFICULTY_LABELS[difficulty]} in Article Fever!\nCan you beat me?`;
     const url  = `https://t.me/ArticleFever_bot`;
     const tg   = window.Telegram?.WebApp;
     if (tg?.openTelegramLink) {
@@ -371,12 +524,35 @@ export default function App() {
               </h1>
             </div>
 
+
+            <div style={{ display: "flex", background: "#FFFFFF", border: "2px solid #D8D1C7", borderRadius: 48, padding: 4, marginBottom: 24, position: "relative" }}>
+            {["daily", "free"].map(m => (
+              <button
+                key={m}
+                onClick={() => setMode(m)}
+                style={{
+                  flex: 1,
+                  padding: "12px 0",
+                  border: "none",
+                  borderRadius: 48,
+                  background: mode === m ? GOLD : "transparent",
+                  color: mode === m ? "#FFFFFF" : "#767676",
+                  fontSize: 15,
+                  fontWeight: 800,
+                  cursor: "pointer"
+                }}
+              >
+                {m === "daily" ? "📅 Daily Challenge" : "🔥 Free Mode"}
+              </button>
+            ))}
+          </div>
+
             {/* Level buttons */}
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               {["beginner", "intermediate", "advanced", "artikelgott"].map(d => (
                 <motion.button
                   key={d}
-                  onClick={() => setTimeout(() => startGame(d), 120)}
+                  onClick={() => { haptic("light"); setTimeout(() => { mode === "daily" ? startDaily(d) : startGame(d);}, 120); }}
                   whileTap={{ scale: 0.97 }}
                   whileHover={{ scale: 1.02, background: "#FDEFD8" }}
                   style={{
@@ -601,6 +777,12 @@ export default function App() {
 
       {/* ── GAME ── */}
       {screen === "game" && current && (
+      <motion.div
+        initial={{ y: "100%", opacity: 0.8 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+      >
+        
        <div style={{ width: "100%", height: "100vh", paddingTop: 152, paddingBottom: 98, paddingLeft: 16, paddingRight: 16, boxSizing: "border-box", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
           {/* Top bar */}
           <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "#FFFAF4", zIndex: 10, padding: "16px 16px 12px" }}>
@@ -610,24 +792,81 @@ export default function App() {
                 ×
               </button>
               <span style={{ fontSize: 14, color: "#767676", fontWeight: 600 }}>
-                {DIFFICULTY_LABELS[difficulty]} • Best: {highScores[difficulty]}
+                {mode === "daily"
+                  ? `${DIFFICULTY_LABELS[difficulty]} • ${new Date().toLocaleDateString("en-US", { month: "short", day: "numeric" })}`
+                  : `${DIFFICULTY_LABELS[difficulty]} • Best: ${highScores[difficulty]}`}
               </span>
             </div>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                {[1, 2, 3].map(n => (
-                  <img key={n} src="/images/heart.png" style={{ width: 32, height: 32, opacity: n <= hearts ? 1 : 0.25 }} />
-                ))}
+
+
+            {mode === "free" ? (
+              <>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                    {[1, 2, 3].map(n => (
+                      <img key={n} src="/images/heart.png" style={{ width: 32, height: 32, opacity: n <= hearts ? 1 : 0.25 }} />
+                    ))}
+                  </div>
+
+                  <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                    <img src="/images/streak.png" style={{ width: 32, height: 32 }} />
+                    <span style={{ fontSize: 28, fontWeight: 700, color: GOLD }}>{streak}</span>
+                  </div>
+                </div>
+
+                <div style={{ width: "100%", height: 6, background: "#E6E1DA", borderRadius: 999 }}>
+                  <div
+                    style={{
+                      height: "100%",
+                      width: `${hearts === 3 ? 100 : (heartStreak % 10) * 10}%`,
+                      background: GREEN,
+                      borderRadius: 999,
+                      transition: "width 0.3s ease"
+                    }}
+                  />
+                </div>
+              </>
+            ) : (
+              <>
+              <div style={{ display: "flex", justifyContent: "center", marginBottom: 8 }}>
+                <span style={{ fontSize: 16, fontWeight: 700, color: "#767676" }}>
+                  {dailyResults.filter(Boolean).length} / 10
+                </span>
               </div>
-              <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                <img src="/images/streak.png" style={{ width: 32, height: 32 }} />
-                <span style={{ fontSize: 28, fontWeight: 700, color: GOLD }}>{streak}</span>
-              </div>
+
+                <div style={{ display: "flex", gap: 6 }}>
+                  {Array.from({ length: 10 }).map((_, i) => (
+                    <div
+                      key={i}
+                      style={{
+                        flex: 1,
+                        height: 8,
+                        borderRadius: 999,
+                        background: "#E6E1DA",
+                        overflow: "hidden"
+                      }}
+                    >
+                      <motion.div
+                        initial={{ width: 0 }}
+                        animate={{
+                          width: dailyResults[i] !== undefined ? "100%" : "0%"
+                        }}
+                        transition={{ duration: 0.25, ease: "easeOut" }}
+                        style={{
+                          height: "100%",
+                          borderRadius: 999,
+                          background:
+                            dailyResults[i] === true
+                              ? GREEN
+                              : RED
+                        }}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
             </div>
-            <div style={{ width: "100%", height: 6, background: "#E6E1DA", borderRadius: 999 }}>
-              <div style={{ height: "100%", width: `${hearts === 3 ? 100 : (heartStreak % 10) * 10}%`, background: GREEN, borderRadius: 999, transition: "width 0.3s ease" }} />
-            </div>
-          </div>
 
           {/* Heart notification */}
           <AnimatePresence>
@@ -716,7 +955,128 @@ export default function App() {
 
           {/* Game over modal */}
           {gameOver && (
-            <div style={{ position: "fixed", inset: 0, background: "rgba(45,45,45,0.45)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100, padding: 16 }}>
+          mode === "daily" ? (
+              <div style={{ position: "fixed", inset: 0, background: "rgba(45,45,45,0.45)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100, padding: 16 }}>
+                <motion.div
+                  initial={{ scale: 0.8, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ duration: 0.25, ease: "easeOut" }}
+                  style={{ background: "#FFFFFF", borderRadius: 24, padding: "48px 36px", maxWidth: 360, width: "100%", textAlign: "center", boxShadow: "0 8px 40px rgba(0,0,0,0.12)" }}
+                >
+
+                  <div style={{ fontSize: 48, fontWeight: 800, color: GOLD, lineHeight: 1, marginBottom: 12 }}>
+                    {finalScore}/10
+                  </div>
+
+                  <h2 style={{ margin: "0 0 8px", fontSize: 18, color: "#2D2D2D" }}>
+                    {finalScore === 10
+                      ? "Congrats! You did a perfect job!"
+                      : dailyPassed
+                      ? `Congrats! You passed ${DIFFICULTY_LABELS[difficulty]}.`
+                      : "Oh no! Come back tomorrow for a new challenge!"}
+                  </h2>
+
+                  <p style={{ color: "#767676", fontSize: 13, marginBottom: 20 }}>
+                    {DIFFICULTY_LABELS[difficulty]} • {new Date().toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                  </p>
+
+                  <div
+                    onClick={() => setScreen("review")}
+                    style={{
+                      background: "#FFF4E8",
+                      borderRadius: 16,
+                      padding: "14px 16px",
+                      marginBottom: 24,
+                      cursor: "pointer",
+                      border: `1px solid ${GOLD}`,
+                      boxShadow: "0 2px 8px rgba(0,0,0,0.06)"
+                    }}
+                  >
+                    {finalScore === 10 ? (
+                      <>
+                        <p style={{ fontSize: 15, color: GREEN, fontWeight: 700, margin: 0 }}>
+                          ✓ No mistakes
+                        </p>
+                        <p style={{ fontSize: 14, color: GOLD, marginTop: 8, fontWeight: 700 }}>
+                          Review answers →
+                        </p>
+                      </>
+                    ) : (
+                      <>
+                        <p style={{ fontSize: 12, color: "#767676", marginBottom: 4 }}>
+                          Last mistake
+                        </p>
+                        <div style={{ fontSize: 15, color: RED, fontWeight: 700 }}>
+                          ✗ {selected} {current.word}
+                        </div>
+                        <div style={{ fontSize: 15, color: GREEN, fontWeight: 700 }}>
+                          ✓ {current.article} {current.word}
+                        </div>
+                        <p style={{ fontSize: 14, color: GOLD, marginTop: 8, fontWeight: 700 }}>
+                          Review answers →
+                        </p>
+                      </>
+                    )}
+                  </div>
+
+                  <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+
+                    {dailyPassed && (
+                      <button
+                        onClick={() => {/* next level */}}
+                        style={{
+                          padding: "14px 0",
+                          borderRadius: 48,
+                          border: `2px solid ${GREEN}`,
+                          background: GREEN,
+                          color: "#FFFFFF",
+                          fontSize: 15,
+                          fontWeight: 700,
+                          cursor: "pointer"
+                        }}
+                      >
+                        Play Next Level
+                      </button>
+                    )}
+
+                    <button
+                      onClick={shareScore}
+                      style={{
+                        padding: "14px 0",
+                        borderRadius: 48,
+                        border: `2px solid ${GOLD}`,
+                        background: GOLD,
+                        color: "#FFFFFF",
+                        fontSize: 15,
+                        fontWeight: 700,
+                        cursor: "pointer"
+                      }}
+                    >
+                      Share Score
+                    </button>
+
+                    <button
+                      onClick={() => setScreen("menu")}
+                      style={{
+                        padding: "14px 0",
+                        borderRadius: 48,
+                        border: "2px solid #D8D1C7",
+                        background: "#FFFFFF",
+                        color: "#2D2D2D",
+                        fontSize: 15,
+                        fontWeight: 700,
+                        cursor: "pointer"
+                      }}
+                    >
+                      Home
+                    </button>
+
+                  </div>
+                </motion.div>
+              </div>
+            ) : (
+            <div>
+                          <div style={{ position: "fixed", inset: 0, background: "rgba(45,45,45,0.45)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100, padding: 16 }}>
               <motion.div
                 initial={{ scale: 0.8, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
@@ -725,12 +1085,12 @@ export default function App() {
                 {isNewHigh && <div style={{ color: GOLD, fontWeight: 800, fontSize: 16, marginBottom: 12 }}>🏆 NEW HIGH SCORE!</div>}
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 8 }}>
                   <img src="/images/streak.png" style={{ width: 56, height: 56 }} />
-                  <div style={{ fontSize: 64, fontWeight: 800, color: GOLD, lineHeight: 1 }}>{finalStreak}</div>
+                  <div style={{ fontSize: 64, fontWeight: 800, color: GOLD, lineHeight: 1 }}>{finalScore}</div>
                 </div>
                 <h2 style={{ margin: "0 0 8px", fontSize: 24, color: "#2D2D2D" }}>{modalTitle}</h2>
                 <p style={{ color: "#767676", fontSize: 13, marginBottom: 16 }}>
                   {DIFFICULTY_LABELS[difficulty]} •{" "}
-                  {isLevelComplete ? `All ${queue.length} words completed!` : isNewHigh ? `Previous best: ${getHS(difficulty) === finalStreak ? 0 : getHS(difficulty)}` : `Best: ${highScores[difficulty]}`}
+                  {isLevelComplete ? `All ${queue.length} words completed!` : isNewHigh ? `Previous best: ${getHS(difficulty) === finalScore ? 0 : getHS(difficulty)}` : `Best: ${highScores[difficulty]}`}
                 </p>
                 {!isLevelComplete && (
                   <div onClick={() => setScreen("review")} style={{ background: "#FFF4E8", borderRadius: 16, padding: "14px 16px", marginBottom: 24, cursor: "pointer", border: `1px solid ${GOLD}`, boxShadow: "0 2px 8px rgba(0,0,0,0.06)", transition: "all 0.15s" }}>
@@ -756,9 +1116,13 @@ export default function App() {
                 </div>
               </motion.div>
             </div>
-          )}
+            </div>
+          )
+        )}
+          )
         </div>
-      )}
-    </div>
-  );
+  </motion.div>
+    )}
+  </div>
+);
 }
