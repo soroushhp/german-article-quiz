@@ -340,59 +340,52 @@ export default function App() {
 
 
 const handleDailyAnswer = async (isCorrect) => {
-  setDailyResults(prev => [...prev, isCorrect]);
+  const nextIdx = idx + 1;
+  const nextResults = [...dailyResults, isCorrect];
+  const score = nextResults.filter(Boolean).length;
+  const isComplete = nextIdx >= queue.length;
+
+  // Update local state immediately
+  setDailyResults(nextResults);
+
+  // Save to backend
+  await saveDailyProgress({
+    telegram_id: telegramId,
+    date: new Date().toISOString().slice(0, 10),
+    difficulty,
+    status: isComplete ? "completed" : "in_progress",
+    current_word: nextIdx,
+    score,
+    results: nextResults,
+    answer_history: [
+      ...answerHistory,
+      {
+        word: queue[idx].word,
+        meaning: queue[idx].meaning,
+        article: queue[idx].article,
+        selected,
+        correct: isCorrect
+      }
+    ],
+    completed: isComplete,
+    passed: isComplete ? score >= 8 : false,
+    last_played_at: new Date().toISOString()
+  });
+
+  // Handle game-over state
+  if (isComplete) {
+    setFinalScore(score);
+    setDailyPassed(score >= 8);
+    setGameOver(true);
+    return;
+  }
+
+  // Advance to next word with transition delay
   setTimeout(() => {
-    const nextIdx = idx + 1;
-    const nextResults = [...dailyResults, isCorrect];
-    const score = nextResults.filter(Boolean).length;
-
-    await saveDailyProgress({
-  telegram_id: telegramId,
-  date: new Date().toISOString().slice(0, 10),
-  difficulty,
-
-  status: nextIdx >= queue.length
-    ? "completed"
-    : "in_progress",
-
-  current_word: nextIdx,
-  score,
-
-  results: nextResults,
-  answer_history: [
-    ...answerHistory,
-    {
-      word: queue[idx].word,
-      meaning: queue[idx].meaning,
-      article: queue[idx].article,
-      selected,
-      correct: isCorrect
-    }
-  ],
-
-  completed: nextIdx >= queue.length,
-  passed: nextIdx >= queue.length ? score >= 8 : false,
-
-  last_played_at: new Date().toISOString()
-});
-
-
-    if (nextIdx >= queue.length) {
-      const score =
-      [...dailyResults, isCorrect].filter(Boolean).length;
-
-      setFinalScore(score);
-      setDailyPassed(score >= 8);
-      setGameOver(true);
-      return;
-    }
-
-    setTimeout(() => {
-      setIdx(nextIdx);
-      setSelected(null);
-    }, 600);
-  }, 100);
-}; 
+    setIdx(nextIdx);
+    setSelected(null);
+  }, 600);
+};
 
 const handleFreeAnswer = (isCorrect) => {
     setTimeout(() => {
