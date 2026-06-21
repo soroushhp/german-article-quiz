@@ -19,7 +19,7 @@ function saveHS(d, v) { try { localStorage.setItem(`hs_${d}`, String(v)); } catc
 function getDailyWords(words, count = 10) {
   const seed = new Date().toISOString().slice(0, 10);
   return [...words]
-    .sort((a, b) => (seed + a.word).localeCompare(seed + b.word))
+    .sort((a, b) => hash(seed + a.word) - hash(seed + b.word))
     .slice(0, count);
 }
 function hash(str) {
@@ -110,8 +110,8 @@ async function saveDailyProgress(data) {
     .upsert(data, {
       onConflict: "telegram_id,date,difficulty"
     });
-    console.log(result);
-    return result;
+
+  if (error) console.error(error);
 }
 
 async function getDailyProgress(
@@ -304,7 +304,6 @@ export default function App() {
     passed: false,
     last_played_at: new Date().toISOString()
   });
-  console.log("Save result:", result);
 }
 
     const dailyWords = getDailyWords(
@@ -555,53 +554,113 @@ const handleFreeAnswer = (isCorrect) => {
 
 
             <div style={{ display: "flex", background: "#FFFFFF", border: "2px solid #D8D1C7", borderRadius: 48, padding: 4, marginBottom: 24, position: "relative" }}>
-            {["daily", "free"].map(m => (
-              <button
-                key={m}
-                onClick={() => setMode(m)}
-                style={{
-                  flex: 1,
-                  padding: "12px 0",
-                  border: "none",
-                  borderRadius: 48,
-                  background: mode === m ? GOLD : "transparent",
-                  color: mode === m ? "#FFFFFF" : "#767676",
-                  fontSize: 15,
-                  fontWeight: 800,
-                  cursor: "pointer"
-                }}
-              >
-                {m === "daily" ? "📅 Daily Challenge" : "🔥 Free Mode"}
-              </button>
-            ))}
-          </div>
+  {["daily", "free"].map(m => (
+    <button
+      key={m}
+      onClick={() => {
+        haptic("light");
+        setMode(m);
+      }}
+      style={{
+        flex: 1,
+        padding: "12px 0",
+        border: "none",
+        borderRadius: 48,
+        background: "transparent",
+        color: mode === m ? "#FFFFFF" : "#767676",
+        fontSize: 15,
+        fontWeight: 800,
+        cursor: "pointer",
+        position: "relative",
+        zIndex: 1
+      }}
+    >
+      {mode === m && (
+        <motion.div
+          layoutId="homeModeTab"
+          style={{
+            position: "absolute",
+            inset: 0,
+            background: GOLD,
+            borderRadius: 48,
+            zIndex: -1
+          }}
+          transition={{
+            type: "spring",
+            stiffness: 400,
+            damping: 30
+          }}
+        />
+      )}
+
+      {m === "daily" ? "📅 Daily" : "⚡ Survival"}
+    </button>
+  ))}
+</div>
 
             {/* Level buttons */}
-            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-              {["beginner", "intermediate", "advanced", "artikelgott"].map(d => (
-                <motion.button
-                  key={d}
-                  onClick={() => { haptic("light"); setTimeout(() => { mode === "daily" ? startDaily(d) : startGame(d);}, 120); }}
-                  whileTap={{ scale: 0.97 }}
-                  whileHover={{ scale: 1.02, background: "#FDEFD8" }}
-                  style={{
-                    ...menuBtnStyle,
-                    ...(d === "artikelgott" && {
-                      background: "#fff6eb",
-                      border: `2px solid ${GOLD}`,
-                    })
-                  }}
-                >
-                  <span>
-                    {d === "artikelgott" ? "👑 Artikelgott" : DIFFICULTY_LABELS[d]}
-                  </span>
-                  <span style={{ fontSize: 14, color: "#767676" }}>
-                    <img src="/images/streak.png" style={{ width: 16, height: 16, position: "relative", top: 3 }} /> {highScores[d]}
-                  </span>
-                </motion.button>
-              ))}
-            </div>
+            <AnimatePresence mode="wait">
+            <motion.div
+              key={mode}
+              initial={{ opacity: 0, x: mode === "daily" ? -20 : 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: mode === "daily" ? 20 : -20 }}
+              transition={{ duration: 0.2 }}
+              style={{ display: "flex", flexDirection: "column", gap: 8 }}
+            >
+            {mode === "daily" ? (
+  ["beginner", "intermediate", "advanced", "artikelgott"].map(d => (
+    <motion.button
+      key={d}
+      onClick={() => {
+        haptic("light");
+        setTimeout(() => startDaily(d), 120);
+      }}
+      whileTap={{ scale: 0.97 }}
+      whileHover={{ scale: 1.02, background: "#FDEFD8" }}
+      style={{
+        ...menuBtnStyle,
+        ...(d === "artikelgott" && {
+          background: "#fff6eb",
+          border: `2px solid ${GOLD}`
+        })
+      }}
+    >
+      <span>
+        {d === "artikelgott" ? "👑 Artikelgott" : DIFFICULTY_LABELS[d]}
+      </span>
+    </motion.button>
+  ))
+) : (
+  ["beginner", "intermediate", "advanced", "artikelgott"].map(d => (
+    <motion.button
+      key={d}
+      onClick={() => {
+        haptic("light");
+        setTimeout(() => startGame(d), 120);
+      }}
+      whileTap={{ scale: 0.97 }}
+      whileHover={{ scale: 1.02, background: "#FDEFD8" }}
+      style={{
+        ...menuBtnStyle,
+        ...(d === "artikelgott" && {
+          background: "#fff6eb",
+          border: `2px solid ${GOLD}`
+        })
+      }}
+    >
+      <span>
+        {d === "artikelgott" ? "👑 Artikelgott" : DIFFICULTY_LABELS[d]}
+      </span>
 
+      <span style={{ fontSize: 14, color: "#767676" }}>
+  Best: {highScores[d]}
+</span>
+    </motion.button>
+  ))
+)}
+            </motion.div>
+          </AnimatePresence>
           </div>
         </div>
       )}
