@@ -110,8 +110,8 @@ async function saveDailyProgress(data) {
     .upsert(data, {
       onConflict: "telegram_id,date,difficulty"
     });
-
-  if (error) console.error(error);
+    console.log(result);
+    return result;
 }
 
 async function getDailyProgress(
@@ -304,6 +304,7 @@ export default function App() {
     passed: false,
     last_played_at: new Date().toISOString()
   });
+  console.log("Save result:", result);
 }
 
     const dailyWords = getDailyWords(
