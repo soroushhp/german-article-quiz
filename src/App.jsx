@@ -17,18 +17,48 @@ function shuffle(arr) { return [...arr].sort(() => Math.random() - 0.5); }
 function getHS(d) { try { return parseInt(localStorage.getItem(`hs_${d}`) || "0", 10); } catch { return 0; } }
 function saveHS(d, v) { try { localStorage.setItem(`hs_${d}`, String(v)); } catch {} }
 function getDailyWords(words, count = 10) {
-  const seed = new Date().toISOString().slice(0, 10);
-  return [...words]
-    .sort((a, b) => hash(seed + a.word) - hash(seed + b.word))
-    .slice(0, count);
-}
-function hash(str) {
-  let h = 0;
-  for (let i = 0; i < str.length; i++) {
-    h = (h * 31 + str.charCodeAt(i)) >>> 0;
+    // 1. Generate a single integer seed for the day
+    const dateString = new Date().toISOString().slice(0, 10);
+    const seed = hash(dateString); 
+    
+    // 2. Initialize our PRNG with the daily seed
+    const random = mulberry32(seed);
+
+    // 3. Clone the array to avoid mutating the original
+    const result = [...words];
+    const actualCount = Math.min(count, result.length);
+
+    // 4. Partial Fisher-Yates Shuffle (O(k) time complexity)
+    for (let i = 0; i < actualCount; i++) {
+      // Pick a pseudo-random index from 'i' to the end of the array
+      const j = i + Math.floor(random() * (result.length - i));
+      
+      // Swap the elements
+      [result[i], result[j]] = [result[j], result[i]];
+    }
+
+    // Return the randomized slice
+    return result.slice(0, actualCount);
   }
-  return h;
-}
+
+  // Your existing hash function works perfectly to convert the date string to an integer
+  function hash(str) {
+    let h = 0;
+    for (let i = 0; i < str.length; i++) {
+      h = (h * 31 + str.charCodeAt(i)) >>> 0;
+    }
+    return h;
+  }
+
+  // A standard, fast, and very small PRNG (Mulberry32)
+  function mulberry32(a) {
+    return function() {
+      var t = a += 0x6D2B79F5;
+      t = Math.imul(t ^ t >>> 15, t | 1);
+      t ^= t + Math.imul(t ^ t >>> 7, t | 61);
+      return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    }
+  }
 
 // ── Sounds ─────────────────────────────────────────────────
 const sounds = {
@@ -280,38 +310,45 @@ export default function App() {
   }
 
   const startDaily = async (difficulty) => {
-    
 
-      const today = new Date().toISOString().slice(0, 10);
-      const existing = await getDailyProgress(
-        telegramId,
-        today,
-        difficulty
+    setShowQuitPopup(false);
+    const today = new Date().toISOString().slice(0, 10);
+    const existing = await getDailyProgress(telegramId, today, difficulty);
+
+    if (existing?.status === "in_progress") {
+      setDailyResults(existing.results || []);
+      setAnswerHistory(existing.answer_history || []);
+      setDifficulty(difficulty);
+      setQueue(
+        getDailyWords(
+          NOUNS[difficulty],
+          10
+        )
       );
-
-  console.log("Daily Progress:", existing);
-
-  if (!existing) {
-  await saveDailyProgress({
-    telegram_id: telegramId,
-    date: today,
-    difficulty,
-    status: "in_progress",
-    current_word: 0,
-    score: 0,
-    results: [],
-    answer_history: [],
-    completed: false,
-    passed: false,
-    last_played_at: new Date().toISOString()
-  });
-}
-
+      setIdx(existing.current_word || 0);
+      setScreen("game");
+      return;
+    }
+    console.log("Daily Progress:", existing);
+    if (!existing) {
+    await saveDailyProgress({
+      telegram_id: telegramId,
+      date: today,
+      difficulty,
+      status: "in_progress",
+      current_word: 0,
+      score: 0,
+      results: [],
+      answer_history: [],
+      completed: false,
+      passed: false,
+      last_played_at: new Date().toISOString()
+    });
+    }
     const dailyWords = getDailyWords(
       NOUNS[difficulty],
       10
     );
-
     console.log(dailyWords);
     setDailyResults([]);
     setDailyPassed(false);
@@ -327,6 +364,7 @@ export default function App() {
     setQueue(shuffle(NOUNS[diff]));
     setIdx(0);
     setSelected(null);
+    setShowQuitPopup(false);
     setStreak(0);
     setHeartStreak(0);
     setHearts(3);
@@ -1024,7 +1062,7 @@ const handleFreeAnswer = (isCorrect) => {
                   ({current.meaning})
                 </p>
               </div>
-              <div />
+              <div/>
             </div>
             </motion.div>
           </AnimatePresence>
@@ -1044,7 +1082,31 @@ const handleFreeAnswer = (isCorrect) => {
 
           {/* Quit popup */}
           {showQuitPopup && (
+            mode === "daily" ? (
             <div onClick={() => setShowQuitPopup(false)}
+              style={{ position: "fixed", inset: 0, background: "rgba(45,45,45,0.45)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100, padding: 16 }}>
+              <motion.div onClick={e => e.stopPropagation()}
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ duration: 0.2, ease: "easeOut" }}
+                style={{ background: "#FFFFFF", borderRadius: 24, padding: "36px 28px", maxWidth: 320, width: "100%", textAlign: "center", boxShadow: "0 8px 40px rgba(0,0,0,0.12)" }}>
+                <div style={{ fontSize: 48, marginBottom: 16 }}>🤔</div>
+                <h2 style={{ margin: "0 0 12px", fontSize: 24, color: "#2D2D2D" }}>Quit game?</h2>
+                <p style={{ color: "#767676", fontSize: 14, marginBottom: 28 }}>Your progress will be saved.</p>
+                <div style={{ display: "flex", gap: 10 }}>
+                  <button onClick={() => setShowQuitPopup(false)}
+                    style={{ flex: 1, padding: "13px 0", borderRadius: 24, border: `2px solid ${GREEN}`, background: GREEN, color: "#FFFFFF", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
+                    Keep Playing
+                  </button>
+                  <button onClick={() => setScreen("menu")}
+                    style={{ flex: 1, padding: "13px 0", borderRadius: 24, border: "2px solid #D8D1C7", background: "#FFFFFF", color: "#2D2D2D", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
+                    Save & Quit
+                  </button>
+                </div>
+              </motion.div>
+            </div>
+            ) : (
+              <div onClick={() => setShowQuitPopup(false)}
               style={{ position: "fixed", inset: 0, background: "rgba(45,45,45,0.45)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100, padding: 16 }}>
               <motion.div onClick={e => e.stopPropagation()}
                 initial={{ scale: 0.8, opacity: 0 }}
@@ -1066,6 +1128,7 @@ const handleFreeAnswer = (isCorrect) => {
                 </div>
               </motion.div>
             </div>
+            )
           )}
 
           {/* Game over modal */}
@@ -1234,7 +1297,6 @@ const handleFreeAnswer = (isCorrect) => {
             </div>
           )
         )}
-          )
         </div>
   </motion.div>
     )}
