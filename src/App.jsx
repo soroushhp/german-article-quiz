@@ -218,6 +218,10 @@ export default function App() {
     const tg = window.Telegram?.WebApp;
     if (tg) {
       tg.ready();
+      tg.expand();
+      if (tg.requestFullscreen) {
+          tg.requestFullscreen();
+      }
       setTimeout(() => {
         const user = tg.initDataUnsafe?.user;
         if (user?.first_name) setUserName(user.first_name);
