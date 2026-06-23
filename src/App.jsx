@@ -560,24 +560,12 @@ export default function App() {
                 ⚡ Survival
               </h3>
 
-              <p style={{ margin: 0, color: "#767676", lineHeight: 1.6 }}>
+              <p style={{ marginBottom: 48, color: "#767676", lineHeight: 1.6 }}>
                 • Unlimited words<br />
                 • Start with 3 hearts ❤️<br />
                 • Lose a heart for each mistake<br />
                 • Earn 1 heart every 10 correct answers<br />
                 • Game ends when you run out of hearts
-              </p>
-            </div>
-
-            <div style={{ marginBottom: 24 }}>
-              <h3 style={{ margin: "0 0 8px", color: ORANGE }}>
-                🏆 Leaderboard
-              </h3>
-
-              <p style={{ margin: 0, color: "#767676", lineHeight: 1.6 }}>
-                • Survival ranks players by their best streak<br />
-                • Complete harder levels to climb higher<br />
-                • Your highest score is saved automatically
               </p>
             </div>
 
