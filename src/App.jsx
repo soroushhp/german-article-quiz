@@ -708,13 +708,13 @@ const handleFreeAnswer = (isCorrect) => {
 </div>
 
             {/* Level buttons */}
-            <pre style={{
-  fontSize: 10,
-  textAlign: "left",
-  whiteSpace: "pre-wrap"
+            <div style={{
+  fontSize: 12,
+  color: "red",
+  marginTop: 12
 }}>
-  {JSON.stringify(dailyProgress, null, 2)}
-</pre>
+  Telegram ID: {telegramId || "none"}
+</div>
             <AnimatePresence mode="wait">
             <motion.div
               key={mode}
