@@ -213,6 +213,7 @@ export default function App() {
         if (user?.id) {
           const id = String(user.id);
           setTelegramId(id);
+          loadDailyStatuses(id);
           const migrated = localStorage.getItem("leaderboard_migrated");
           if (!migrated) migrateLocalScores(id, user.first_name || "Anonymous");
         }
