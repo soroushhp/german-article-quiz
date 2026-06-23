@@ -265,8 +265,6 @@ export default function App() {
     const tg = window.Telegram?.WebApp;
     if (tg) {
       loadDailyStatuses();
-      console.log("telegramId:", telegramId);
-      console.log("dailyProgress:", dailyProgress);
       tg.ready();
       tg.expand();
       setTimeout(() => {
@@ -710,6 +708,13 @@ const handleFreeAnswer = (isCorrect) => {
 </div>
 
             {/* Level buttons */}
+            <pre style={{
+  fontSize: 10,
+  textAlign: "left",
+  whiteSpace: "pre-wrap"
+}}>
+  {JSON.stringify(dailyProgress, null, 2)}
+</pre>
             <AnimatePresence mode="wait">
             <motion.div
               key={mode}
