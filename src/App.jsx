@@ -403,11 +403,6 @@ export default function App() {
 
 
   const loadDailyStatuses = async () => {
-    const rows = await getDailyStatuses(
-  telegramId,
-  today
-);
-
 alert(JSON.stringify(rows));
     if (!telegramId) return;
 
@@ -417,6 +412,13 @@ alert(JSON.stringify(rows));
       telegramId,
       today
     );
+
+    const rows = await getDailyStatuses(
+      telegramId,
+      today
+    );
+
+alert(JSON.stringify(rows));
 
     const map = {};
 
