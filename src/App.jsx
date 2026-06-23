@@ -554,7 +554,35 @@ export default function App() {
                       transition={{ type: "spring", stiffness: 400, damping: 30 }}
                     />
                   )}
-                  {m === "daily" ? "📅 Daily" : "⚡ Survival"}
+                  {m === "daily"
+                    ? <span
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          gap: 4
+                        }}
+                      >
+                        <img
+                          src="/images/daily.png"
+                          style={{ width: 20, height: 20, filter: mode === m ? "brightness(0) invert(1)" : "none" }}
+                        />
+                        Daily
+                      </span>
+                    : <span
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          gap: 4
+                        }}
+                      >
+                        <img
+                          src="/images/streak.png"
+                          style={{ width: 20, height: 20, filter: mode === m ? "brightness(0) invert(1)" : "none" }}
+                        />
+                        Survival
+                      </span>}
                 </button>
               ))}
             </div>
