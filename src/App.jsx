@@ -629,6 +629,7 @@ const handleFreeAnswer = (isCorrect) => {
     <div style={{ width: "100%", minHeight: "100vh", background: "#FFFAF4", color: "#2D2D2D", fontFamily: "'Nunito', sans-serif", colorScheme: "light" }}>
 
       {/* ── MENU ── */}
+      await loadDailyStatuses();
       {screen === "menu" && (
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "100vh", padding: "24px 32px", boxSizing: "border-box" }}>
           <div style={{ maxWidth: 420, width: "100%" }}>
