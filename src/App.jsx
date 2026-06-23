@@ -589,8 +589,8 @@ export default function App() {
                     >
                       <span>{d === "artikelgott" ? "👑 Artikelgott" : DIFFICULTY_LABELS[d]}</span>
                       {dailyProgress[d]?.status === "completed" && (
-                        <span style={{ fontSize: 14, color: GREEN, fontWeight: 700 }}>
-                          Today's challenge passed! ✓ {dailyProgress[d]?.score}/10
+                        <span style={{ fontSize: 14, color: #ADADAD, fontWeight: 700 }}>
+                          ✓ {dailyProgress[d]?.score}/10
                         </span>
                       )}
                     </motion.button>
