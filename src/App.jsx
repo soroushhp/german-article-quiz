@@ -719,45 +719,60 @@ const handleFreeAnswer = (isCorrect) => {
             >
             {mode === "daily" ? (
   ["beginner", "intermediate", "advanced", "artikelgott"].map(d => (
-    <motion.button
-      key={d}
-      onClick={() => {
-        if (
-          mode === "daily" &&
-          dailyProgress[d]?.status === "completed"
-        ) {
-          return;
-        }
+   <motion.button
+  key={d}
+  disabled={dailyProgress[d]?.status === "completed"}
+  onClick={() => {
+    if (dailyProgress[d]?.status === "completed") return;
 
-        haptic("light");
-        setTimeout(() => {
-          mode === "daily"
-            ? startDaily(d)
-            : startGame(d);
-        }, 120);
-      }}
-      whileTap={{ scale: 0.97 }}
-      whileHover={{ scale: 1.02, background: "#FDEFD8" }}
-      disabled={
-        mode === "daily" &&
-        dailyProgress[d]?.status === "completed"}
+    haptic("light");
+
+    setTimeout(() => {
+      startDaily(d);
+    }, 120);
+  }}
+  whileTap={{
+    scale:
+      dailyProgress[d]?.status === "completed"
+        ? 1
+        : 0.97
+  }}
+  whileHover={
+    dailyProgress[d]?.status === "completed"
+      ? {}
+      : { scale: 1.02, background: "#FDEFD8" }
+  }
+  style={{
+    ...menuBtnStyle,
+    opacity:
+      dailyProgress[d]?.status === "completed"
+        ? 0.6
+        : 1,
+
+    ...(d === "artikelgott" && {
+      background: "#fff6eb",
+      border: `2px solid ${GOLD}`
+    })
+  }}
+>
+  <span>
+    {d === "artikelgott"
+      ? "👑 Artikelgott"
+      : DIFFICULTY_LABELS[d]}
+  </span>
+
+  {dailyProgress[d]?.status === "completed" && (
+    <span
       style={{
-        opacity:
-        mode === "daily" &&
-        dailyProgress[d]?.status === "completed"
-          ? 0.6
-          : 1,
-        ...menuBtnStyle,
-        ...(d === "artikelgott" && {
-          background: "#fff6eb",
-          border: `2px solid ${GOLD}`
-        })
+        fontSize: 14,
+        color: GREEN,
+        fontWeight: 700
       }}
     >
-      <span>
-        {d === "artikelgott" ? "👑 Artikelgott" : DIFFICULTY_LABELS[d]}
-      </span>
-    </motion.button>
+      ✓ {dailyProgress[d]?.score}/10
+    </span>
+  )}
+</motion.button>
   ))
 ) : (
   ["beginner", "intermediate", "advanced", "artikelgott"].map(d => (
