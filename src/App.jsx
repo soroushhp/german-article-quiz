@@ -265,6 +265,8 @@ export default function App() {
     const tg = window.Telegram?.WebApp;
     if (tg) {
       loadDailyStatuses();
+      console.log("telegramId:", telegramId);
+      console.log("dailyProgress:", dailyProgress);
       tg.ready();
       tg.expand();
       setTimeout(() => {
@@ -630,7 +632,6 @@ const handleFreeAnswer = (isCorrect) => {
 
       {/* ── MENU ── */}
       {screen === "menu" && (
-        await loadDailyStatuses(),
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "100vh", padding: "24px 32px", boxSizing: "border-box" }}>
           <div style={{ maxWidth: 420, width: "100%" }}>
 
