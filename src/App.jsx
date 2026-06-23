@@ -403,6 +403,12 @@ export default function App() {
 
 
   const loadDailyStatuses = async () => {
+    const rows = await getDailyStatuses(
+  telegramId,
+  today
+);
+
+alert(JSON.stringify(rows));
     if (!telegramId) return;
 
     const today = new Date().toISOString().slice(0, 10);
