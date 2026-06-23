@@ -601,7 +601,7 @@ export default function App() {
               <motion.button
                 onClick={() => { haptic("light"); openLeaderboard(); }}
                 whileTap={{ scale: 0.95, backgroundColor: "#fff6eb" }}
-                style={{ width: 36, height: 36, border: "2px solid #F5A623", background: "transparent", borderRadius: "50%", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", padding: 0, fontSize: 20 }}>
+                style={{ width: 36, height: 36, border: "2px solid #FF7A00", background: "transparent", borderRadius: "50%", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", padding: 0, fontSize: 20 }}>
                 <img src="/icons/podium.svg" width={28} height={28} />
               </motion.button>
 
