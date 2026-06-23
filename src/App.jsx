@@ -16,49 +16,36 @@ const GOLD = "#F5A623";
 function shuffle(arr) { return [...arr].sort(() => Math.random() - 0.5); }
 function getHS(d) { try { return parseInt(localStorage.getItem(`hs_${d}`) || "0", 10); } catch { return 0; } }
 function saveHS(d, v) { try { localStorage.setItem(`hs_${d}`, String(v)); } catch {} }
+
+function hash(str) {
+  let h = 0;
+  for (let i = 0; i < str.length; i++) {
+    h = (h * 31 + str.charCodeAt(i)) >>> 0;
+  }
+  return h;
+}
+
+function mulberry32(a) {
+  return function() {
+    var t = a += 0x6D2B79F5;
+    t = Math.imul(t ^ t >>> 15, t | 1);
+    t ^= t + Math.imul(t ^ t >>> 7, t | 61);
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+
 function getDailyWords(words, count = 10) {
-    // 1. Generate a single integer seed for the day
-    const dateString = new Date().toISOString().slice(0, 10);
-    const seed = hash(dateString); 
-    
-    // 2. Initialize our PRNG with the daily seed
-    const random = mulberry32(seed);
-
-    // 3. Clone the array to avoid mutating the original
-    const result = [...words];
-    const actualCount = Math.min(count, result.length);
-
-    // 4. Partial Fisher-Yates Shuffle (O(k) time complexity)
-    for (let i = 0; i < actualCount; i++) {
-      // Pick a pseudo-random index from 'i' to the end of the array
-      const j = i + Math.floor(random() * (result.length - i));
-      
-      // Swap the elements
-      [result[i], result[j]] = [result[j], result[i]];
-    }
-
-    // Return the randomized slice
-    return result.slice(0, actualCount);
+  const dateString = new Date().toISOString().slice(0, 10);
+  const seed = hash(dateString);
+  const random = mulberry32(seed);
+  const result = [...words];
+  const actualCount = Math.min(count, result.length);
+  for (let i = 0; i < actualCount; i++) {
+    const j = i + Math.floor(random() * (result.length - i));
+    [result[i], result[j]] = [result[j], result[i]];
   }
-
-  // Your existing hash function works perfectly to convert the date string to an integer
-  function hash(str) {
-    let h = 0;
-    for (let i = 0; i < str.length; i++) {
-      h = (h * 31 + str.charCodeAt(i)) >>> 0;
-    }
-    return h;
-  }
-
-  // A standard, fast, and very small PRNG (Mulberry32)
-  function mulberry32(a) {
-    return function() {
-      var t = a += 0x6D2B79F5;
-      t = Math.imul(t ^ t >>> 15, t | 1);
-      t ^= t + Math.imul(t ^ t >>> 7, t | 61);
-      return ((t ^ t >>> 14) >>> 0) / 4294967296;
-    }
-  }
+  return result.slice(0, actualCount);
+}
 
 // ── Sounds ─────────────────────────────────────────────────
 const sounds = {
@@ -88,7 +75,6 @@ async function saveScore(telegramId, username, difficulty, score) {
   }
 }
 
-
 async function getDailyStatuses(telegramId, date) {
   const { data, error } = await supabase
     .from("daily_challenges")
@@ -105,66 +91,23 @@ async function getDailyStatuses(telegramId, date) {
 }
 
 async function migrateLocalScores(telegramId, username) {
-  const beginner = getHS("beginner");
-  const intermediate = getHS("intermediate");
-  const advanced = getHS("advanced");
-  const artikelgott = getHS("artikelgott");
-
-  if (beginner > 0) {
-    await saveScore(telegramId, username, "beginner", beginner);
+  const difficulties = ["beginner", "intermediate", "advanced", "artikelgott"];
+  for (const diff of difficulties) {
+    const score = getHS(diff);
+    if (score > 0) await saveScore(telegramId, username, diff, score);
   }
-
-  if (intermediate > 0) {
-    await saveScore(telegramId, username, "intermediate", intermediate);
-  }
-
-  if (advanced > 0) {
-    await saveScore(telegramId, username, "advanced", advanced);
-  }
-
   localStorage.setItem("leaderboard_migrated", "true");
-}
-
-
-async function saveDailyChallenge(data) {
-  return supabase
-    .from("daily_challenges")
-    .upsert(data, {
-      onConflict: "telegram_id,date,difficulty"
-    });
-}
-
-async function getDailyChallenge(
-  telegramId,
-  date,
-  difficulty
-) {
-  const { data } = await supabase
-    .from("daily_challenges")
-    .select("*")
-    .eq("telegram_id", telegramId)
-    .eq("date", date)
-    .eq("difficulty", difficulty)
-    .maybeSingle();
-
-  return data;
 }
 
 async function saveDailyProgress(data) {
   const { error } = await supabase
     .from("daily_challenges")
-    .upsert(data, {
-      onConflict: "telegram_id,date,difficulty"
-    });
+    .upsert(data, { onConflict: "telegram_id,date,difficulty" });
 
   if (error) console.error(error);
 }
 
-async function getDailyProgress(
-  telegramId,
-  date,
-  difficulty
-) {
+async function getDailyProgress(telegramId, date, difficulty) {
   const { data, error } = await supabase
     .from("daily_challenges")
     .select("*")
@@ -182,7 +125,6 @@ async function getDailyProgress(
 }
 
 async function fetchLeaderboardData(diff, telegramId) {
-  // Top 10
   const { data: top10 } = await supabase
     .from("leaderboard")
     .select("*")
@@ -192,7 +134,6 @@ async function fetchLeaderboardData(diff, telegramId) {
 
   if (!telegramId) return { top10: top10 || [], userRow: null, userRank: null };
 
-  // User's own row
   const { data: userRow } = await supabase
     .from("leaderboard")
     .select("*")
@@ -202,7 +143,6 @@ async function fetchLeaderboardData(diff, telegramId) {
 
   if (!userRow) return { top10: top10 || [], userRow: null, userRank: null };
 
-  // User's rank
   const { count } = await supabase
     .from("leaderboard")
     .select("*", { count: "exact", head: true })
@@ -246,25 +186,25 @@ export default function App() {
   const [answerHistory, setAnswerHistory] = useState([]);
   const [heartNotification, setHeartNotification] = useState(null);
   const [showQuitPopup, setShowQuitPopup] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
 
   const [userName, setUserName] = useState("");
   const [telegramId, setTelegramId] = useState(null);
 
   // Leaderboard state
-  const [lbTab, setLbTab]                 = useState("beginner");
-  const [lbData, setLbData]               = useState({ beginner: null, intermediate: null, advanced: null, artikelgott: null });
-  const [lbLoading, setLbLoading]         = useState(false);
+  const [lbTab, setLbTab]     = useState("beginner");
+  const [lbData, setLbData]   = useState({ beginner: null, intermediate: null, advanced: null, artikelgott: null });
+  const [lbLoading, setLbLoading] = useState(false);
 
   // Telegram haptic API
   const haptic = (type = "light") => {
     window.Telegram?.WebApp?.HapticFeedback?.impactOccurred(type);
   };
-  
+
   // Telegram user detection
   useEffect(() => {
     const tg = window.Telegram?.WebApp;
     if (tg) {
-      loadDailyStatuses();
       tg.ready();
       tg.expand();
       setTimeout(() => {
@@ -274,11 +214,8 @@ export default function App() {
           const id = String(user.id);
           setTelegramId(id);
           const migrated = localStorage.getItem("leaderboard_migrated");
-          if (!migrated) {
-            migrateLocalScores(id, user.first_name || "Anonymous");
-          }
+          if (!migrated) migrateLocalScores(id, user.first_name || "Anonymous");
         }
-        const migrated = localStorage.getItem("leaderboard_migrated");
       }, 300);
     }
   }, []);
@@ -291,15 +228,11 @@ export default function App() {
   // ── Leaderboard loading ────────────────────────────────
   const openLeaderboard = async () => {
     if (lbLoading) return;
-
     const initialTab = difficulty || "beginner";
-
     setScreen("leaderboard");
     setLbTab(initialTab);
     setLbLoading(true);
-
     const result = await fetchLeaderboardData(initialTab, telegramId);
-
     setLbData(prev => ({ ...prev, [initialTab]: result }));
     setLbLoading(false);
   };
@@ -308,57 +241,45 @@ export default function App() {
     setLbTab(diff);
     if (lbData[diff]) return;
     setLbLoading(true);
-
     const result = await fetchLeaderboardData(diff, telegramId);
-
     setLbData(prev => ({ ...prev, [diff]: result }));
     setLbLoading(false);
   };
 
   // ── Game control ───────────────────────────────────────
+  const loadDailyStatuses = async (id = telegramId) => {
+    if (!id) return;
+    const today = new Date().toISOString().slice(0, 10);
+    const rows = await getDailyStatuses(id, today);
+    const map = {};
+    rows.forEach(row => { map[row.difficulty] = row; });
+    setDailyProgress(map);
+  };
 
-  function getDailyWords(words, count = 10) {
-    const seed = new Date().toISOString().slice(0, 10);
-
-    return [...words]
-      .sort((a, b) =>
-        hash(seed + a.word) - hash(seed + b.word)
-      )
-      .slice(0, count);
-  }
-
-  const startDaily = async (difficulty) => {
-
+  const startDaily = async (diff) => {
     setShowQuitPopup(false);
     const today = new Date().toISOString().slice(0, 10);
-    const existing = await getDailyProgress(telegramId, today, difficulty);
+    const existing = await getDailyProgress(telegramId, today, diff);
 
     if (existing?.status === "in_progress") {
       setDailyResults(existing.results || []);
       setAnswerHistory(existing.answer_history || []);
-      setDifficulty(difficulty);
-      setQueue(
-        getDailyWords(
-          NOUNS[difficulty],
-          10
-        )
-      );
+      setDifficulty(diff);
+      setQueue(getDailyWords(NOUNS[diff], 10));
       setIdx(existing.current_word || 0);
       setScreen("game");
       return;
     }
 
     if (existing?.status === "completed") {
-      // later: show completed popup
+      // TODO: show completed popup
       return;
     }
 
-    console.log("Daily Progress:", existing);
-    if (!existing) {
     await saveDailyProgress({
       telegram_id: telegramId,
       date: today,
-      difficulty,
+      difficulty: diff,
       status: "in_progress",
       current_word: 0,
       score: 0,
@@ -368,20 +289,14 @@ export default function App() {
       passed: false,
       last_played_at: new Date().toISOString()
     });
-    }
-    const dailyWords = getDailyWords(
-      NOUNS[difficulty],
-      10
-    );
-    console.log(dailyWords);
+
     setDailyResults([]);
     setDailyPassed(false);
-    setDifficulty(difficulty);
-    setQueue(dailyWords);
+    setDifficulty(diff);
+    setQueue(getDailyWords(NOUNS[diff], 10));
     setIdx(0);
     setScreen("game");
   };
-
 
   const startGame = (diff) => {
     setDifficulty(diff);
@@ -397,88 +312,55 @@ export default function App() {
     setIsNewHigh(false);
     setIsLevelComplete(false);
     setHeartNotification(null);
-    setShowQuitPopup(false);
     setScreen("game");
   };
 
+  const handleDailyAnswer = async (isCorrect) => {
+    const nextIdx = idx + 1;
+    const nextResults = [...dailyResults, isCorrect];
+    const score = nextResults.filter(Boolean).length;
+    const isComplete = nextIdx >= queue.length;
 
-  const loadDailyStatuses = async () => {
-alert(JSON.stringify(rows));
-    if (!telegramId) return;
+    setDailyResults(nextResults);
 
-    const today = new Date().toISOString().slice(0, 10);
-
-    const rows = await getDailyStatuses(
-      telegramId,
-      today
-    );
-
-    const rows = await getDailyStatuses(
-      telegramId,
-      today
-    );
-
-alert(JSON.stringify(rows));
-
-    const map = {};
-
-    rows.forEach(row => {
-      map[row.difficulty] = row;
+    await saveDailyProgress({
+      telegram_id: telegramId,
+      date: new Date().toISOString().slice(0, 10),
+      difficulty,
+      status: isComplete ? "completed" : "in_progress",
+      current_word: nextIdx,
+      score,
+      results: nextResults,
+      answer_history: [
+        ...answerHistory,
+        {
+          word: queue[idx].word,
+          meaning: queue[idx].meaning,
+          article: queue[idx].article,
+          selected,
+          correct: isCorrect
+        }
+      ],
+      completed: isComplete,
+      passed: isComplete ? score >= 8 : false,
+      last_played_at: new Date().toISOString()
     });
 
-    setDailyProgress(map);
+    if (isComplete) {
+      await loadDailyStatuses();
+      setFinalScore(score);
+      setDailyPassed(score >= 8);
+      setGameOver(true);
+      return;
+    }
+
+    setTimeout(() => {
+      setIdx(nextIdx);
+      setSelected(null);
+    }, 600);
   };
 
-const handleDailyAnswer = async (isCorrect) => {
-  const nextIdx = idx + 1;
-  const nextResults = [...dailyResults, isCorrect];
-  const score = nextResults.filter(Boolean).length;
-  const isComplete = nextIdx >= queue.length;
-
-  // Update local state immediately
-  setDailyResults(nextResults);
-
-  // Save to backend
-  await saveDailyProgress({
-    telegram_id: telegramId,
-    date: new Date().toISOString().slice(0, 10),
-    difficulty,
-    status: isComplete ? "completed" : "in_progress",
-    current_word: nextIdx,
-    score,
-    results: nextResults,
-    answer_history: [
-      ...answerHistory,
-      {
-        word: queue[idx].word,
-        meaning: queue[idx].meaning,
-        article: queue[idx].article,
-        selected,
-        correct: isCorrect
-      }
-    ],
-    completed: isComplete,
-    passed: isComplete ? score >= 8 : false,
-    last_played_at: new Date().toISOString()
-  });
-
-  // Handle game-over state
-  if (isComplete) {
-    await loadDailyStatuses();
-    setFinalScore(score);
-    setDailyPassed(score >= 8);
-    setGameOver(true);
-    return;
-  }
-
-  // Advance to next word with transition delay
-  setTimeout(() => {
-    setIdx(nextIdx);
-    setSelected(null);
-  }, 600);
-};
-
-const handleFreeAnswer = (isCorrect) => {
+  const handleFreeAnswer = (isCorrect) => {
     setTimeout(() => {
       if (!isCorrect) {
         if (hearts > 0) {
@@ -514,16 +396,12 @@ const handleFreeAnswer = (isCorrect) => {
         setTimeout(() => { setIdx(nextIdx); setSelected(null); }, 600);
       }
     }, 100);
-};
-
-
-
-
+  };
 
   const handleAnswer = (art) => {
     if (selected !== null || gameOver) return;
 
-    const isCorrect     = art === queue[idx].article;
+    const isCorrect = art === queue[idx].article;
 
     setAnswerHistory(prev => [
       ...prev,
@@ -535,26 +413,21 @@ const handleFreeAnswer = (isCorrect) => {
         correct: isCorrect
       }
     ]);
+
     const isHeartMoment = isCorrect && (heartStreak + 1) % 10 === 0 && hearts < 3;
     const isHeartLose   = !isCorrect && hearts > 0;
 
     setSelected(art);
 
-    if (isCorrect) {
-      haptic("light");
-    } else {
-      haptic("medium");
-    }
+    if (isCorrect) haptic("light");
+    else haptic("medium");
 
-    if (isHeartMoment)    sounds.heartGain.play(), haptic("rigid");
-    else if (isHeartLose) sounds.heartLose.play(), haptic("heavy");
-    else                  sounds[isCorrect ? "correct" : "wrong"].play();
+    if (isHeartMoment)    { sounds.heartGain.play(); haptic("rigid"); }
+    else if (isHeartLose) { sounds.heartLose.play(); haptic("heavy"); }
+    else                  { sounds[isCorrect ? "correct" : "wrong"].play(); }
 
-    if (mode === "daily") {
-  handleDailyAnswer(isCorrect);
-} else {
-  handleFreeAnswer(isCorrect);
-}
+    if (mode === "daily") handleDailyAnswer(isCorrect);
+    else handleFreeAnswer(isCorrect);
   };
 
   const endGameOver = () => {
@@ -602,14 +475,13 @@ const handleFreeAnswer = (isCorrect) => {
     if (!selected) return { bg: "#FFFFFF", color: "#2D2D2D", border: "2px solid #D8D1C7" };
     const isCorrect = art === queue[idx].article;
     const isChosen  = art === selected;
-    if (isCorrect)            return { bg: GREEN, color: "#FFFFFF", border: `2px solid ${GREEN}` };
-    if (isChosen && !isCorrect) return { bg: RED, color: "#FFFFFF", border: `2px solid ${RED}` };
+    if (isCorrect)              return { bg: GREEN, color: "#FFFFFF", border: `2px solid ${GREEN}` };
+    if (isChosen && !isCorrect) return { bg: RED,   color: "#FFFFFF", border: `2px solid ${RED}` };
     return { bg: "#FFFFFF", color: "#767676", border: "2px solid #D8D1C7" };
   };
 
   const modalTitle = isLevelComplete ? "Level Complete!" : isNewHigh ? "New High Score!" : "Streak Broken!";
 
-  // Shared button style for menu
   const menuBtnStyle = {
     padding: "16px 24px",
     borderRadius: 48,
@@ -627,10 +499,10 @@ const handleFreeAnswer = (isCorrect) => {
   };
 
   // ── Leaderboard helpers ────────────────────────────────
-  const currentLbData = lbData[lbTab];
-  const isUserInTop10 = currentLbData?.top10?.some(p => p.telegram_id === telegramId);
-  const correctCount = answerHistory.filter(a => a.correct).length;
-  const incorrectCount = answerHistory.length - correctCount;
+  const currentLbData   = lbData[lbTab];
+  const isUserInTop10   = currentLbData?.top10?.some(p => p.telegram_id === telegramId);
+  const correctCount    = answerHistory.filter(a => a.correct).length;
+  const incorrectCount  = answerHistory.length - correctCount;
 
   // ── Render ─────────────────────────────────────────────
   return (
