@@ -589,7 +589,7 @@ export default function App() {
                     >
                       <span>{d === "artikelgott" ? "👑 Artikelgott" : DIFFICULTY_LABELS[d]}</span>
                       {dailyProgress[d]?.status === "completed" && (
-                        <span style={{ fontSize: 14, color: #ADADAD, fontWeight: 700 }}>
+                        <span style={{ fontSize: 14, color:"#ADADAD", fontWeight: 700 }}>
                           ✓ {dailyProgress[d]?.score}/10
                         </span>
                       )}
