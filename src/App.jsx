@@ -769,7 +769,7 @@ const handleFreeAnswer = (isCorrect) => {
         fontWeight: 700
       }}
     >
-      ✓ {dailyProgress[d]?.score}/10
+      Today's challenge passed! ✓ {dailyProgress[d]?.score}/10
     </span>
   )}
 </motion.button>
