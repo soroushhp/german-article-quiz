@@ -88,6 +88,22 @@ async function saveScore(telegramId, username, difficulty, score) {
   }
 }
 
+
+async function getDailyStatuses(telegramId, date) {
+  const { data, error } = await supabase
+    .from("daily_challenges")
+    .select("difficulty, score, passed, status")
+    .eq("telegram_id", telegramId)
+    .eq("date", date);
+
+  if (error) {
+    console.error(error);
+    return [];
+  }
+
+  return data || [];
+}
+
 async function migrateLocalScores(telegramId, username) {
   const beginner = getHS("beginner");
   const intermediate = getHS("intermediate");
@@ -203,6 +219,7 @@ export default function App() {
 
   const [dailyResults, setDailyResults] = useState([]);
   const [dailyPassed, setDailyPassed] = useState(false);
+  const [dailyProgress, setDailyProgress] = useState({});
 
   const [difficulty, setDifficulty] = useState(null);
   const [queue, setQueue] = useState([]);
@@ -247,6 +264,7 @@ export default function App() {
   useEffect(() => {
     const tg = window.Telegram?.WebApp;
     if (tg) {
+      loadDailyStatuses();
       tg.ready();
       tg.expand();
       setTimeout(() => {
@@ -329,6 +347,12 @@ export default function App() {
       setScreen("game");
       return;
     }
+
+    if (existing?.status === "completed") {
+      // later: show completed popup
+      return;
+    }
+
     console.log("Daily Progress:", existing);
     if (!existing) {
     await saveDailyProgress({
@@ -378,6 +402,25 @@ export default function App() {
   };
 
 
+  const loadDailyStatuses = async () => {
+    if (!telegramId) return;
+
+    const today = new Date().toISOString().slice(0, 10);
+
+    const rows = await getDailyStatuses(
+      telegramId,
+      today
+    );
+
+    const map = {};
+
+    rows.forEach(row => {
+      map[row.difficulty] = row;
+    });
+
+    setDailyProgress(map);
+  };
+
 const handleDailyAnswer = async (isCorrect) => {
   const nextIdx = idx + 1;
   const nextResults = [...dailyResults, isCorrect];
@@ -413,6 +456,7 @@ const handleDailyAnswer = async (isCorrect) => {
 
   // Handle game-over state
   if (isComplete) {
+    await loadDailyStatuses();
     setFinalScore(score);
     setDailyPassed(score >= 8);
     setGameOver(true);
@@ -678,12 +722,31 @@ const handleFreeAnswer = (isCorrect) => {
     <motion.button
       key={d}
       onClick={() => {
+        if (
+          mode === "daily" &&
+          dailyProgress[d]?.status === "completed"
+        ) {
+          return;
+        }
+
         haptic("light");
-        setTimeout(() => startDaily(d), 120);
+        setTimeout(() => {
+          mode === "daily"
+            ? startDaily(d)
+            : startGame(d);
+        }, 120);
       }}
       whileTap={{ scale: 0.97 }}
       whileHover={{ scale: 1.02, background: "#FDEFD8" }}
+      disabled={
+        mode === "daily" &&
+        dailyProgress[d]?.status === "completed"}
       style={{
+        opacity:
+        mode === "daily" &&
+        dailyProgress[d]?.status === "completed"
+          ? 0.6
+          : 1,
         ...menuBtnStyle,
         ...(d === "artikelgott" && {
           background: "#fff6eb",
