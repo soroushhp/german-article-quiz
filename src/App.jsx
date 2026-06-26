@@ -8,6 +8,11 @@ import { supabase } from "./supabase";
 // ── Constants ──────────────────────────────────────────────
 const ARTICLES = ["der", "die", "das"];
 const DIFFICULTY_LABELS = { beginner: "Easy", intermediate: "Medium", advanced: "Hard", artikelgott: "Artikelgott" };
+const nextDifficulty = {
+  beginner: "intermediate",
+  intermediate: "advanced",
+  advanced: "artikelgott"
+};
 const GREEN = "#2E8B57";
 const RED = "#D94A4A";
 const ORANGE = "#FF7A00";
@@ -177,6 +182,7 @@ export default function App() {
     artikelgott: getHS("artikelgott")
   });
 
+  const [reviewAnswer, setReviewAnswer] = useState(null);
   const [gameOver, setGameOver] = useState(false);
   const [isNewHigh, setIsNewHigh] = useState(false);
   const [isLevelComplete, setIsLevelComplete] = useState(false);
@@ -259,6 +265,16 @@ export default function App() {
 
   const startDaily = async (diff) => {
     setShowQuitPopup(false);
+    setSelected(null);
+    setAnswerHistory([]);
+    setReviewAnswer(null);
+    setGameOver(false);
+    setHeartNotification(null);
+
+    setStreak(0);
+    setHeartStreak(0);
+    setHearts(3);
+
     const today = new Date().toISOString().slice(0, 10);
     const existing = await getDailyProgress(telegramId, today, diff);
 
@@ -273,7 +289,8 @@ export default function App() {
     }
 
     if (existing?.status === "completed") {
-      // TODO: show completed popup
+      await loadDailyStatuses();
+      setScreen("menu");
       return;
     }
 
@@ -303,6 +320,7 @@ export default function App() {
     setDifficulty(diff);
     setQueue(shuffle(NOUNS[diff]));
     setIdx(0);
+    setReviewAnswer(null);
     setSelected(null);
     setShowQuitPopup(false);
     setStreak(0);
@@ -361,43 +379,52 @@ export default function App() {
     }, 600);
   };
 
-  const handleFreeAnswer = (isCorrect) => {
-    setTimeout(() => {
-      if (!isCorrect) {
-        if (hearts > 0) {
+    const handleFreeAnswer = (isCorrect, selectedArticle) => {
+        if (!isCorrect) {
+          if (hearts <= 0) {
+            endGameOver();
+            return;
+          }
+
           setHearts(h => h - 1);
           setHeartStreak(0);
           triggerHeartNotification("lose");
+
           setTimeout(() => {
-            const nextIdx = idx + 1;
-            if (nextIdx >= queue.length) {
-              endLevelComplete(streak);
-              return;
-            }
-            setIdx(nextIdx);
-            setSelected(null);
-          }, 500);
+            setReviewAnswer({
+              selected: selectedArticle,
+              article: queue[idx].article,
+              word: queue[idx].word,
+              meaning: queue[idx].meaning
+            });
+          }, 600);
+
           return;
         }
-        endGameOver();
-      } else {
-        const newStreak      = streak + 1;
+
+        const newStreak = streak + 1;
         const newHeartStreak = heartStreak + 1;
+
         setStreak(newStreak);
         setHeartStreak(newHeartStreak);
+
         if (newHeartStreak % 10 === 0 && hearts < 3) {
           setHearts(h => h + 1);
           triggerHeartNotification("gain");
         }
+
         const nextIdx = idx + 1;
+
         if (nextIdx >= queue.length) {
           endLevelComplete(newStreak);
           return;
         }
-        setTimeout(() => { setIdx(nextIdx); setSelected(null); }, 600);
-      }
-    }, 100);
-  };
+
+        setTimeout(() => {
+          setIdx(nextIdx);
+          setSelected(null);
+        }, 600);
+    };
 
   const handleAnswer = (art) => {
     if (selected !== null || gameOver) return;
@@ -420,7 +447,7 @@ export default function App() {
 
     setSelected(art);
 
-    if (isCorrect) haptic("light");
+    if (isCorrect) haptic("light")
     else haptic("medium");
 
     if (isHeartMoment)    { sounds.heartGain.play(); haptic("rigid"); }
@@ -428,8 +455,23 @@ export default function App() {
     else                  { sounds[isCorrect ? "correct" : "wrong"].play(); }
 
     if (mode === "daily") handleDailyAnswer(isCorrect);
-    else handleFreeAnswer(isCorrect);
+    else handleFreeAnswer(isCorrect, art);
   };
+
+  const handleContinue = () => {
+    setReviewAnswer(null);
+
+    const nextIdx = idx + 1;
+
+    if (nextIdx >= queue.length) {
+      endLevelComplete(streak);
+      return;
+    }
+
+    setIdx(nextIdx);
+    setSelected(null);
+  };
+
 
   const endGameOver = () => {
     const prev  = getHS(difficulty);
@@ -1011,36 +1053,115 @@ export default function App() {
                 transition={{ duration: 0.22, ease: "easeInOut" }}
                 style={{ width: "100%", maxWidth: 448, margin: "0 auto" }}>
                 <div style={{ background: "#FFFFFF", borderRadius: 24, boxShadow: "0 4px 16px rgba(0,0,0,0.06)", padding: "32px 16px", textAlign: "center", height: 300, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "space-between" }}>
-                  <p style={{ margin: 0, fontSize: 11, color: "#ADADAD", textTransform: "uppercase", letterSpacing: 1.5 }}>
-                    What is the article for...
-                  </p>
-                  <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
-                    <h2 style={{ margin: 0, fontSize: current.word.length > 15 ? 32 : current.word.length > 10 ? 36 : current.word.length > 8 ? 40 : 48, fontWeight: 800, color: "#2D2D2D", wordBreak: "break-word", lineHeight: 1.1 }}>
-                      {current.word}
-                    </h2>
-                    <p style={{ margin: 0, fontSize: 16, fontWeight: 600, color: "#ADADAD" }}>
-                      ({current.meaning})
-                    </p>
-                  </div>
-                  <div />
+
+                  {reviewAnswer ? (
+                    <>
+                    <div style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", height: "100%" }}>
+                      <h3 style={{ fontSize: 16, color: "#767676", marginTop: -6, marginBottom: 28 }}>
+                        ❌ You made a mistake ❌
+                      </h3>
+                        <div>
+                          <p style={{ marginBottom: -8, color: "#767676", fontSize: 16 }}>Correct answer:</p>
+                          <h3 style={{ margin: 0, fontSize: 36, fontWeight: 800, color: GREEN }}>
+                            {reviewAnswer.article} {reviewAnswer.word}
+                          </h3>
+                          <p style={{ fontSize: 16, fontWeight: 600, color: "#ADADAD" }}>
+                            ({reviewAnswer.meaning})
+                          </p>
+                        </div>
+
+                      <div style={{ display: "flex", flexDirection: "column", gap: 32 }}>
+                        <div>
+                          <p style={{ marginBottom: -4, color: "#767676", fontSize: 14 }}>You chose:</p>
+                          <h3 style={{ margin: 0, fontSize: 28, fontWeight: 800, color: "#767676" }}>
+                            {reviewAnswer.selected} {reviewAnswer.word}
+                          </h3>
+                        </div>
+
+                      </div>
+                    </div>
+                    </>
+                  ) : (
+                    <>
+                      <p style={{ margin: 0, fontSize: 11, color: "#ADADAD", textTransform: "uppercase", letterSpacing: 1.5 }}>
+                        What is the article for...
+                      </p>
+
+                      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
+                        <h2 style={{ margin: 0, fontSize: current.word.length > 15 ? 32 : current.word.length > 10 ? 36 : current.word.length > 8 ? 40 : 48, fontWeight: 800, color: "#2D2D2D", wordBreak: "break-word", lineHeight: 1.1 }}>
+                          {current.word}
+                        </h2>
+
+                        <p style={{ margin: 0, fontSize: 16, fontWeight: 600, color: "#ADADAD" }}>
+                          ({current.meaning})
+                        </p>
+                      </div>
+
+                      <div />
+                    </>
+                  )}
+
                 </div>
               </motion.div>
             </AnimatePresence>
 
             {/* Article buttons */}
             <div style={{ position: "fixed", left: "50%", bottom: 32, transform: "translateX(-50%)", width: "calc(100% - 32px)", maxWidth: 448, display: "flex", gap: 8 }}>
-              {ARTICLES.map(art => {
-                const { bg, color, border } = btnStyle(art);
-                return (
-                  <motion.button
-                    key={art}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => handleAnswer(art)}
-                    style={{ flex: 1, padding: "16px 0", borderRadius: 48, border, background: bg, color, fontSize: 22, fontWeight: 700, cursor: selected ? "default" : "pointer", transition: "background 0.15s, color 0.15s" }}>
-                    {art}
-                  </motion.button>
-                );
-              })}
+              {reviewAnswer ? (
+                <motion.button
+                  whileTap={{ scale: 0.97 }}
+                  onClick={handleContinue}
+                  style={{
+                    width: "100%",
+                    padding: "16px 0",
+                    borderRadius: 48,
+                    border: "2px solid #D8D1C7",
+                    background: "#FFFFFF",
+                    color: "#2D2D2D",
+                    fontSize: 18,
+                    fontWeight: 700,
+                    cursor: "pointer"
+                  }}
+                >
+                <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+                  Next Word
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                    <path
+                      d="M4 12H20M14 6L20 12L14 18"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </span>
+                </motion.button>
+              ) : (
+                ARTICLES.map(art => {
+                  const { bg, color, border } = btnStyle(art);
+                  return (
+                    <motion.button
+                      key={art}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => handleAnswer(art)}
+                      style={{
+                        flex: 1,
+                        padding: "16px 0",
+                        borderRadius: 48,
+                        border,
+                        background: bg,
+                        color,
+                        fontSize: 22,
+                        fontWeight: 700,
+                        cursor: selected ? "default" : "pointer",
+                        transition: "background 0.15s, color 0.15s"
+                      }}
+                    >
+                      {art}
+                    </motion.button>
+                  );
+                })
+              )}
             </div>
 
             {/* Quit popup */}
@@ -1134,9 +1255,15 @@ export default function App() {
                         )}
                       </div>
                       <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                        {dailyPassed && (
+                        {dailyPassed && difficulty !== "artikelgott" && (
                           <button
-                            onClick={() => {/* TODO: navigate to next level */}}
+                            onClick={() => {
+                              const next = nextDifficulty[difficulty];
+                              if (!next) return;
+
+                              setGameOver(false);
+                              startDaily(next);
+                            }}
                             style={{ padding: "14px 0", borderRadius: 48, border: `2px solid ${GREEN}`, background: GREEN, color: "#FFFFFF", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
                             Play Next Level
                           </button>
