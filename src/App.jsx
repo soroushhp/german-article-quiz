@@ -167,8 +167,6 @@ async function loadUnlockedDifficulties(telegramId) {
 
 
 async function unlockDifficulty(telegramId, difficulty) {
-  alert(`Trying to unlock ${difficulty}`);
-
   const { error } = await supabase
     .from("user_unlocks")
     .upsert(
@@ -183,12 +181,7 @@ async function unlockDifficulty(telegramId, difficulty) {
       }
     );
 
-  if (error) {
-    alert(error.message);
-    console.error(error);
-  } else {
-    alert("Unlock saved!");
-  }
+  if (error) console.error(error);
 }
 
 async function isDifficultyUnlocked(telegramId, difficulty) {
@@ -575,6 +568,7 @@ export default function App() {
   };
 
   const endLevelComplete = async (finalStr) => {
+    alert(`endLevelComplete\nDifficulty: ${difficulty}\nScore: ${finalStr}`);
     sounds.levelComplete.play();
     confetti({ particleCount: 160, spread: 90, origin: { y: 0.6 } });
     saveHS(difficulty, finalStr);
