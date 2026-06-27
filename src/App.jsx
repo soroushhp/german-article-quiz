@@ -167,6 +167,8 @@ async function loadUnlockedDifficulties(telegramId) {
 
 
 async function unlockDifficulty(telegramId, difficulty) {
+  alert(`Trying to unlock ${difficulty}`);
+
   const { error } = await supabase
     .from("user_unlocks")
     .upsert(
@@ -181,7 +183,12 @@ async function unlockDifficulty(telegramId, difficulty) {
       }
     );
 
-  if (error) console.error(error);
+  if (error) {
+    alert(error.message);
+    console.error(error);
+  } else {
+    alert("Unlock saved!");
+  }
 }
 
 async function isDifficultyUnlocked(telegramId, difficulty) {
