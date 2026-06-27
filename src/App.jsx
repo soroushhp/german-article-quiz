@@ -552,7 +552,7 @@ export default function App() {
   };
 
 
-  const endGameOver = () => {
+  const endGameOver = async () => {
     const prev  = getHS(difficulty);
     const isNew = streak > prev;
     if (isNew) {
@@ -562,27 +562,30 @@ export default function App() {
       if (telegramId) saveScore(telegramId, userName || "Anonymous", difficulty, streak);
       setHighScores(hs => ({ ...hs, [difficulty]: streak }));
     }
+    await checkAndUnlock(difficulty, streak);
     setFinalScore(streak);
     setIsNewHigh(isNew);
     setGameOver(true);
   };
 
+
+  const checkAndUnlock = async (diff, score) => {
+    if (!telegramId) return;
+    if (diff === "beginner"    && score >= 30) await unlockDifficulty(telegramId, "intermediate");
+    if (diff === "intermediate" && score >= 50) await unlockDifficulty(telegramId, "advanced");
+    if (diff === "advanced"    && score >= 75) await unlockDifficulty(telegramId, "artikelgott");
+    const unlocked = await loadUnlockedDifficulties(telegramId);
+    setUnlockedLevels(unlocked);
+  };
+
+
   const endLevelComplete = async (finalStr) => {
-    alert(`endLevelComplete\nDifficulty: ${difficulty}\nScore: ${finalStr}`);
     sounds.levelComplete.play();
     confetti({ particleCount: 160, spread: 90, origin: { y: 0.6 } });
     saveHS(difficulty, finalStr);
     if (telegramId) {
       await saveScore(telegramId, userName || "Anonymous", difficulty, finalStr);
-      if (difficulty === "beginner" && finalStr >= 30) {
-        await unlockDifficulty(telegramId, "intermediate");
-      }
-      if (difficulty === "intermediate" && finalStr >= 50) {
-        await unlockDifficulty(telegramId, "advanced");
-      }
-      if (difficulty === "advanced" && finalStr >= 75) {
-        await unlockDifficulty(telegramId, "artikelgott");
-      }
+      await checkAndUnlock(difficulty, finalStr);
       const unlocked = await loadUnlockedDifficulties(telegramId);
       setUnlockedLevels(unlocked);
     }
