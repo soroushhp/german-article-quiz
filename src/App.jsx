@@ -858,12 +858,12 @@ export default function App() {
                         ...menuBtnStyle,
                         ...(d === "artikelgott" && {
                           background: "#fff6eb",
-                          border: `2px solid ${GOLD}`
+                          border: `2px solid ${ORANGE}`
                         })
                       }}
                     >
                       <span>{d === "artikelgott" ? "👑 Artikelgott" : DIFFICULTY_LABELS[d]}</span>
-                      <span style={{ fontSize: unlockedLevels[d] ? 14 : 12, color: "#767676" }}>
+                      <span style={{ fontSize: 14, color: "#767676" }}>
                         {unlockedLevels[d]
                           ? `Best: ${highScores[d]}`
                           : UNLOCK_REQUIREMENTS[d]}
