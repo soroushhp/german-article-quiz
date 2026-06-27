@@ -18,9 +18,9 @@ const RED = "#D94A4A";
 const ORANGE = "#FF7A00";
 
 const UNLOCK_REQUIREMENTS = {
-  intermediate: "Reach 30 streak in Easy 🔒",
-  advanced: "Reach 50 streak in Medium 🔒",
-  artikelgott: "Reach 75 streak in Hard 🔒"
+  intermediate: "30 streak in Easy ",
+  advanced: "50 streak in Medium ",
+  artikelgott: "75 streak in Hard "
 };
 
 // ── Helpers ────────────────────────────────────────────────
@@ -850,12 +850,16 @@ export default function App() {
                         setTimeout(() => startGame(d), 120);
                       }}
                       whileTap={{ scale: 0.97 }}
-                      whileHover={{ scale: 1.02, background: "#FDEFD8" }}
+                      whileHover={
+                        unlockedLevels[d]
+                          ? { scale: 1.02, background: "#FDEFD8" }
+                          : {}
+                      }
                       disabled={!unlockedLevels[d]}
                       style={{
                         opacity: unlockedLevels[d] ? 1 : 0.6,
-                        cursor: unlockedLevels[d] ? "pointer" : "default",
                         ...menuBtnStyle,
+                        cursor: unlockedLevels[d] ? "pointer" : "default",
                         ...(d === "artikelgott" && {
                           background: "#fff6eb",
                           border: `2px solid ${ORANGE}`
@@ -863,11 +867,25 @@ export default function App() {
                       }}
                     >
                       <span>{d === "artikelgott" ? "👑 Artikelgott" : DIFFICULTY_LABELS[d]}</span>
-                      <span style={{ fontSize: 14, color: "#767676" }}>
-                        {unlockedLevels[d]
-                          ? `Best: ${highScores[d]}`
-                          : UNLOCK_REQUIREMENTS[d]}
-                      </span>
+                      {unlockedLevels[d] ? (
+                        <span style={{ fontSize: 14, color: "#767676" }}>
+                          Best: {highScores[d]}
+                        </span>
+                      ) : (
+                        <span
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            gap: 4,
+                            color: "#767676",
+                            fontSize: 12
+                          }}
+                        >
+                          <span style={{ fontSize: 16 }}>🔒</span>
+                          <span>{UNLOCK_REQUIREMENTS[d]}</span>
+                        </span>
+                      )}
                     </motion.button>
                   ))
                 )}
