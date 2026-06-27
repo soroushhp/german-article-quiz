@@ -17,6 +17,12 @@ const GREEN = "#2E8B57";
 const RED = "#D94A4A";
 const ORANGE = "#FF7A00";
 
+const UNLOCK_REQUIREMENTS = {
+  intermediate: "Reach 30 streak in Easy 🔒",
+  advanced: "Reach 50 streak in Medium 🔒",
+  artikelgott: "Reach 75 streak in Hard 🔒"
+};
+
 // ── Helpers ────────────────────────────────────────────────
 function shuffle(arr) { return [...arr].sort(() => Math.random() - 0.5); }
 function getHS(d) { try { return parseInt(localStorage.getItem(`hs_${d}`) || "0", 10); } catch { return 0; } }
@@ -129,6 +135,67 @@ async function getDailyProgress(telegramId, date, difficulty) {
   return data;
 }
 
+async function loadUnlockedDifficulties(telegramId) {
+  const { data, error } = await supabase
+    .from("user_unlocks")
+    .select("difficulty")
+    .eq("telegram_id", telegramId);
+
+  if (error) {
+    console.error(error);
+    return {
+      beginner: true,
+      intermediate: false,
+      advanced: false,
+      artikelgott: false
+    };
+  }
+
+  const unlocked = {
+    beginner: true,
+    intermediate: false,
+    advanced: false,
+    artikelgott: false
+  };
+
+  data.forEach(row => {
+    unlocked[row.difficulty] = true;
+  });
+
+  return unlocked;
+}
+
+
+async function unlockDifficulty(telegramId, difficulty) {
+  const { error } = await supabase
+    .from("user_unlocks")
+    .upsert(
+      {
+        telegram_id: telegramId,
+        difficulty,
+        unlocked: true,
+        updated_at: new Date().toISOString()
+      },
+      {
+        onConflict: "telegram_id,difficulty"
+      }
+    );
+
+  if (error) console.error(error);
+}
+
+async function isDifficultyUnlocked(telegramId, difficulty) {
+  const { data } = await supabase
+    .from("user_unlocks")
+    .select("unlocked")
+    .eq("telegram_id", telegramId)
+    .eq("difficulty", difficulty)
+    .maybeSingle();
+
+  return difficulty === "beginner" || !!data?.unlocked;
+}
+
+
 async function fetchLeaderboardData(diff, telegramId) {
   const { data: top10 } = await supabase
     .from("leaderboard")
@@ -165,6 +232,12 @@ export default function App() {
   const [dailyResults, setDailyResults] = useState([]);
   const [dailyPassed, setDailyPassed] = useState(false);
   const [dailyProgress, setDailyProgress] = useState({});
+  const [unlockedLevels, setUnlockedLevels] = useState({
+    beginner: true,
+    intermediate: false,
+    advanced: false,
+    artikelgott: false
+  });
 
   const [difficulty, setDifficulty] = useState(null);
   const [queue, setQueue] = useState([]);
@@ -213,13 +286,19 @@ export default function App() {
     if (tg) {
       tg.ready();
       tg.expand();
-      setTimeout(() => {
+      setTimeout(async () => {
         const user = tg.initDataUnsafe?.user;
         if (user?.first_name) setUserName(user.first_name);
         if (user?.id) {
           const id = String(user.id);
+
           setTelegramId(id);
+
+          const unlocked = await loadUnlockedDifficulties(id);
+          setUnlockedLevels(unlocked);
+
           loadDailyStatuses(id);
+
           const migrated = localStorage.getItem("leaderboard_migrated");
           if (!migrated) migrateLocalScores(id, user.first_name || "Anonymous");
         }
@@ -488,11 +567,24 @@ export default function App() {
     setGameOver(true);
   };
 
-  const endLevelComplete = (finalStr) => {
+  const endLevelComplete = async (finalStr) => {
     sounds.levelComplete.play();
     confetti({ particleCount: 160, spread: 90, origin: { y: 0.6 } });
     saveHS(difficulty, finalStr);
-    if (telegramId) saveScore(telegramId, userName || "Anonymous", difficulty, finalStr);
+    if (telegramId) {
+      await saveScore(telegramId, userName || "Anonymous", difficulty, finalStr);
+      if (difficulty === "beginner" && finalStr >= 30) {
+        await unlockDifficulty(telegramId, "intermediate");
+      }
+      if (difficulty === "intermediate" && finalStr >= 50) {
+        await unlockDifficulty(telegramId, "advanced");
+      }
+      if (difficulty === "advanced" && finalStr >= 75) {
+        await unlockDifficulty(telegramId, "artikelgott");
+      }
+      const unlocked = await loadUnlockedDifficulties(telegramId);
+      setUnlockedLevels(unlocked);
+    }
     setHighScores(hs => ({ ...hs, [difficulty]: finalStr }));
     setFinalScore(finalStr);
     setIsLevelComplete(true);
@@ -751,16 +843,31 @@ export default function App() {
                   ["beginner", "intermediate", "advanced", "artikelgott"].map(d => (
                     <motion.button
                       key={d}
-                      onClick={() => { haptic("light"); setTimeout(() => startGame(d), 120); }}
+                      onClick={() => {
+                        if (!unlockedLevels[d]) return;
+
+                        haptic("light");
+                        setTimeout(() => startGame(d), 120);
+                      }}
                       whileTap={{ scale: 0.97 }}
                       whileHover={{ scale: 1.02, background: "#FDEFD8" }}
+                      disabled={!unlockedLevels[d]}
                       style={{
+                        opacity: unlockedLevels[d] ? 1 : 0.6,
+                        cursor: unlockedLevels[d] ? "pointer" : "default",
                         ...menuBtnStyle,
-                        ...(d === "artikelgott" && { background: "#fff6eb", border: `2px solid ${ORANGE}` })
+                        ...(d === "artikelgott" && {
+                          background: "#fff6eb",
+                          border: `2px solid ${GOLD}`
+                        })
                       }}
                     >
                       <span>{d === "artikelgott" ? "👑 Artikelgott" : DIFFICULTY_LABELS[d]}</span>
-                      <span style={{ fontSize: 14, color: "#767676" }}>Best: {highScores[d]}</span>
+                      <span style={{ fontSize: unlockedLevels[d] ? 14 : 12, color: "#767676" }}>
+                        {unlockedLevels[d]
+                          ? `Best: ${highScores[d]}`
+                          : UNLOCK_REQUIREMENTS[d]}
+                      </span>
                     </motion.button>
                   ))
                 )}
