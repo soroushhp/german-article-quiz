@@ -552,7 +552,7 @@ export default function App() {
   };
 
 
-  const endGameOver = async () => {
+  const endGameOver = () => {
     const prev  = getHS(difficulty);
     const isNew = streak > prev;
     if (isNew) {
@@ -562,7 +562,7 @@ export default function App() {
       if (telegramId) saveScore(telegramId, userName || "Anonymous", difficulty, streak);
       setHighScores(hs => ({ ...hs, [difficulty]: streak }));
     }
-    await checkAndUnlock(difficulty, streak);
+    checkAndUnlock(difficulty, streak);
     setFinalScore(streak);
     setIsNewHigh(isNew);
     setGameOver(true);
