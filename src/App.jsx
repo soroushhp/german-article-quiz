@@ -583,12 +583,8 @@ export default function App() {
     sounds.levelComplete.play();
     confetti({ particleCount: 160, spread: 90, origin: { y: 0.6 } });
     saveHS(difficulty, finalStr);
-    if (telegramId) {
-      await saveScore(telegramId, userName || "Anonymous", difficulty, finalStr);
-      await checkAndUnlock(difficulty, finalStr);
-      const unlocked = await loadUnlockedDifficulties(telegramId);
-      setUnlockedLevels(unlocked);
-    }
+    if (telegramId) await saveScore(telegramId, userName || "Anonymous", difficulty, finalStr);
+    await checkAndUnlock(difficulty, finalStr);
     setHighScores(hs => ({ ...hs, [difficulty]: finalStr }));
     setFinalScore(finalStr);
     setIsLevelComplete(true);
@@ -798,7 +794,7 @@ export default function App() {
                         }}
                       >
                         <img
-                          src="/images/streak.png"
+                          src="/icons/flame.svg"
                           style={{ width: 20, height: 20, filter: mode === m ? "brightness(0) invert(1)" : "none" }}
                         />
                         Survival
@@ -835,7 +831,12 @@ export default function App() {
                         ...(d === "artikelgott" && { background: "#fff6eb", border: `2px solid ${ORANGE}` })
                       }}
                     >
-                      <span>{d === "artikelgott" ? "👑 Artikelgott" : DIFFICULTY_LABELS[d]}</span>
+                      <span style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
+                        {d === "artikelgott" && (
+                          <img src="/icons/crown.svg" width={20} height={20} />
+                        )}
+                        {d === "artikelgott" ? "Artikelgott" : DIFFICULTY_LABELS[d]}
+                      </span>
                       {dailyProgress[d]?.status === "completed" && (
                         <span style={{ fontSize: 14, color:"#ADADAD", fontWeight: 700 }}>
                           ✓ {dailyProgress[d]?.score}/10
@@ -870,7 +871,12 @@ export default function App() {
                         })
                       }}
                     >
-                      <span>{d === "artikelgott" ? "👑 Artikelgott" : DIFFICULTY_LABELS[d]}</span>
+                      <span style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
+                        {d === "artikelgott" && (
+                          <img src="/icons/crown.svg" width={20} height={20} />
+                        )}
+                        {d === "artikelgott" ? "Artikelgott" : DIFFICULTY_LABELS[d]}
+                      </span>
                       {unlockedLevels[d] ? (
                         <span style={{ fontSize: 14, color: "#767676" }}>
                           Best: {highScores[d]}
@@ -883,10 +889,12 @@ export default function App() {
                             justifyContent: "center",
                             gap: 4,
                             color: "#767676",
-                            fontSize: 12
+                            fontSize: 14
                           }}
                         >
-                          <span style={{ fontSize: 16 }}>🔒</span>
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" style={{ width: "1em", height: "1em" }}>
+                          <path fill-rule="evenodd" d="M12 1.5a5.25 5.25 0 0 0-5.25 5.25v3a3 3 0 0 0-3 3v6.75a3 3 0 0 0 3 3h10.5a3 3 0 0 0 3-3v-6.75a3 3 0 0 0-3-3v-3c0-2.9-2.35-5.25-5.25-5.25Zm3.75 8.25v-3a3.75 3.75 0 1 0-7.5 0v3h7.5Z" clip-rule="evenodd" />
+                        </svg>
                           <span>{UNLOCK_REQUIREMENTS[d]}</span>
                         </span>
                       )}
@@ -966,7 +974,7 @@ export default function App() {
                           </span>
                         </div>
                         <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                          <img src="/images/streak.png" style={{ width: 20, height: 20 }} />
+                          <img src="/icons/flame.svg" style={{ width: 16, height: 16 }} />
                           <span style={{ fontSize: 15, fontWeight: 800, color: isMe ? ORANGE : "#2D2D2D" }}>{player.best_score}</span>
                         </div>
                       </div>
@@ -1121,7 +1129,7 @@ export default function App() {
                       ))}
                     </div>
                     <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                      <img src="/images/streak.png" style={{ width: 32, height: 32 }} />
+                      <img src="/icons/flame.svg" style={{ width: 32, height: 32 }} />
                       <span style={{ fontSize: 28, fontWeight: 700, color: ORANGE }}>{streak}</span>
                     </div>
                   </div>
