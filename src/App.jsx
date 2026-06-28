@@ -865,7 +865,20 @@ export default function App() {
                       </span>
                     );
                     else if (isCompleted)  subtitle = `${isPassed ? "✓" : "✗"} ${score}/10`;
-                    else if (isInProgress) subtitle = "▶ Continue";
+                    else if (isInProgress)
+                      subtitle = (
+                        <span
+                          style={{
+                            display: "inline-flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            gap: 6
+                          }}
+                        >
+                          <img src="/icons/continue.svg" width={16} height={16} />
+                          <span>Continue ({dailyProgress[d]?.current_word}/10)</span>
+                        </span>
+                      );
                     else
                         subtitle = (
                               <span
