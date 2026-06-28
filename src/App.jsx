@@ -1125,7 +1125,7 @@ export default function App() {
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
                       {[1, 2, 3].map(n => (
-                        <img key={n} src="/images/heart.png" style={{ width: 32, height: 32, opacity: n <= hearts ? 1 : 0.25 }} />
+                        <img key={n} src="/icons/heart.svg" style={{ width: 32, height: 32, opacity: n <= hearts ? 1 : 0.25 }} />
                       ))}
                     </div>
                     <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
