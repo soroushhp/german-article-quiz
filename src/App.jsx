@@ -58,6 +58,21 @@ function getDailyWords(words, count = 10) {
   return result.slice(0, actualCount);
 }
 
+const isDailyUnlocked = (difficulty) => {
+  if (difficulty === "beginner") return true;
+
+  if (difficulty === "intermediate")
+    return dailyStatuses.beginner?.passed;
+
+  if (difficulty === "advanced")
+    return dailyStatuses.intermediate?.passed;
+
+  if (difficulty === "artikelgott")
+    return dailyStatuses.advanced?.passed;
+
+  return false;
+};
+
 // ── Sounds ─────────────────────────────────────────────────
 const sounds = {
   correct:       new Howl({ src: ["/sounds/correct.mp3"],       volume: 0.2, preload: true }),
@@ -254,6 +269,17 @@ export default function App() {
     advanced: getHS("advanced"),
     artikelgott: getHS("artikelgott")
   });
+
+  const PREREQ_MAP = {
+    intermediate: "beginner",
+    advanced:     "intermediate",
+    artikelgott:  "advanced",
+  };
+  const LOCK_SUBTITLES = {
+    intermediate: " Pass Easy first",
+    advanced:     " Pass Medium first",
+    artikelgott:  " Pass Hard first",
+  };
 
   const [reviewAnswer, setReviewAnswer] = useState(null);
   const [gameOver, setGameOver] = useState(false);
@@ -814,36 +840,70 @@ export default function App() {
                 style={{ display: "flex", flexDirection: "column", gap: 8 }}
               >
                 {mode === "daily" ? (
-                  ["beginner", "intermediate", "advanced", "artikelgott"].map(d => (
-                    <motion.button
-                      key={d}
-                      disabled={dailyProgress[d]?.status === "completed"}
-                      onClick={() => {
-                        if (dailyProgress[d]?.status === "completed") return;
-                        haptic("light");
-                        setTimeout(() => startDaily(d), 120);
-                      }}
-                      whileTap={{ scale: dailyProgress[d]?.status === "completed" ? 1 : 0.97 }}
-                      whileHover={dailyProgress[d]?.status === "completed" ? {} : { scale: 1.02, background: "#FDEFD8" }}
-                      style={{
-                        ...menuBtnStyle,
-                        opacity: dailyProgress[d]?.status === "completed" ? 0.6 : 1,
-                        ...(d === "artikelgott" && { background: "#fff6eb", border: `2px solid ${ORANGE}` })
-                      }}
-                    >
-                      <span style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
-                        {d === "artikelgott" && (
-                          <img src="/icons/crown.svg" width={20} height={20} />
-                        )}
-                        {d === "artikelgott" ? "Artikelgott" : DIFFICULTY_LABELS[d]}
+                  ["beginner", "intermediate", "advanced", "artikelgott"].map(d => {
+                    const prereq      = PREREQ_MAP[d];
+                    const prereqEntry = prereq ? dailyProgress[prereq] : null;
+                    const prereqPassed = !prereq || prereqEntry?.passed;
+                    const isLocked    = !prereqPassed;
+
+                    const status      = dailyProgress[d]?.status;
+                    const score       = dailyProgress[d]?.score;
+                    const isCompleted = status === "completed";
+                    const isInProgress = status === "in_progress";
+                    const isDisabled  = isLocked || isCompleted;
+                    const isInteractive = !isDisabled;
+                    const isPassed = dailyProgress[d]?.passed;
+
+                    let subtitle;
+                    if (isLocked)
+                    subtitle = (
+                      <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                        <img src="/icons/lock.svg" width={16} height={16} />
+                        <span>{LOCK_SUBTITLES[d]}</span>
                       </span>
-                      {dailyProgress[d]?.status === "completed" && (
-                        <span style={{ fontSize: 14, color:"#ADADAD", fontWeight: 700 }}>
-                          ✓ {dailyProgress[d]?.score}/10
+                    );
+                    else if (isCompleted)  subtitle = `${isPassed ? "✓" : "✗"} ${score}/10`;
+                    else if (isInProgress) subtitle = "▶ Continue";
+                    else
+                        subtitle = (
+                              <span
+                                style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 6, color: "#3f3f3e" }}
+                              >
+                                <img src="/icons/sparkles.svg" width={16} height={16} />
+                                <span>Ready to Play</span>
+                              </span>
+                            );
+
+                    return (
+                      <motion.button
+                        key={d}
+                        disabled={isDisabled}
+                        onClick={() => {
+                          if (!isInteractive) return;
+                          haptic("light");
+                          setTimeout(() => startDaily(d), 120);
+                        }}
+                        whileTap={{ scale: isInteractive ? 0.97 : 1 }}
+                        whileHover={isInteractive ? { scale: 1.02, background: "#FDEFD8" } : {}}
+                        style={{
+                          ...menuBtnStyle,
+                          opacity: isDisabled ? 0.6 : 1,
+                          cursor: isInteractive ? "pointer" : "default",
+                          ...(d === "artikelgott" && { background: "#fff6eb", border: `2px solid ${ORANGE}` })
+                        }}
+                      >
+                        <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                          {d === "artikelgott" && (
+                            <img src="/icons/crown.svg" width={20} height={20} />
+                          )}
+                          {d === "artikelgott" ? "Artikelgott" : DIFFICULTY_LABELS[d]}
                         </span>
-                      )}
-                    </motion.button>
-                  ))
+                        <span style={{ fontSize: 14, color: "#ADADAD", fontWeight: 700 }}>
+                          {subtitle}
+                        </span>
+                      </motion.button>
+                    );
+                  })
                 ) : (
                   ["beginner", "intermediate", "advanced", "artikelgott"].map(d => (
                     <motion.button
@@ -892,9 +952,7 @@ export default function App() {
                             fontSize: 14
                           }}
                         >
-                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" style={{ width: "1em", height: "1em" }}>
-                          <path fill-rule="evenodd" d="M12 1.5a5.25 5.25 0 0 0-5.25 5.25v3a3 3 0 0 0-3 3v6.75a3 3 0 0 0 3 3h10.5a3 3 0 0 0 3-3v-6.75a3 3 0 0 0-3-3v-3c0-2.9-2.35-5.25-5.25-5.25Zm3.75 8.25v-3a3.75 3.75 0 1 0-7.5 0v3h7.5Z" clip-rule="evenodd" />
-                        </svg>
+                          <img src="/icons/lock.svg" width={16} height={16} />
                           <span>{UNLOCK_REQUIREMENTS[d]}</span>
                         </span>
                       )}
