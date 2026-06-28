@@ -389,6 +389,7 @@ export default function App() {
       setDifficulty(diff);
       setQueue(getDailyWords(NOUNS[diff], 10));
       setIdx(existing.current_word || 0);
+      await loadDailyStatuses();
       setScreen("game");
       return;
     }
@@ -418,6 +419,7 @@ export default function App() {
     setDifficulty(diff);
     setQueue(getDailyWords(NOUNS[diff], 10));
     setIdx(0);
+    await loadDailyStatuses();
     setScreen("game");
   };
 
