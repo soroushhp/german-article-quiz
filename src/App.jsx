@@ -270,10 +270,6 @@ export default function App() {
     artikelgott: getHS("artikelgott")
   });
 
-  const lastMistake = [...answerHistory]
-  .reverse()
-  .find(answer => !answer.correct);
-
   const PREREQ_MAP = {
     intermediate: "beginner",
     advanced:     "intermediate",
@@ -293,6 +289,7 @@ export default function App() {
   const [finalScore, setFinalScore] = useState(0);
 
   const [answerHistory, setAnswerHistory] = useState([]);
+  const [dailyLastMistake, setDailyLastMistake] = useState(null);
   const [heartNotification, setHeartNotification] = useState(null);
   const [showQuitPopup, setShowQuitPopup] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
@@ -445,50 +442,54 @@ export default function App() {
     setScreen("game");
   };
 
-  const handleDailyAnswer = async (isCorrect, selectedArticle) => {
-    const nextIdx = idx + 1;
-    const nextResults = [...dailyResults, isCorrect];
-    const score = nextResults.filter(Boolean).length;
-    const isComplete = nextIdx >= queue.length;
+  const handleDailyAnswer = async (isCorrect) => {
+  const nextIdx = idx + 1;
+  const nextResults = [...dailyResults, isCorrect];
+  const score = nextResults.filter(Boolean).length;
+  const isComplete = nextIdx >= queue.length;
 
-    setDailyResults(nextResults);
+  setDailyResults(nextResults);
 
-    await saveDailyProgress({
-      telegram_id: telegramId,
-      date: new Date().toISOString().slice(0, 10),
-      difficulty,
-      status: isComplete ? "completed" : "in_progress",
-      current_word: nextIdx,
-      score,
-      results: nextResults,
-      answer_history: [
-        ...answerHistory,
-        {
-          word: queue[idx].word,
-          meaning: queue[idx].meaning,
-          article: queue[idx].article,
-          selected: selectedArticle,
-          correct: isCorrect
-        }
-      ],
-      completed: isComplete,
-      passed: isComplete ? score >= 8 : false,
-      last_played_at: new Date().toISOString()
-    });
-
-    if (isComplete) {
-      await loadDailyStatuses();
-      setFinalScore(score);
-      setDailyPassed(score >= 8);
-      setGameOver(true);
-      return;
+  const updatedHistory = [
+    ...answerHistory,
+    {
+      word: queue[idx].word,
+      meaning: queue[idx].meaning,
+      article: queue[idx].article,
+      selected,
+      correct: isCorrect
     }
+  ];
 
-    setTimeout(() => {
-      setIdx(nextIdx);
-      setSelected(null);
-    }, 600);
-  };
+  await saveDailyProgress({
+    telegram_id: telegramId,
+    date: new Date().toISOString().slice(0, 10),
+    difficulty,
+    status: isComplete ? "completed" : "in_progress",
+    current_word: nextIdx,
+    score,
+    results: nextResults,
+    answer_history: updatedHistory,
+    completed: isComplete,
+    passed: isComplete ? score >= 8 : false,
+    last_played_at: new Date().toISOString()
+  });
+
+  if (isComplete) {
+    await loadDailyStatuses();
+    const lastMistake = [...updatedHistory].reverse().find(entry => !entry.correct) || null;
+    setDailyLastMistake(lastMistake);
+    setFinalScore(score);
+    setDailyPassed(score >= 8);
+    setGameOver(true);
+    return;
+  }
+
+  setTimeout(() => {
+    setIdx(nextIdx);
+    setSelected(null);
+  }, 600);
+};
 
     const handleFreeAnswer = (isCorrect, selectedArticle) => {
         if (!isCorrect) {
@@ -565,7 +566,7 @@ export default function App() {
     else if (isHeartLose) { sounds.heartLose.play(); haptic("heavy"); }
     else                  { sounds[isCorrect ? "correct" : "wrong"].play(); }
 
-    if (mode === "daily") handleDailyAnswer(isCorrect, art);
+    if (mode === "daily") handleDailyAnswer(isCorrect);
     else handleFreeAnswer(isCorrect, art);
   };
 
@@ -1462,11 +1463,16 @@ export default function App() {
                             <p style={{ fontSize: 15, color: GREEN, fontWeight: 700, margin: 0 }}>✓ No mistakes</p>
                             <p style={{ fontSize: 14, color: ORANGE, marginTop: 8, fontWeight: 700 }}>Review answers →</p>
                           </>
-                        ) : (
+                        ) : dailyLastMistake ? (
                           <>
                             <p style={{ fontSize: 12, color: "#767676", marginBottom: 4 }}>Last mistake</p>
-                            <div style={{ fontSize: 15, color: RED, fontWeight: 700 }}> ✗ {lastMistake.selected} {lastMistake.word} </div>
-                            <div style={{ fontSize: 15, color: GREEN, fontWeight: 700 }}> ✓ {lastMistake.article} {lastMistake.word} </div>
+                            <div style={{ fontSize: 15, color: RED, fontWeight: 700 }}>✗ {dailyLastMistake.selected} {dailyLastMistake.word}</div>
+                            <div style={{ fontSize: 15, color: GREEN, fontWeight: 700 }}>✓ {dailyLastMistake.article} {dailyLastMistake.word}</div>
+                            <p style={{ fontSize: 14, color: ORANGE, marginTop: 8, fontWeight: 700 }}>Review answers →</p>
+                          </>
+                        ) : (
+                          <>
+                            <p style={{ fontSize: 15, color: GREEN, fontWeight: 700, margin: 0 }}>✓ No mistakes</p>
                             <p style={{ fontSize: 14, color: ORANGE, marginTop: 8, fontWeight: 700 }}>Review answers →</p>
                           </>
                         )}
