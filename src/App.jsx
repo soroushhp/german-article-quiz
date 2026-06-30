@@ -1458,12 +1458,7 @@ export default function App() {
                       <div
                         onClick={() => setScreen("review")}
                         style={{ background: "#FFF4E8", borderRadius: 16, padding: "14px 16px", marginBottom: 24, cursor: "pointer", border: `1px solid ${ORANGE}`, boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}>
-                        {finalScore === 10 ? (
-                          <>
-                            <p style={{ fontSize: 15, color: GREEN, fontWeight: 700, margin: 0 }}>✓ No mistakes</p>
-                            <p style={{ fontSize: 14, color: ORANGE, marginTop: 8, fontWeight: 700 }}>Review answers →</p>
-                          </>
-                        ) : dailyLastMistake ? (
+                        {dailyLastMistake ? (
                           <>
                             <p style={{ fontSize: 12, color: "#767676", marginBottom: 4 }}>Last mistake</p>
                             <div style={{ fontSize: 15, color: RED, fontWeight: 700 }}>✗ {dailyLastMistake.selected} {dailyLastMistake.word}</div>
