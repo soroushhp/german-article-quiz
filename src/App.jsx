@@ -270,6 +270,10 @@ export default function App() {
     artikelgott: getHS("artikelgott")
   });
 
+  const lastMistake = [...answerHistory]
+  .reverse()
+  .find(answer => !answer.correct);
+
   const PREREQ_MAP = {
     intermediate: "beginner",
     advanced:     "intermediate",
@@ -441,7 +445,7 @@ export default function App() {
     setScreen("game");
   };
 
-  const handleDailyAnswer = async (isCorrect) => {
+  const handleDailyAnswer = async (isCorrect, selectedArticle) => {
     const nextIdx = idx + 1;
     const nextResults = [...dailyResults, isCorrect];
     const score = nextResults.filter(Boolean).length;
@@ -463,7 +467,7 @@ export default function App() {
           word: queue[idx].word,
           meaning: queue[idx].meaning,
           article: queue[idx].article,
-          selected,
+          selected: selectedArticle,
           correct: isCorrect
         }
       ],
@@ -561,7 +565,7 @@ export default function App() {
     else if (isHeartLose) { sounds.heartLose.play(); haptic("heavy"); }
     else                  { sounds[isCorrect ? "correct" : "wrong"].play(); }
 
-    if (mode === "daily") handleDailyAnswer(isCorrect);
+    if (mode === "daily") handleDailyAnswer(isCorrect, art);
     else handleFreeAnswer(isCorrect, art);
   };
 
@@ -1267,12 +1271,15 @@ export default function App() {
                   {reviewAnswer ? (
                     <>
                     <div style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", height: "100%" }}>
-                      <h3 style={{ fontSize: 16, color: "#767676", marginTop: -6, marginBottom: 28 }}>
-                        ❌ You made a mistake ❌
+                      <h3 style={{ fontSize: 14, color: "#767676", marginTop: -6, marginBottom: 28 }}>
+                        <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                          <img src="/icons/wrong.svg" width={16} height={16} />
+                          <span>You made a mistake</span>
+                          <img src="/icons/wrong.svg" width={16} height={16} />
+                        </span>
                       </h3>
                         <div>
-                          <p style={{ marginBottom: -8, color: "#767676", fontSize: 16 }}>Correct answer:</p>
-                          <h3 style={{ margin: 0, fontSize: 36, fontWeight: 800, color: GREEN }}>
+                          <h3 style={{ margin: 0, fontSize: 32, fontWeight: 800, color: GREEN }}>
                             {reviewAnswer.article} {reviewAnswer.word}
                           </h3>
                           <p style={{ fontSize: 16, fontWeight: 600, color: "#ADADAD" }}>
@@ -1282,8 +1289,8 @@ export default function App() {
 
                       <div style={{ display: "flex", flexDirection: "column", gap: 32 }}>
                         <div>
-                          <p style={{ marginBottom: -4, color: "#767676", fontSize: 14 }}>You chose:</p>
-                          <h3 style={{ margin: 0, fontSize: 28, fontWeight: 800, color: "#767676" }}>
+                          <p style={{ marginBottom: -4, color: "#767676", fontSize: 12 }}>You chose:</p>
+                          <h3 style={{ margin: 0, fontSize: 20, fontWeight: 800, color: "#767676" }}>
                             {reviewAnswer.selected} {reviewAnswer.word}
                           </h3>
                         </div>
@@ -1458,8 +1465,8 @@ export default function App() {
                         ) : (
                           <>
                             <p style={{ fontSize: 12, color: "#767676", marginBottom: 4 }}>Last mistake</p>
-                            <div style={{ fontSize: 15, color: RED, fontWeight: 700 }}>✗ {selected} {current.word}</div>
-                            <div style={{ fontSize: 15, color: GREEN, fontWeight: 700 }}>✓ {current.article} {current.word}</div>
+                            <div style={{ fontSize: 15, color: RED, fontWeight: 700 }}> ✗ {lastMistake.selected} {lastMistake.word} </div>
+                            <div style={{ fontSize: 15, color: GREEN, fontWeight: 700 }}> ✓ {lastMistake.article} {lastMistake.word} </div>
                             <p style={{ fontSize: 14, color: ORANGE, marginTop: 8, fontWeight: 700 }}>Review answers →</p>
                           </>
                         )}
