@@ -321,6 +321,19 @@ export default function App() {
   const [userName, setUserName] = useState("");
   const [telegramId, setTelegramId] = useState(null);
 
+  const menuInfo =
+  mode === "daily"
+    ? Object.values(dailyProgress).some(p => p?.status === "completed")
+      ? `New Daily Challenge in ${dailyCountdown}`
+      : `Today's Challenge • ${new Date().toLocaleDateString("en-US", {
+          weekday: "short",
+          month: "short",
+          day: "numeric"
+        })}`
+    : Object.values(unlockedLevels).every(Boolean)
+      ? "Unlimited practice. Improve your best streaks."
+      : "Unlock levels by reaching streaks.";
+
   // Leaderboard state
   const [lbTab, setLbTab]     = useState("beginner");
   const [lbData, setLbData]   = useState({ beginner: null, intermediate: null, advanced: null, artikelgott: null });
@@ -872,6 +885,26 @@ export default function App() {
                 </button>
               ))}
             </div>
+
+
+            <AnimatePresence mode="wait">
+              <motion.p
+                key={mode}
+                initial={{ opacity: 0, x: mode === "daily" ? -20 : 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: mode === "daily" ? 20 : -20 }}
+                transition={{ duration: 0.2 }}
+                style={{
+                  margin: "4px 0 14px",
+                  textAlign: "center",
+                  fontSize: 14,
+                  fontWeight: 600,
+                  color: "#767676"
+                }}
+              >
+                {menuInfo}
+              </motion.p>
+            </AnimatePresence>
 
             {/* Level buttons */}
             <AnimatePresence mode="wait">
