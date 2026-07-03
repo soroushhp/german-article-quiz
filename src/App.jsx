@@ -116,6 +116,29 @@ async function getDailyStatuses(telegramId, date) {
   return data || [];
 }
 
+async function loadHighScores(telegramId) {
+  if (!telegramId) return;
+
+  const { data } = await supabase
+    .from("leaderboard")
+    .select("difficulty,best_score")
+    .eq("telegram_id", telegramId);
+
+  const scores = {
+    beginner: 0,
+    intermediate: 0,
+    advanced: 0,
+    artikelgott: 0,
+  };
+
+  data?.forEach(row => {
+    scores[row.difficulty] = row.best_score;
+  });
+
+  return scores;
+}
+
+
 async function migrateLocalScores(telegramId, username) {
   const difficulties = ["beginner", "intermediate", "advanced", "artikelgott"];
   for (const diff of difficulties) {
@@ -260,14 +283,15 @@ export default function App() {
   const [selected, setSelected] = useState(null);
 
   const [streak, setStreak] = useState(0);
+  const [previousBest, setPreviousBest] = useState(0);
   const [heartStreak, setHeartStreak] = useState(0);
   const [hearts, setHearts] = useState(3);
 
   const [highScores, setHighScores] = useState({
-    beginner: getHS("beginner"),
-    intermediate: getHS("intermediate"),
-    advanced: getHS("advanced"),
-    artikelgott: getHS("artikelgott")
+    beginner: 0,
+    intermediate: 0,
+    advanced: 0,
+    artikelgott: 0
   });
 
   const PREREQ_MAP = {
@@ -320,6 +344,9 @@ export default function App() {
           const id = String(user.id);
 
           setTelegramId(id);
+
+          const scores = await loadHighScores(id);
+          setHighScores(scores);
 
           const unlocked = await loadUnlockedDifficulties(id);
           setUnlockedLevels(unlocked);
@@ -585,15 +612,20 @@ export default function App() {
   };
 
 
-  const endGameOver = () => {
-    const prev  = getHS(difficulty);
+  const endGameOver = async () => {
+    const prev = highScores[difficulty];
+    setPreviousBest(prev);
+
     const isNew = streak > prev;
     if (isNew) {
       confetti({ particleCount: 160, spread: 90, origin: { y: 0.6 } });
       sounds.highscore.play();
-      saveHS(difficulty, streak);
-      if (telegramId) saveScore(telegramId, userName || "Anonymous", difficulty, streak);
-      setHighScores(hs => ({ ...hs, [difficulty]: streak }));
+
+      if (telegramId) {
+        await saveScore(telegramId, userName || "Anonymous", difficulty, streak);
+        const scores = await loadHighScores(telegramId);
+        setHighScores(scores);
+      }
     }
     checkAndUnlock(difficulty, streak);
     setFinalScore(streak);
@@ -615,10 +647,15 @@ export default function App() {
   const endLevelComplete = async (finalStr) => {
     sounds.levelComplete.play();
     confetti({ particleCount: 160, spread: 90, origin: { y: 0.6 } });
-    saveHS(difficulty, finalStr);
-    if (telegramId) await saveScore(telegramId, userName || "Anonymous", difficulty, finalStr);
+
+    if (telegramId) {
+      await saveScore(telegramId, userName || "Anonymous", difficulty, finalStr);
+      const scores = await loadHighScores(telegramId);
+      setHighScores(scores);
+    }
+
     await checkAndUnlock(difficulty, finalStr);
-    setHighScores(hs => ({ ...hs, [difficulty]: finalStr }));
+
     setFinalScore(finalStr);
     setIsLevelComplete(true);
     setGameOver(true);
@@ -1513,7 +1550,7 @@ export default function App() {
                         {isLevelComplete
                           ? `All ${queue.length} words completed!`
                           : isNewHigh
-                          ? `Previous best: ${getHS(difficulty) === finalScore ? 0 : getHS(difficulty)}`
+                          ? `Previous best: ${previousBest}`
                           : `Best: ${highScores[difficulty]}`}
                       </p>
                       {!isLevelComplete && (
