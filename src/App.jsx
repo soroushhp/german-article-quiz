@@ -906,7 +906,12 @@ export default function App() {
                         <span>{LOCK_SUBTITLES[d]}</span>
                       </span>
                     );
-                    else if (isCompleted)  subtitle = `${isPassed ? "✓" : "✗"} ${score}/10`;
+                    else if (isCompleted)
+                    subtitle = (
+                      <span style={{ color: isPassed ? GREEN : RED }}>
+                        {isPassed ? "✓" : "✗"} {score}/10
+                      </span>
+                    );
                     else if (isInProgress)
                       subtitle = (
                         <span
