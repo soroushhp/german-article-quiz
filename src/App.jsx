@@ -789,7 +789,7 @@ export default function App() {
 
 // ── Render ─────────────────────────────────────────────
   return (
-    <div style={{ width: "100%", minHeight: "100vh", background: "#FFFAF4", color: "#2D2D2D", fontFamily: "'Nunito', sans-serif", colorScheme: "light", marginTop: topInset }}>
+    <div style={{ width: "100%", minHeight: "100vh", background: "#FFFAF4", color: "#2D2D2D", fontFamily: "'Nunito', sans-serif", colorScheme: "light" }}>
 
       {/* Help & Instructions*/}
       {showHelp && (
@@ -875,11 +875,11 @@ export default function App() {
       
       {/* ── MENU ── */}
       {screen === "menu" && (
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "100vh", padding: `${topInset + 12}px 32px 24px`, boxSizing: "border-box" }}>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "100vh", padding: `${topInset}px 32px 24px`, boxSizing: "border-box" }}>
           <div style={{ maxWidth: 420, width: "100%" }}>
 
             {/* Top bar */}
-            <div style={{ position: "fixed", top: 16, right: 16, display: "flex", gap: 8, zIndex: 10 }}>
+            <div style={{ position: "fixed", top: topInset, right: 16, display: "flex", gap: 8, zIndex: 10 }}>
               <motion.button
                 onClick={() => { haptic("light"); openLeaderboard(); }}
                 whileTap={{ scale: 0.95, backgroundColor: "#fff6eb" }}
