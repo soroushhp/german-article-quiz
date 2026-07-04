@@ -386,19 +386,26 @@ export default function App() {
 
 
   // Telegram safe area inset detection
-  const [topInset, setTopInset] = useState(20); // sane fallback before Telegram reports real value
+  const HEADER_SAFE_MINIMUM = 64; // floor so header never collapses under Telegram's native row
+
+  const [topInset, setTopInset] = useState(HEADER_SAFE_MINIMUM);
 
   useEffect(() => {
     const tg = window.Telegram?.WebApp;
     if (!tg) return;
 
     const updateInset = () => {
-      setTopInset(tg.contentSafeAreaInset?.top ?? 20);
+      const liveInset = tg.contentSafeAreaInset?.top ?? 0;
+      setTopInset(Math.max(HEADER_SAFE_MINIMUM, liveInset + 12));
     };
 
     updateInset();
     tg.onEvent?.("contentSafeAreaChanged", updateInset);
-    return () => tg.offEvent?.("contentSafeAreaChanged", updateInset);
+    tg.onEvent?.("fullscreenChanged", updateInset); // fullscreen toggling can also change insets
+    return () => {
+      tg.offEvent?.("contentSafeAreaChanged", updateInset);
+      tg.offEvent?.("fullscreenChanged", updateInset);
+    };
   }, []);
 
   // Telegram user detection
@@ -782,7 +789,7 @@ export default function App() {
 
 // ── Render ─────────────────────────────────────────────
   return (
-    <div style={{ width: "100%", minHeight: "100vh", background: "#FFFAF4", color: "#2D2D2D", fontFamily: "'Nunito', sans-serif", colorScheme: "light" }}>
+    <div style={{ width: "100%", minHeight: "100vh", background: "#FFFAF4", color: "#2D2D2D", fontFamily: "'Nunito', sans-serif", colorScheme: "light", marginTop: topInset }}>
 
       {/* Help & Instructions*/}
       {showHelp && (
