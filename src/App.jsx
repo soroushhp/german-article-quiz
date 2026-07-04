@@ -321,18 +321,27 @@ export default function App() {
   const [userName, setUserName] = useState("");
   const [telegramId, setTelegramId] = useState(null);
 
-  const menuInfo =
-  mode === "daily"
-    ? Object.values(dailyProgress ?? {}).some(p => p?.status === "completed")
-      ? `New Daily Challenge in ${dailyCountdown}`
-      : `Today's Challenge • ${new Date().toLocaleDateString("en-US", {
-          weekday: "short",
-          month: "short",
-          day: "numeric"
-        })}`
-    : Object.values(unlockedLevels ?? {}).every(Boolean)
+  let menuInfo = "";
+
+  if (mode === "daily") {
+    const hasLoadedDaily = Object.keys(dailyProgress).length > 0;
+
+    if (!hasLoadedDaily) {
+      menuInfo = "Loading...";
+    } else if (Object.values(dailyProgress).some(p => p?.status === "completed")) {
+      menuInfo = `New Daily Challenge in ${dailyCountdown}`;
+    } else {
+      menuInfo = `Today's Challenge • ${new Date().toLocaleDateString("en-US", {
+        weekday: "short",
+        month: "short",
+        day: "numeric"
+      })}`;
+    }
+  } else {
+    menuInfo = Object.values(unlockedLevels ?? {}).every(Boolean)
       ? "Unlimited practice. Improve your best streaks."
       : "Unlock levels by reaching streaks.";
+}
 
   // Leaderboard state
   const [lbTab, setLbTab]     = useState("beginner");
