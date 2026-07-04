@@ -387,6 +387,7 @@ export default function App() {
 
   // Telegram safe area inset detection
   const HEADER_SAFE_MINIMUM = 110; // floor so header never collapses under Telegram's native row
+  const TOP_BAR_HEIGHT = 140; // approximate height of the fixed bar's own content, excluding topInset
 
   const [topInset, setTopInset] = useState(HEADER_SAFE_MINIMUM);
 
@@ -1239,7 +1240,7 @@ export default function App() {
         <div style={{ height: "100vh", display: "flex", flexDirection: "column", maxWidth: 480, margin: "0 auto", boxSizing: "border-box" }}>
 
           {/* Fixed header */}
-          <div style={{ flexShrink: 0, padding: "24px 16px 12px", background: "#FFFAF4" }}>
+          <div style={{ flexShrink: 0, padding: `${topInset}px 16px 12px`, background: "#FFFAF4" }}>
             <div style={{ display: "flex", alignItems: "center" }}>
               <motion.button
                 onClick={() => { setScreen("game"); setGameOver(true); }}
@@ -1322,10 +1323,10 @@ export default function App() {
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
         >
-          <div style={{ width: "100%", height: "100vh", paddingTop: 152, paddingBottom: 98, paddingLeft: 16, paddingRight: 16, boxSizing: "border-box", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+          <div style={{ width: "100%", height: "100vh", paddingTop: topInset + TOP_BAR_HEIGHT, paddingBottom: 98, paddingLeft: 16, paddingRight: 16, boxSizing: "border-box", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
 
             {/* Top bar */}
-            <div style={{ position: "fixed", top: 0, left: 0, right: 0, background: "#FFFAF4", zIndex: 10, padding: "16px 16px 12px" }}>
+            <div style={{ position: "fixed", top: topInset, left: 0, right: 0, background: "#FFFAF4", zIndex: 10, padding: "16px 16px 12px" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
                 <button
                   onClick={() => setShowQuitPopup(true)}
