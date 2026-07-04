@@ -312,9 +312,13 @@ export default function App() {
   useEffect(() => {
     const tick = () => {
       const now = new Date();
-      const nextMidnight = new Date(now);
-      nextMidnight.setHours(24, 0, 0, 0);
-      const diffMs = nextMidnight - now;
+      const nextMidnightUTC = new Date(Date.UTC(
+        now.getUTCFullYear(),
+        now.getUTCMonth(),
+        now.getUTCDate() + 1,
+        0, 0, 0, 0
+      ));
+      const diffMs = nextMidnightUTC - now;
 
       const h = Math.floor(diffMs / (1000 * 60 * 60));
       const m = Math.floor((diffMs / (1000 * 60)) % 60);
