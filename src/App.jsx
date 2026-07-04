@@ -386,7 +386,7 @@ export default function App() {
 
 
   // Telegram safe area inset detection
-  const HEADER_SAFE_MINIMUM = 64; // floor so header never collapses under Telegram's native row
+  const HEADER_SAFE_MINIMUM = 110; // floor so header never collapses under Telegram's native row
 
   const [topInset, setTopInset] = useState(HEADER_SAFE_MINIMUM);
 
@@ -415,6 +415,7 @@ export default function App() {
       tg.ready();
       tg.expand();
       tg.requestFullscreen?.();
+      tg.setHeaderColor?.("#FFFAF4");
       setTimeout(async () => {
         const user = tg.initDataUnsafe?.user;
         if (user?.first_name) setUserName(user.first_name);
