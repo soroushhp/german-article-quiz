@@ -1174,7 +1174,7 @@ export default function App() {
             </div>
           ) : currentLbData ? (
             <>
-              <div style={{ flex: 1, overflowY: "auto", padding: `${topInset}px 16px` }}>
+              <div style={{ flex: 1, overflowY: "auto", padding: "12px 16px" }}>
                 {currentLbData.top10.length === 0 ? (
                   <p style={{ textAlign: "center", color: "#ADADAD", marginTop: 48 }}>No scores yet. Be the first!</p>
                 ) : (
