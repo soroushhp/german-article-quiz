@@ -384,12 +384,30 @@ export default function App() {
     window.Telegram?.WebApp?.HapticFeedback?.impactOccurred(type);
   };
 
+
+  // Telegram safe area inset detection
+  const [topInset, setTopInset] = useState(20); // sane fallback before Telegram reports real value
+
+  useEffect(() => {
+    const tg = window.Telegram?.WebApp;
+    if (!tg) return;
+
+    const updateInset = () => {
+      setTopInset(tg.contentSafeAreaInset?.top ?? 20);
+    };
+
+    updateInset();
+    tg.onEvent?.("contentSafeAreaChanged", updateInset);
+    return () => tg.offEvent?.("contentSafeAreaChanged", updateInset);
+  }, []);
+
   // Telegram user detection
   useEffect(() => {
     const tg = window.Telegram?.WebApp;
     if (tg) {
       tg.ready();
       tg.expand();
+      tg.requestFullscreen?.();
       setTimeout(async () => {
         const user = tg.initDataUnsafe?.user;
         if (user?.first_name) setUserName(user.first_name);
@@ -850,7 +868,7 @@ export default function App() {
       
       {/* ── MENU ── */}
       {screen === "menu" && (
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "100vh", padding: "24px 32px", boxSizing: "border-box" }}>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "100vh", padding: `${topInset + 12}px 32px 24px`, boxSizing: "border-box" }}>
           <div style={{ maxWidth: 420, width: "100%" }}>
 
             {/* Top bar */}
