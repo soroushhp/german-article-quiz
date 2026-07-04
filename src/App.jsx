@@ -58,21 +58,6 @@ function getDailyWords(words, count = 10) {
   return result.slice(0, actualCount);
 }
 
-const isDailyUnlocked = (difficulty) => {
-  if (difficulty === "beginner") return true;
-
-  if (difficulty === "intermediate")
-    return dailyStatuses.beginner?.passed;
-
-  if (difficulty === "advanced")
-    return dailyStatuses.intermediate?.passed;
-
-  if (difficulty === "artikelgott")
-    return dailyStatuses.advanced?.passed;
-
-  return false;
-};
-
 // ── Sounds ─────────────────────────────────────────────────
 const sounds = {
   correct:       new Howl({ src: ["/sounds/correct.mp3"],       volume: 0.2, preload: true }),
@@ -320,6 +305,45 @@ export default function App() {
 
   const [userName, setUserName] = useState("");
   const [telegramId, setTelegramId] = useState(null);
+
+  const [dailyCountdown, setDailyCountdown] = useState("");
+
+  // Ticking countdown to next midnight, updates every second
+  useEffect(() => {
+    const tick = () => {
+      const now = new Date();
+      const nextMidnight = new Date(now);
+      nextMidnight.setHours(24, 0, 0, 0);
+      const diffMs = nextMidnight - now;
+
+      const h = Math.floor(diffMs / (1000 * 60 * 60));
+      const m = Math.floor((diffMs / (1000 * 60)) % 60);
+      const s = Math.floor((diffMs / 1000) % 60);
+
+      setDailyCountdown(
+        `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`
+      );
+    };
+
+    tick();
+    const interval = setInterval(tick, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const isDailyUnlocked = (difficulty) => {
+    if (difficulty === "beginner") return true;
+
+    if (difficulty === "intermediate")
+      return dailyProgress.beginner?.passed;
+
+    if (difficulty === "advanced")
+      return dailyProgress.intermediate?.passed;
+
+    if (difficulty === "artikelgott")
+      return dailyProgress.advanced?.passed;
+
+    return false;
+  };
 
   const DAILY_LEVELS = ["beginner", "intermediate", "advanced", "artikelgott"];
 
