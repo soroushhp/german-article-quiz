@@ -1386,31 +1386,28 @@ export default function App() {
 
                   {reviewAnswer ? (
                     <>
-                    <div style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", height: "100%" }}>
-                      <h3 style={{ fontSize: 14, color: "#767676", marginTop: -6, marginBottom: 28 }}>
-                        <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-                          <img src="/icons/wrong.svg" width={16} height={16} />
-                          <span>You made a mistake</span>
-                          <img src="/icons/wrong.svg" width={16} height={16} />
-                        </span>
+                    <div style={{ display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", height: "100%", gap: 12 }}>
+                      <h3 style={{
+                        margin: 0,
+                        fontSize: 22,
+                        fontWeight: 700,
+                        color: RED,
+                        textDecoration: "line-through",
+                        textDecorationThickness: 2,
+                        opacity: 0.75
+                      }}>
+                        {reviewAnswer.selected} {reviewAnswer.word}
                       </h3>
-                        <div>
-                          <h3 style={{ margin: 0, fontSize: 32, fontWeight: 800, color: GREEN }}>
-                            {reviewAnswer.article} {reviewAnswer.word}
-                          </h3>
-                          <p style={{ fontSize: 16, fontWeight: 600, color: "#ADADAD" }}>
-                            ({reviewAnswer.meaning})
-                          </p>
-                        </div>
 
-                      <div style={{ display: "flex", flexDirection: "column", gap: 32 }}>
-                        <div>
-                          <p style={{ marginBottom: -4, color: "#767676", fontSize: 12 }}>You chose:</p>
-                          <h3 style={{ margin: 0, fontSize: 20, fontWeight: 800, color: "#767676" }}>
-                            {reviewAnswer.selected} {reviewAnswer.word}
-                          </h3>
-                        </div>
+                      <span style={{ fontSize: 20, color: "#ADADAD", lineHeight: 1 }}>↓</span>
 
+                      <div style={{ textAlign: "center" }}>
+                        <h3 style={{ margin: 0, fontSize: 32, fontWeight: 800, color: GREEN }}>
+                          {reviewAnswer.article} {reviewAnswer.word}
+                        </h3>
+                        <p style={{ fontSize: 16, fontWeight: 600, color: "#ADADAD", margin: "4px 0 0" }}>
+                          ({reviewAnswer.meaning})
+                        </p>
                       </div>
                     </div>
                     </>
