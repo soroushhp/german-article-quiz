@@ -321,7 +321,18 @@ export default function App() {
   const [userName, setUserName] = useState("");
   const [telegramId, setTelegramId] = useState(null);
 
-  const menuInfo = "Test";
+  const menuInfo =
+  mode === "daily"
+    ? Object.values(dailyProgress ?? {}).some(p => p?.status === "completed")
+      ? `New Daily Challenge in ${dailyCountdown}`
+      : `Today's Challenge • ${new Date().toLocaleDateString("en-US", {
+          weekday: "short",
+          month: "short",
+          day: "numeric"
+        })}`
+    : Object.values(unlockedLevels ?? {}).every(Boolean)
+      ? "Unlimited practice. Improve your best streaks."
+      : "Unlock levels by reaching streaks.";
 
   // Leaderboard state
   const [lbTab, setLbTab]     = useState("beginner");
