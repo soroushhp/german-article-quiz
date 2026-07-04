@@ -1132,7 +1132,7 @@ export default function App() {
         <div style={{ display: "flex", flexDirection: "column", height: "100vh", maxWidth: 480, margin: "0 auto", boxSizing: "border-box" }}>
 
           {/* Header */}
-          <div style={{ flexShrink: 0, background: "#FFFAF4", padding: "24px 16px 12px" }}>
+          <div style={{ flexShrink: 0, background: "#FFFAF4", padding: `${topInset}px 16px 12px` }}>
             <div style={{ display: "flex", alignItems: "center", marginBottom: 24 }}>
               <motion.button
                 onClick={() => { haptic("light"); setScreen("menu"); }}
@@ -1174,7 +1174,7 @@ export default function App() {
             </div>
           ) : currentLbData ? (
             <>
-              <div style={{ flex: 1, overflowY: "auto", padding: "12px 16px" }}>
+              <div style={{ flex: 1, overflowY: "auto", padding: `${topInset}px 16px` }}>
                 {currentLbData.top10.length === 0 ? (
                   <p style={{ textAlign: "center", color: "#ADADAD", marginTop: 48 }}>No scores yet. Be the first!</p>
                 ) : (
