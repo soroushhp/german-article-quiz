@@ -323,12 +323,16 @@ export default function App() {
       setDailyCountdown(
         `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`
       );
+
+      if (diffMs <= 1000) {
+        loadDailyStatuses();
+      }
     };
 
     tick();
     const interval = setInterval(tick, 1000);
     return () => clearInterval(interval);
-  }, []);
+  }, [telegramId]);
 
   const isDailyUnlocked = (difficulty) => {
     if (difficulty === "beginner") return true;
