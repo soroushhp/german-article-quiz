@@ -321,6 +321,13 @@ export default function App() {
   const [userName, setUserName] = useState("");
   const [telegramId, setTelegramId] = useState(null);
 
+  const DAILY_LEVELS = ["beginner", "intermediate", "advanced", "artikelgott"];
+
+  const hasRemainingDailyChallenge = DAILY_LEVELS.some(d => {
+    const progress = dailyProgress[d];
+    return isDailyUnlocked(d) && progress?.status !== "completed";
+  });
+
   let menuInfo = "";
 
   if (mode === "daily") {
@@ -328,20 +335,20 @@ export default function App() {
 
     if (!hasLoadedDaily) {
       menuInfo = "Loading...";
-    } else if (Object.values(dailyProgress).some(p => p?.status === "completed")) {
-      menuInfo = `New Daily Challenge in ${dailyCountdown}`;
-    } else {
+    } else if (hasRemainingDailyChallenge) {
       menuInfo = `Today's Challenge • ${new Date().toLocaleDateString("en-US", {
         weekday: "short",
         month: "short",
         day: "numeric"
       })}`;
+    } else {
+      menuInfo = `New Daily Challenge in ${dailyCountdown}`;
     }
   } else {
     menuInfo = Object.values(unlockedLevels ?? {}).every(Boolean)
       ? "Unlimited practice. Improve your best streaks."
       : "Unlock levels by reaching streaks.";
-}
+  }
 
   // Leaderboard state
   const [lbTab, setLbTab]     = useState("beginner");
