@@ -23,35 +23,48 @@ const UNLOCK_REQUIREMENTS = {
   artikelgott: "75 streak in Hard "
 };
 
+const MENU_MOTION = {
+  initial: { x: 0 },
+  animate: { x: 0 },
+  exit: { x: 0 },
+  transition: { duration: 0 }, // force instant, no easing curve applied
+};
+
+const GAME_MOTION = {
+  initial: { y: "100%" },
+  animate: { y: 0, x: 0 },
+  exit: { x: "-100%", y: 0 },
+};
+
+const END_MOTION = {
+  forward: {
+    initial: { x: "100%" },
+    animate: { x: 0 },
+    exit: { x: 0 }, // stands still when going to REVIEW
+  },
+  back: {
+    initial: { x: 0 },
+    animate: { x: 0 },
+    exit: { x: 0 },
+    transition: { duration: 0 },
+  },
+};
+
+const REVIEW_MOTION = {
+  initial: { x: "100%" },
+  animate: { x: 0 },
+  exit: { x: "100%" },
+};
+
+const LEADERBOARD_MOTION = {
+  initial: { x: "100%" },
+  animate: { x: 0 },
+  exit: { x: "100%" },
+};
+
 const PAGE_EASING = {
   duration: 0.35,
   ease: [0.22, 1, 0.36, 1]
-};
-
-const PAGE_MOTION = {
-  up: {
-    initial: { y: "100%" },
-    animate: { y: 0 },
-    exit: { y: "100%" }
-  },
-
-  left: {
-    initial: { x: "100%" },
-    animate: { x: 0 },
-    exit: { x: "-100%" }
-  },
-
-  right: {
-    initial: { x: "-100%" },
-    animate: { x: 0 },
-    exit: { x: "100%" }
-  },
-
-  fade: {
-    initial: { opacity: 0 },
-    animate: { opacity: 1 },
-    exit: { opacity: 0 }
-  }
 };
 
 const PAGE_LAYOUT = {
@@ -290,6 +303,7 @@ async function fetchLeaderboardData(diff, telegramId) {
 // ── App ────────────────────────────────────────────────────
 export default function App() {
   const [screen, setScreen] = useState("menu");
+  const [overlay, setOverlay] = useState(null); // null | "review" | "leaderboard"
   const [mode, setMode] = useState("daily");
 
   const [dailyResults, setDailyResults] = useState([]);
@@ -517,7 +531,7 @@ export default function App() {
   const openLeaderboard = async () => {
     if (lbLoading) return;
     const initialTab = difficulty || "beginner";
-    setScreen("leaderboard");
+    setOverlay("leaderboard");
     setLbTab(initialTab);
     setLbLoading(true);
     const result = await fetchLeaderboardData(initialTab, telegramId);
@@ -662,9 +676,9 @@ export default function App() {
     setIdx(nextIdx);
     setSelected(null);
   }, 600);
-};
+  };
 
-    const handleFreeAnswer = (isCorrect, selectedArticle) => {
+  const handleFreeAnswer = (isCorrect, selectedArticle) => {
         if (!isCorrect) {
           if (hearts <= 0) {
             endGameOver();
@@ -709,7 +723,7 @@ export default function App() {
           setIdx(nextIdx);
           setSelected(null);
         }, 600);
-    };
+  };
 
   const handleAnswer = (art) => {
     if (selected !== null || gameOver) return;
@@ -856,947 +870,958 @@ export default function App() {
   const incorrectCount  = answerHistory.length - correctCount;
 
 // ── Render ─────────────────────────────────────────────
-  return (
-    <div style={{ width: "100%", minHeight: "100vh", background: "#FFFAF4", color: "#2D2D2D", fontFamily: "'Nunito', sans-serif", colorScheme: "light" }}>
+return (
+  <div style={{ width: "100%", minHeight: "100vh", background: "#FFFAF4", color: "#2D2D2D", fontFamily: "'Nunito', sans-serif", colorScheme: "light", position: "relative", overflow: "hidden" }}>
 
-      {/* ─────────────────────────────────────────────
-          Popups
-      ───────────────────────────────────────────── */}
+    {/* ─────────────────────────────────────────────
+        Popups
+    ───────────────────────────────────────────── */}
 
-      {/* ── HELP ── */}
-      {showHelp && (
-        <div
-          onClick={() => setShowHelp(false)}
+    {/* ── HELP ── */}
+    {showHelp && (
+      <div
+        onClick={() => setShowHelp(false)}
+        style={{
+          position: "fixed",
+          inset: 0,
+          background: "rgba(45,45,45,0.45)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          zIndex: 100,
+          padding: 16
+        }}
+      >
+        <motion.div
+          onClick={e => e.stopPropagation()}
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ duration: 0.25 }}
+          exit={{ scale: 0.8, opacity: 0 }}
           style={{
-            position: "fixed",
-            inset: 0,
-            background: "rgba(45,45,45,0.45)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 100,
-            padding: 16
+            background: "#FFFFFF",
+            borderRadius: 24,
+            padding: "32px 24px",
+            maxWidth: 420,
+            width: "100%",
+            boxShadow: "0 8px 40px rgba(0,0,0,0.12)"
           }}
-        >
-          <motion.div
-            onClick={e => e.stopPropagation()}
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 0.25 }}
-            exit={{ scale: 0.8, opacity: 0 }}
+          >
+          <h2 style={{ margin: "0 0 20px", color: "#2D2D2D" }}>
+            How to Play
+          </h2>
+
+          <div style={{ marginBottom: 24 }}>
+            <h3 style={{ margin: "0 0 8px", color: ORANGE }}>
+              📅 Daily
+            </h3>
+
+            <p style={{ margin: 0, color: "#767676", lineHeight: 1.6 }}>
+              • 10 words per level<br />
+              • Score 8/10 or higher to unlock the next level<br />
+              • Your progress is saved automatically<br />
+              • Each level can only be completed once per day
+            </p>
+          </div>
+
+          <div style={{ marginBottom: 24 }}>
+            <h3 style={{ margin: "0 0 8px", color: ORANGE }}>
+              ⚡ Survival
+            </h3>
+
+            <p style={{ marginBottom: 48, color: "#767676", lineHeight: 1.6 }}>
+              • Unlimited words<br />
+              • Start with 3 hearts ❤️<br />
+              • Lose a heart for each mistake<br />
+              • Earn 1 heart every 10 correct answers<br />
+              • Game ends when you run out of hearts
+            </p>
+          </div>
+
+          <motion.button
+            onClick={() => {
+              haptic("light");
+              setTimeout(() => setShowHelp(false), 120);
+            }}
+            whileTap={{ scale: 0.97 }}
             style={{
-              background: "#FFFFFF",
-              borderRadius: 24,
-              padding: "32px 24px",
-              maxWidth: 420,
               width: "100%",
-              boxShadow: "0 8px 40px rgba(0,0,0,0.12)"
+              padding: "14px 0",
+              borderRadius: 48,
+              border: `2px solid ${GREEN}`,
+              background: GREEN,
+              color: "#FFFFFF",
+              fontSize: 15,
+              fontWeight: 700,
+              cursor: "pointer"
             }}
             >
-            <h2 style={{ margin: "0 0 20px", color: "#2D2D2D" }}>
-              How to Play
-            </h2>
+            Got it
+          </motion.button>
+        </motion.div>
+      </div>
+    )}
 
-            <div style={{ marginBottom: 24 }}>
-              <h3 style={{ margin: "0 0 8px", color: ORANGE }}>
-                📅 Daily
-              </h3>
+    {/* ─────────────────────────────────────────────
+        Base Pages — Menu / Game / End
+    ───────────────────────────────────────────── */}
+    <AnimatePresence mode="sync">
+      {/* ── MENU ── */}
+      {screen === "menu" && (
+        <motion.div
+              key="menu"
+              style={PAGE_LAYOUT}
+            >   
+              <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: `${topInset}px 32px 24px`, boxSizing: "border-box" }}>
+                <div style={{ maxWidth: 420, width: "100%" }}>
 
-              <p style={{ margin: 0, color: "#767676", lineHeight: 1.6 }}>
-                • 10 words per level<br />
-                • Score 8/10 or higher to unlock the next level<br />
-                • Your progress is saved automatically<br />
-                • Each level can only be completed once per day
-              </p>
-            </div>
+                  {/* Top bar */}
+                  <div style={{ position: "fixed", top: topInset, right: 16, display: "flex", gap: 8, zIndex: 10 }}>
+                    <motion.button
+                      onClick={() => { haptic("light"); openLeaderboard(); }}
+                      whileTap={{ scale: 0.95, backgroundColor: "#fff6eb" }}
+                      style={{ width: 36, height: 36, border: "2px solid #FF7A00", background: "transparent", borderRadius: "50%", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", padding: 0, fontSize: 20 }}>
+                      <img src="/icons/podium.svg" width={28} height={28} />
+                    </motion.button>
 
-            <div style={{ marginBottom: 24 }}>
-              <h3 style={{ margin: "0 0 8px", color: ORANGE }}>
-                ⚡ Survival
-              </h3>
+                    <motion.button
+                      onClick={() => setShowHelp(true)}
+                      whileTap={{ scale: 0.95, backgroundColor: "#D8D1C7" }}
+                      style={{ width: 36, height: 36, border: "2px solid #D8D1C7", background: "transparent", borderRadius: "50%", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", padding: 0, fontSize: 20, fontWeight: 800 }}>
+                      <img src="/icons/help.svg" width={28} height={28} />
+                    </motion.button>
+                  </div>
 
-              <p style={{ marginBottom: 48, color: "#767676", lineHeight: 1.6 }}>
-                • Unlimited words<br />
-                • Start with 3 hearts ❤️<br />
-                • Lose a heart for each mistake<br />
-                • Earn 1 heart every 10 correct answers<br />
-                • Game ends when you run out of hearts
-              </p>
-            </div>
+                  {/* Logo */}
+                  <div style={{ textAlign: "center", marginBottom: 32 }}>
+                    <img src="/favicon.svg" style={{ width: 64, height: 64, marginBottom: 12 }} />
+                    <h1 style={{ fontSize: 36, fontWeight: 800, color: "#2D2D2D", letterSpacing: "-1px", margin: 0 }}>
+                      Article Fever
+                    </h1>
+                  </div>
 
-            <motion.button
-              onClick={() => {
-                haptic("light");
-                setTimeout(() => setShowHelp(false), 120);
-              }}
-              whileTap={{ scale: 0.97 }}
-              style={{
-                width: "100%",
-                padding: "14px 0",
-                borderRadius: 48,
-                border: `2px solid ${GREEN}`,
-                background: GREEN,
-                color: "#FFFFFF",
-                fontSize: 15,
-                fontWeight: 700,
-                cursor: "pointer"
-              }}
-              >
-              Got it
-            </motion.button>
-          </motion.div>
-        </div>
-      )}
-
-      {/* ─────────────────────────────────────────────
-          Pages
-      ───────────────────────────────────────────── */}
-      <AnimatePresence mode="wait">
-        {/* ── MENU ── */}
-        {screen === "menu" && (
-          <motion.div
-                key="menu"
-                {...PAGE_MOTION.fade}
-                transition={PAGE_EASING}
-                style={PAGE_LAYOUT}
-              >   
-                <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: `${topInset}px 32px 24px`, boxSizing: "border-box" }}>
-                  <div style={{ maxWidth: 420, width: "100%" }}>
-
-                    {/* Top bar */}
-                    <div style={{ position: "fixed", top: topInset, right: 16, display: "flex", gap: 8, zIndex: 10 }}>
-                      <motion.button
-                        onClick={() => { haptic("light"); openLeaderboard(); }}
-                        whileTap={{ scale: 0.95, backgroundColor: "#fff6eb" }}
-                        style={{ width: 36, height: 36, border: "2px solid #FF7A00", background: "transparent", borderRadius: "50%", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", padding: 0, fontSize: 20 }}>
-                        <img src="/icons/podium.svg" width={28} height={28} />
-                      </motion.button>
-
-                      <motion.button
-                        onClick={() => setShowHelp(true)}
-                        whileTap={{ scale: 0.95, backgroundColor: "#D8D1C7" }}
-                        style={{ width: 36, height: 36, border: "2px solid #D8D1C7", background: "transparent", borderRadius: "50%", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", padding: 0, fontSize: 20, fontWeight: 800 }}>
-                        <img src="/icons/help.svg" width={28} height={28} />
-                      </motion.button>
-                    </div>
-
-                    {/* Logo */}
-                    <div style={{ textAlign: "center", marginBottom: 32 }}>
-                      <img src="/favicon.svg" style={{ width: 64, height: 64, marginBottom: 12 }} />
-                      <h1 style={{ fontSize: 36, fontWeight: 800, color: "#2D2D2D", letterSpacing: "-1px", margin: 0 }}>
-                        Article Fever
-                      </h1>
-                    </div>
-
-                    {/* Mode toggle */}
-                    <div style={{ display: "flex", background: "#FFFFFF", border: "2px solid #D8D1C7", borderRadius: 48, padding: 4, marginBottom: 24, position: "relative" }}>
-                      {["daily", "free"].map(m => (
-                        <button
-                          key={m}
-                          onClick={() => { haptic("light"); setMode(m); }}
-                          style={{ flex: 1, padding: "12px 0", border: "none", borderRadius: 48, background: "transparent", color: mode === m ? "#FFFFFF" : "#767676", fontSize: 15, fontWeight: 800, cursor: "pointer", position: "relative", zIndex: 1 }}
-                        >
-                          {mode === m && (
-                            <motion.div
-                              layoutId="homeModeTab"
-                              style={{ position: "absolute", inset: 0, background: ORANGE, borderRadius: 48, zIndex: -1 }}
-                              transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                            />
-                          )}
-                          {m === "daily"
-                            ? <span
-                                style={{
-                                  display: "flex",
-                                  alignItems: "center",
-                                  justifyContent: "center",
-                                  gap: 4
-                                }}
-                              >
-                                <img
-                                  src="/images/daily.png"
-                                  style={{ width: 20, height: 20, filter: mode === m ? "brightness(0) invert(1)" : "none" }}
-                                />
-                                Daily
-                              </span>
-                            : <span
-                                style={{
-                                  display: "flex",
-                                  alignItems: "center",
-                                  justifyContent: "center",
-                                  gap: 4
-                                }}
-                              >
-                                <img
-                                  src="/icons/flame.svg"
-                                  style={{ width: 20, height: 20, filter: mode === m ? "brightness(0) invert(1)" : "none" }}
-                                />
-                                Survival
-                              </span>}
-                        </button>
-                      ))}
-                    </div>
-
-
-                    <AnimatePresence mode="wait">
-                      <motion.p
-                        key={mode}
-                        initial={{ opacity: 0, x: mode === "daily" ? -20 : 20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: mode === "daily" ? 20 : -20 }}
-                        transition={{ duration: 0.2 }}
-                        style={{
-                          margin: "4px 0 14px",
-                          textAlign: "center",
-                          fontSize: 14,
-                          fontWeight: 600,
-                          color: "#767676"
-                        }}
+                  {/* Mode toggle */}
+                  <div style={{ display: "flex", background: "#FFFFFF", border: "2px solid #D8D1C7", borderRadius: 48, padding: 4, marginBottom: 24, position: "relative" }}>
+                    {["daily", "free"].map(m => (
+                      <button
+                        key={m}
+                        onClick={() => { haptic("light"); setMode(m); }}
+                        style={{ flex: 1, padding: "12px 0", border: "none", borderRadius: 48, background: "transparent", color: mode === m ? "#FFFFFF" : "#767676", fontSize: 15, fontWeight: 800, cursor: "pointer", position: "relative", zIndex: 1 }}
                       >
-                        {menuInfo}
-                      </motion.p>
-                    </AnimatePresence>
-
-                    {/* Level buttons */}
-                    <AnimatePresence mode="wait">
-                      <motion.div
-                        key={mode}
-                        initial={{ opacity: 0, x: mode === "daily" ? -20 : 20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: mode === "daily" ? 20 : -20 }}
-                        transition={{ duration: 0.2 }}
-                        style={{ display: "flex", flexDirection: "column", gap: 8 }}
-                      >
-                        {mode === "daily" ? (
-                          ["beginner", "intermediate", "advanced", "artikelgott"].map(d => {
-                            const prereq      = PREREQ_MAP[d];
-                            const prereqEntry = prereq ? dailyProgress[prereq] : null;
-                            const prereqPassed = !prereq || prereqEntry?.passed;
-                            const isLocked    = !prereqPassed;
-
-                            const status      = dailyProgress[d]?.status;
-                            const score       = dailyProgress[d]?.score;
-                            const isCompleted = status === "completed";
-                            const isInProgress = status === "in_progress";
-                            const isDisabled  = isLocked || isCompleted;
-                            const isInteractive = !isDisabled;
-                            const isPassed = dailyProgress[d]?.passed;
-
-                            let subtitle;
-                            if (isLocked)
-                            subtitle = (
-                              <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                                <img src="/icons/lock.svg" width={16} height={16} />
-                                <span>{LOCK_SUBTITLES[d]}</span>
-                              </span>
-                            );
-                            else if (isCompleted)
-                            subtitle = (
-                              <span style={{ color: isPassed ? GREEN : RED }}>
-                                {isPassed ? "✓" : "✗"} {score}/10
-                              </span>
-                            );
-                            else if (isInProgress)
-                              subtitle = (
-                                <span
-                                  style={{
-                                    display: "inline-flex",
-                                    alignItems: "center",
-                                    justifyContent: "center",
-                                    gap: 6
-                                  }}
-                                >
-                                  <img src="/icons/continue.svg" width={16} height={16} />
-                                  <span>Continue ({dailyProgress[d]?.current_word}/10)</span>
-                                </span>
-                              );
-                            else
-                                subtitle = (
-                                      <span
-                                        style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 6, color: "#3f3f3e" }}
-                                      >
-                                        <img src="/icons/sparkles.svg" width={16} height={16} />
-                                        <span>Ready to Play</span>
-                                      </span>
-                                    );
-
-                            return (
-                              <motion.button
-                                key={d}
-                                disabled={isDisabled}
-                                onClick={() => {
-                                  if (!isInteractive) return;
-                                  haptic("light");
-                                  setTimeout(() => startDaily(d), 120);
-                                }}
-                                whileTap={{ scale: isInteractive ? 0.97 : 1 }}
-                                whileHover={isInteractive ? { scale: 1.02, background: "#FDEFD8" } : {}}
-                                style={{
-                                  ...menuBtnStyle,
-                                  opacity: isDisabled ? 0.6 : 1,
-                                  cursor: isInteractive ? "pointer" : "default",
-                                  ...(d === "artikelgott" && { background: "#fff6eb", border: `2px solid ${ORANGE}` })
-                                }}
-                              >
-                                <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                                  {d === "artikelgott" && (
-                                    <img src="/icons/crown.svg" width={20} height={20} />
-                                  )}
-                                  {d === "artikelgott" ? "Artikelgott" : DIFFICULTY_LABELS[d]}
-                                </span>
-                                <span style={{ fontSize: 14, color: "#ADADAD", fontWeight: 700 }}>
-                                  {subtitle}
-                                </span>
-                              </motion.button>
-                            );
-                          })
-                        ) : (
-                          ["beginner", "intermediate", "advanced", "artikelgott"].map(d => (
-                            <motion.button
-                              key={d}
-                              onClick={() => {
-                                if (!unlockedLevels[d]) return;
-
-                                haptic("light");
-                                setTimeout(() => startGame(d), 120);
-                              }}
-                              whileTap={{ scale: 0.97 }}
-                              whileHover={
-                                unlockedLevels[d]
-                                  ? { scale: 1.02, background: "#FDEFD8" }
-                                  : {}
-                              }
-                              disabled={!unlockedLevels[d]}
+                        {mode === m && (
+                          <motion.div
+                            layoutId="homeModeTab"
+                            style={{ position: "absolute", inset: 0, background: ORANGE, borderRadius: 48, zIndex: -1 }}
+                            transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                          />
+                        )}
+                        {m === "daily"
+                          ? <span
                               style={{
-                                opacity: unlockedLevels[d] ? 1 : 0.6,
-                                ...menuBtnStyle,
-                                cursor: unlockedLevels[d] ? "pointer" : "default",
-                                ...(d === "artikelgott" && {
-                                  background: "#fff6eb",
-                                  border: `2px solid ${ORANGE}`
-                                })
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                gap: 4
                               }}
                             >
-                              <span style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
+                              <img
+                                src="/images/daily.png"
+                                style={{ width: 20, height: 20, filter: mode === m ? "brightness(0) invert(1)" : "none" }}
+                              />
+                              Daily
+                            </span>
+                          : <span
+                              style={{
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                gap: 4
+                              }}
+                            >
+                              <img
+                                src="/icons/flame.svg"
+                                style={{ width: 20, height: 20, filter: mode === m ? "brightness(0) invert(1)" : "none" }}
+                              />
+                              Survival
+                            </span>}
+                      </button>
+                    ))}
+                  </div>
+
+
+                  <AnimatePresence mode="wait">
+                    <motion.p
+                      key={mode}
+                      initial={{ opacity: 0, x: mode === "daily" ? -20 : 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: mode === "daily" ? 20 : -20 }}
+                      transition={{ duration: 0.2 }}
+                      style={{
+                        margin: "4px 0 14px",
+                        textAlign: "center",
+                        fontSize: 14,
+                        fontWeight: 600,
+                        color: "#767676"
+                      }}
+                    >
+                      {menuInfo}
+                    </motion.p>
+                  </AnimatePresence>
+
+                  {/* Level buttons */}
+                  <AnimatePresence mode="wait">
+                    <motion.div
+                      key={mode}
+                      initial={{ opacity: 0, x: mode === "daily" ? -20 : 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: mode === "daily" ? 20 : -20 }}
+                      transition={{ duration: 0.2 }}
+                      style={{ display: "flex", flexDirection: "column", gap: 8 }}
+                    >
+                      {mode === "daily" ? (
+                        ["beginner", "intermediate", "advanced", "artikelgott"].map(d => {
+                          const prereq      = PREREQ_MAP[d];
+                          const prereqEntry = prereq ? dailyProgress[prereq] : null;
+                          const prereqPassed = !prereq || prereqEntry?.passed;
+                          const isLocked    = !prereqPassed;
+
+                          const status      = dailyProgress[d]?.status;
+                          const score       = dailyProgress[d]?.score;
+                          const isCompleted = status === "completed";
+                          const isInProgress = status === "in_progress";
+                          const isDisabled  = isLocked || isCompleted;
+                          const isInteractive = !isDisabled;
+                          const isPassed = dailyProgress[d]?.passed;
+
+                          let subtitle;
+                          if (isLocked)
+                          subtitle = (
+                            <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                              <img src="/icons/lock.svg" width={16} height={16} />
+                              <span>{LOCK_SUBTITLES[d]}</span>
+                            </span>
+                          );
+                          else if (isCompleted)
+                          subtitle = (
+                            <span style={{ color: isPassed ? GREEN : RED }}>
+                              {isPassed ? "✓" : "✗"} {score}/10
+                            </span>
+                          );
+                          else if (isInProgress)
+                            subtitle = (
+                              <span
+                                style={{
+                                  display: "inline-flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                  gap: 6
+                                }}
+                              >
+                                <img src="/icons/continue.svg" width={16} height={16} />
+                                <span>Continue ({dailyProgress[d]?.current_word}/10)</span>
+                              </span>
+                            );
+                          else
+                              subtitle = (
+                                    <span
+                                      style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 6, color: "#3f3f3e" }}
+                                    >
+                                      <img src="/icons/sparkles.svg" width={16} height={16} />
+                                      <span>Ready to Play</span>
+                                    </span>
+                                  );
+
+                          return (
+                            <motion.button
+                              key={d}
+                              disabled={isDisabled}
+                              onClick={() => {
+                                if (!isInteractive) return;
+                                haptic("light");
+                                setTimeout(() => startDaily(d), 120);
+                              }}
+                              whileTap={{ scale: isInteractive ? 0.97 : 1 }}
+                              whileHover={isInteractive ? { scale: 1.02, background: "#FDEFD8" } : {}}
+                              style={{
+                                ...menuBtnStyle,
+                                opacity: isDisabled ? 0.6 : 1,
+                                cursor: isInteractive ? "pointer" : "default",
+                                ...(d === "artikelgott" && { background: "#fff6eb", border: `2px solid ${ORANGE}` })
+                              }}
+                            >
+                              <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
                                 {d === "artikelgott" && (
                                   <img src="/icons/crown.svg" width={20} height={20} />
                                 )}
                                 {d === "artikelgott" ? "Artikelgott" : DIFFICULTY_LABELS[d]}
                               </span>
-                              {unlockedLevels[d] ? (
-                                <span style={{ fontSize: 14, color: "#767676" }}>
-                                  Best: {highScores[d]}
-                                </span>
-                              ) : (
-                                <span
-                                  style={{
-                                    display: "flex",
-                                    alignItems: "center",
-                                    justifyContent: "center",
-                                    gap: 4,
-                                    color: "#767676",
-                                    fontSize: 14
-                                  }}
-                                >
-                                  <img src="/icons/lock.svg" width={16} height={16} />
-                                  <span>{UNLOCK_REQUIREMENTS[d]}</span>
-                                </span>
-                              )}
+                              <span style={{ fontSize: 14, color: "#ADADAD", fontWeight: 700 }}>
+                                {subtitle}
+                              </span>
                             </motion.button>
-                          ))
-                        )}
-                      </motion.div>
-                    </AnimatePresence>
+                          );
+                        })
+                      ) : (
+                        ["beginner", "intermediate", "advanced", "artikelgott"].map(d => (
+                          <motion.button
+                            key={d}
+                            onClick={() => {
+                              if (!unlockedLevels[d]) return;
 
-                  </div>
+                              haptic("light");
+                              setTimeout(() => startGame(d), 120);
+                            }}
+                            whileTap={{ scale: 0.97 }}
+                            whileHover={
+                              unlockedLevels[d]
+                                ? { scale: 1.02, background: "#FDEFD8" }
+                                : {}
+                            }
+                            disabled={!unlockedLevels[d]}
+                            style={{
+                              opacity: unlockedLevels[d] ? 1 : 0.6,
+                              ...menuBtnStyle,
+                              cursor: unlockedLevels[d] ? "pointer" : "default",
+                              ...(d === "artikelgott" && {
+                                background: "#fff6eb",
+                                border: `2px solid ${ORANGE}`
+                              })
+                            }}
+                          >
+                            <span style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
+                              {d === "artikelgott" && (
+                                <img src="/icons/crown.svg" width={20} height={20} />
+                              )}
+                              {d === "artikelgott" ? "Artikelgott" : DIFFICULTY_LABELS[d]}
+                            </span>
+                            {unlockedLevels[d] ? (
+                              <span style={{ fontSize: 14, color: "#767676" }}>
+                                Best: {highScores[d]}
+                              </span>
+                            ) : (
+                              <span
+                                style={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                  gap: 4,
+                                  color: "#767676",
+                                  fontSize: 14
+                                }}
+                              >
+                                <img src="/icons/lock.svg" width={16} height={16} />
+                                <span>{UNLOCK_REQUIREMENTS[d]}</span>
+                              </span>
+                            )}
+                          </motion.button>
+                        ))
+                      )}
+                    </motion.div>
+                  </AnimatePresence>
+
                 </div>
-              </motion.div> 
-            )}
+              </div>
+            </motion.div> 
+      )}
 
-        {/* ── GAME ── */}
-        {screen === "game" && (
-        <motion.div
-          key="game"
-          initial={{ y: "100%" }}
-          animate={{ y: 0 }}
-          exit={{ x: "100%" }}
-          transition={PAGE_EASING}
-          style={PAGE_LAYOUT}
-        >
-            <div style={{ width: "100%", height: "100%", paddingTop: topInset + TOP_BAR_HEIGHT, paddingBottom: 98, paddingLeft: 16, paddingRight: 16, boxSizing: "border-box", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+      {/* ── GAME ── */}
+      {screen === "game" && (
+      <motion.div
+        key="game"
+        initial={{ y: "100%" }}
+        animate={{ y: 0, x: 0 }}
+        exit={{ x: "-100%", y: 0 }}
+        transition={PAGE_EASING}
+        style={PAGE_LAYOUT}
+      >
+          <div style={{ width: "100%", height: "100%", paddingTop: topInset + TOP_BAR_HEIGHT, paddingBottom: 98, paddingLeft: 16, paddingRight: 16, boxSizing: "border-box", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
 
-              {/* Top bar */}
-              <div style={{ position: "fixed", top: topInset, left: 0, right: 0, background: "#FFFAF4", zIndex: 10, padding: "16px 16px 12px" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-                  <button
-                    onClick={() => setShowQuitPopup(true)}
-                    style={{ border: "none", background: "transparent", fontSize: 32, color: "#767676", cursor: "pointer", lineHeight: 1, padding: 12, paddingLeft: 0 }}>
-                    ×
-                  </button>
-                  <span style={{ fontSize: 14, color: "#767676", fontWeight: 600 }}>
-                    {mode === "daily"
-                      ? `${DIFFICULTY_LABELS[difficulty]} • ${new Date().toLocaleDateString("en-US", { month: "short", day: "numeric" })}`
-                      : `${DIFFICULTY_LABELS[difficulty]} • Best: ${highScores[difficulty]}`}
-                  </span>
-                </div>
+            {/* Top bar */}
+            <div style={{ position: "fixed", top: topInset, left: 0, right: 0, background: "#FFFAF4", zIndex: 10, padding: "16px 16px 12px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+                <button
+                  onClick={() => setShowQuitPopup(true)}
+                  style={{ border: "none", background: "transparent", fontSize: 32, color: "#767676", cursor: "pointer", lineHeight: 1, padding: 12, paddingLeft: 0 }}>
+                  ×
+                </button>
+                <span style={{ fontSize: 14, color: "#767676", fontWeight: 600 }}>
+                  {mode === "daily"
+                    ? `${DIFFICULTY_LABELS[difficulty]} • ${new Date().toLocaleDateString("en-US", { month: "short", day: "numeric" })}`
+                    : `${DIFFICULTY_LABELS[difficulty]} • Best: ${highScores[difficulty]}`}
+                </span>
+              </div>
 
-                {mode === "free" ? (
-                  <>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                        {[1, 2, 3].map(n => (
-                          <img key={n} src="/icons/heart.svg" style={{ width: 32, height: 32, opacity: n <= hearts ? 1 : 0.25 }} />
-                        ))}
-                      </div>
-                      <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                        <img src="/icons/flame.svg" style={{ width: 32, height: 32 }} />
-                        <span style={{ fontSize: 28, fontWeight: 700, color: ORANGE }}>{streak}</span>
-                      </div>
-                    </div>
-                    <div style={{ width: "100%", height: 6, background: "#E6E1DA", borderRadius: 999 }}>
-                      <div style={{ height: "100%", width: `${hearts === 3 ? 100 : (heartStreak % 10) * 10}%`, background: GREEN, borderRadius: 999, transition: "width 0.3s ease" }} />
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <div style={{ display: "flex", justifyContent: "center", marginBottom: 8 }}>
-                      <span style={{ fontSize: 16, fontWeight: 700, color: "#767676" }}>
-                        {dailyResults.length === 10 ? 10 : idx + 1}/10
-                      </span>
-                    </div>
-                    <div style={{ display: "flex", gap: 6 }}>
-                      {Array.from({ length: 10 }).map((_, i) => (
-                        <div key={i} style={{ flex: 1, height: 8, borderRadius: 999, background: "#E6E1DA", overflow: "hidden" }}>
-                          <motion.div
-                            initial={{ width: 0 }}
-                            animate={{ width: dailyResults[i] !== undefined ? "100%" : "0%" }}
-                            transition={{ duration: 0.25, ease: "easeOut" }}
-                            style={{ height: "100%", borderRadius: 999, background: dailyResults[i] === true ? GREEN : RED }}
-                          />
-                        </div>
+              {mode === "free" ? (
+                <>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                      {[1, 2, 3].map(n => (
+                        <img key={n} src="/icons/heart.svg" style={{ width: 32, height: 32, opacity: n <= hearts ? 1 : 0.25 }} />
                       ))}
                     </div>
-                  </>
-                )}
-              </div>
-
-              {/* Heart notification */}
-              <AnimatePresence>
-                {heartNotification && (
-                  <div style={{ position: "fixed", top: 152, left: 0, right: 0, bottom: 98, display: "flex", alignItems: "center", justifyContent: "center", zIndex: 50, pointerEvents: "none" }}>
-                    <motion.div
-                      key={heartNotification}
-                      initial={{ opacity: 0, scale: 0.5, y: 20 }}
-                      animate={{ opacity: 1, scale: 1, y: 0 }}
-                      exit={{ opacity: 0, scale: 0.9, y: -20 }}
-                      transition={{ duration: 0.3, ease: "easeOut" }}
-                      style={{ display: "flex", alignItems: "center", gap: 10, background: heartNotification === "gain" ? "rgba(46,139,87,0.12)" : "rgba(217,74,74,0.10)", borderRadius: 24, padding: "16px 28px" }}>
-                      <img src="/images/heart.png" style={{ width: 64, height: 64 }} />
-                      <span style={{ fontSize: 42, fontWeight: 800, color: heartNotification === "gain" ? GREEN : RED }}>
-                        {heartNotification === "gain" ? "+1" : "-1"}
-                      </span>
-                    </motion.div>
-                  </div>
-                )}
-              </AnimatePresence>
-
-              {/* Word card */}
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={idx}
-                  initial={{ opacity: 0, x: 18 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -30 }}
-                  transition={{ duration: 0.22, ease: "easeInOut" }}
-                  style={{ width: "100%", maxWidth: 448, margin: "0 auto" }}>
-                  <div style={{ background: "#FFFFFF", borderRadius: 24, boxShadow: "0 4px 16px rgba(0,0,0,0.06)", padding: "32px 16px", textAlign: "center", height: 300, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "space-between" }}>
-
-                    {reviewAnswer ? (
-                      <div style={{ display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", height: "100%", gap: 12 }}>
-                        <h3 style={{
-                          margin: 0,
-                          fontSize: 22,
-                          fontWeight: 700,
-                          color: RED,
-                          textDecoration: "line-through",
-                          textDecorationThickness: 2,
-                          opacity: 0.75
-                        }}>
-                          {reviewAnswer.selected} {reviewAnswer.word}
-                        </h3>
-
-                        <span style={{ fontSize: 20, color: "#ADADAD", lineHeight: 1 }}>↓</span>
-
-                        <div style={{ textAlign: "center" }}>
-                          <h3 style={{ margin: 0, fontSize: 32, fontWeight: 800, color: GREEN }}>
-                            {reviewAnswer.article} {reviewAnswer.word}
-                          </h3>
-                          <p style={{ fontSize: 16, fontWeight: 600, color: "#ADADAD", margin: "4px 0 0" }}>
-                            ({reviewAnswer.meaning})
-                          </p>
-                        </div>
-                      </div>
-                    ) : (
-                      <>
-                        <p style={{ margin: 0, fontSize: 11, color: "#ADADAD", textTransform: "uppercase", letterSpacing: 1.5 }}>
-                          What is the article for...
-                        </p>
-
-                        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
-                          <h2 style={{ margin: 0, fontSize: current.word.length > 15 ? 32 : current.word.length > 10 ? 36 : current.word.length > 8 ? 40 : 48, fontWeight: 800, color: "#2D2D2D", wordBreak: "break-word", lineHeight: 1.1 }}>
-                            {current.word}
-                          </h2>
-
-                          <p style={{ margin: 0, fontSize: 16, fontWeight: 600, color: "#ADADAD" }}>
-                            ({current.meaning})
-                          </p>
-                        </div>
-
-                        <div />
-                      </>
-                    )}
-
-                  </div>
-                </motion.div>
-              </AnimatePresence>
-
-              {/* Article buttons */}
-              <div style={{ position: "fixed", left: "50%", bottom: 32, transform: "translateX(-50%)", width: "calc(100% - 32px)", maxWidth: 448, display: "flex", gap: 8 }}>
-                {reviewAnswer ? (
-                  <motion.button
-                    whileTap={{ scale: 0.97 }}
-                    onClick={handleContinue}
-                    style={{
-                      width: "100%",
-                      padding: "16px 0",
-                      borderRadius: 48,
-                      border: "2px solid #D8D1C7",
-                      background: "#FFFFFF",
-                      color: "#2D2D2D",
-                      fontSize: 18,
-                      fontWeight: 700,
-                      cursor: "pointer"
-                    }}
-                  >
-                    <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
-                      Next Word
-                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                        <path
-                          d="M4 12H20M14 6L20 12L14 18"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                    </span>
-                  </motion.button>
-                ) : (
-                  ARTICLES.map(art => {
-                    const { bg, color, border } = btnStyle(art);
-                    return (
-                      <motion.button
-                        key={art}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={() => handleAnswer(art)}
-                        style={{
-                          flex: 1,
-                          padding: "16px 0",
-                          borderRadius: 48,
-                          border,
-                          background: bg,
-                          color,
-                          fontSize: 22,
-                          fontWeight: 700,
-                          cursor: selected ? "default" : "pointer",
-                          transition: "background 0.15s, color 0.15s"
-                        }}
-                      >
-                        {art}
-                      </motion.button>
-                    );
-                  })
-                )}
-              </div>
-
-              {/* ─────────────────────────────────────────────
-                  Popups (inline within Game screen)
-              ───────────────────────────────────────────── */}
-
-              {/* ── QUIT GAME ── */}
-              {showQuitPopup && (
-                <div
-                  onClick={() => setShowQuitPopup(false)}
-                  style={{ position: "fixed", inset: 0, background: "rgba(45,45,45,0.45)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100, padding: 16 }}>
-                  <motion.div
-                    onClick={e => e.stopPropagation()}
-                    initial={{ scale: 0.8, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    exit={{ scale: 0.8, opacity: 0 }}
-                    transition={{ duration: 0.25, ease: "easeOut" }}
-                    style={{ background: "#FFFFFF", borderRadius: 24, padding: "36px 28px", maxWidth: 320, width: "100%", textAlign: "center", boxShadow: "0 8px 40px rgba(0,0,0,0.12)" }}>
-                    <div style={{ fontSize: 48, marginBottom: 16 }}>🤔</div>
-                    <h2 style={{ margin: "0 0 12px", fontSize: 24, color: "#2D2D2D" }}>Quit game?</h2>
-                    <p style={{ color: "#767676", fontSize: 14, marginBottom: 28 }}>
-                      {mode === "daily" ? "Your progress will be saved." : "Your current streak will be lost."}
-                    </p>
-                    <div style={{ display: "flex", gap: 10 }}>
-                      {mode === "daily" ? (
-                        <>
-                          <button
-                            onClick={() => setShowQuitPopup(false)}
-                            style={{ flex: 1, padding: "13px 0", borderRadius: 24, border: `2px solid ${GREEN}`, background: GREEN, color: "#FFFFFF", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
-                            Keep Playing
-                          </button>
-                          <button
-                            onClick={() => setScreen("menu")}
-                            style={{ flex: 1, padding: "13px 0", borderRadius: 24, border: "2px solid #D8D1C7", background: "#FFFFFF", color: "#2D2D2D", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
-                            Save & Quit
-                          </button>
-                        </>
-                      ) : (
-                        <>
-                          <button
-                            onClick={() => setShowQuitPopup(false)}
-                            style={{ flex: 1, padding: "13px 0", borderRadius: 24, border: "2px solid #D8D1C7", background: "#FFFFFF", color: "#2D2D2D", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
-                            Keep Playing
-                          </button>
-                          <button
-                            onClick={() => setScreen("menu")}
-                            style={{ flex: 1, padding: "13px 0", borderRadius: 24, border: `2px solid ${RED}`, background: RED, color: "#FFFFFF", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
-                            Quit
-                          </button>
-                        </>
-                      )}
+                    <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                      <img src="/icons/flame.svg" style={{ width: 32, height: 32 }} />
+                      <span style={{ fontSize: 28, fontWeight: 700, color: ORANGE }}>{streak}</span>
                     </div>
+                  </div>
+                  <div style={{ width: "100%", height: 6, background: "#E6E1DA", borderRadius: 999 }}>
+                    <div style={{ height: "100%", width: `${hearts === 3 ? 100 : (heartStreak % 10) * 10}%`, background: GREEN, borderRadius: 999, transition: "width 0.3s ease" }} />
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div style={{ display: "flex", justifyContent: "center", marginBottom: 8 }}>
+                    <span style={{ fontSize: 16, fontWeight: 700, color: "#767676" }}>
+                      {dailyResults.length === 10 ? 10 : idx + 1}/10
+                    </span>
+                  </div>
+                  <div style={{ display: "flex", gap: 6 }}>
+                    {Array.from({ length: 10 }).map((_, i) => (
+                      <div key={i} style={{ flex: 1, height: 8, borderRadius: 999, background: "#E6E1DA", overflow: "hidden" }}>
+                        <motion.div
+                          initial={{ width: 0 }}
+                          animate={{ width: dailyResults[i] !== undefined ? "100%" : "0%" }}
+                          transition={{ duration: 0.25, ease: "easeOut" }}
+                          style={{ height: "100%", borderRadius: 999, background: dailyResults[i] === true ? GREEN : RED }}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+
+            {/* Heart notification */}
+            <AnimatePresence>
+              {heartNotification && (
+                <div style={{ position: "fixed", top: 152, left: 0, right: 0, bottom: 98, display: "flex", alignItems: "center", justifyContent: "center", zIndex: 50, pointerEvents: "none" }}>
+                  <motion.div
+                    key={heartNotification}
+                    initial={{ opacity: 0, scale: 0.5, y: 20 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.9, y: -20 }}
+                    transition={{ duration: 0.3, ease: "easeOut" }}
+                    style={{ display: "flex", alignItems: "center", gap: 10, background: heartNotification === "gain" ? "rgba(46,139,87,0.12)" : "rgba(217,74,74,0.10)", borderRadius: 24, padding: "16px 28px" }}>
+                    <img src="/images/heart.png" style={{ width: 64, height: 64 }} />
+                    <span style={{ fontSize: 42, fontWeight: 800, color: heartNotification === "gain" ? GREEN : RED }}>
+                      {heartNotification === "gain" ? "+1" : "-1"}
+                    </span>
                   </motion.div>
                 </div>
               )}
+            </AnimatePresence>
 
-            </div>
-          </motion.div>
-        )}
+            {/* Word card */}
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={idx}
+                initial={{ opacity: 0, x: 18 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -30 }}
+                transition={{ duration: 0.22, ease: "easeInOut" }}
+                style={{ width: "100%", maxWidth: 448, margin: "0 auto" }}>
+                <div style={{ background: "#FFFFFF", borderRadius: 24, boxShadow: "0 4px 16px rgba(0,0,0,0.06)", padding: "32px 16px", textAlign: "center", height: 300, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "space-between" }}>
 
-        {/* ── END SCREEN ── (Daily completed / Survival Game Over / Survival Level Complete)*/}
-        {screen === "end" && (
-            <motion.div
-              key="end"
-              {...PAGE_MOTION.right}
-              transition={PAGE_EASING}
-              style={PAGE_LAYOUT}
-            >
-              <div style={{ width: "100%", minHeight: "100%", boxSizing: "border-box", padding: `${topInset + 24}px 32px 40px`, display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", textAlign: "center" }}>
-                <div style={{ maxWidth: 420, width: "100%" }}>
+                  {reviewAnswer ? (
+                    <div style={{ display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", height: "100%", gap: 12 }}>
+                      <h3 style={{
+                        margin: 0,
+                        fontSize: 22,
+                        fontWeight: 700,
+                        color: RED,
+                        textDecoration: "line-through",
+                        textDecorationThickness: 2,
+                        opacity: 0.75
+                      }}>
+                        {reviewAnswer.selected} {reviewAnswer.word}
+                      </h3>
 
-                  {mode === "daily" ? (
-                    <>
-                      <div style={{ fontSize: 48, fontWeight: 800, color: ORANGE, lineHeight: 1, marginBottom: 12 }}>
-                        {finalScore}/10
+                      <span style={{ fontSize: 20, color: "#ADADAD", lineHeight: 1 }}>↓</span>
+
+                      <div style={{ textAlign: "center" }}>
+                        <h3 style={{ margin: 0, fontSize: 32, fontWeight: 800, color: GREEN }}>
+                          {reviewAnswer.article} {reviewAnswer.word}
+                        </h3>
+                        <p style={{ fontSize: 16, fontWeight: 600, color: "#ADADAD", margin: "4px 0 0" }}>
+                          ({reviewAnswer.meaning})
+                        </p>
                       </div>
-                      <h2 style={{ margin: "0 0 8px", fontSize: 18, color: "#2D2D2D" }}>
-                        {finalScore === 10
-                          ? "Congrats! You did a perfect job!"
-                          : dailyPassed
-                          ? `Congrats! You passed ${DIFFICULTY_LABELS[difficulty]}.`
-                          : "Oh no! Come back tomorrow for a new challenge!"}
-                      </h2>
-                      <p style={{ color: "#767676", fontSize: 13, marginBottom: 20 }}>
-                        {DIFFICULTY_LABELS[difficulty]} • {new Date().toLocaleDateString("en-US", { month: "short", day: "numeric" })}
-                      </p>
-                      <div
-                        onClick={() => setScreen("review")}
-                        style={{ background: "#FFF4E8", borderRadius: 16, padding: "14px 16px", marginBottom: 24, cursor: "pointer", border: `1px solid ${ORANGE}`, boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}>
-                        {dailyLastMistake ? (
-                          <>
-                            <p style={{ fontSize: 12, color: "#767676", marginBottom: 4 }}>Last mistake</p>
-                            <div style={{ fontSize: 15, color: RED, fontWeight: 700 }}>✗ {dailyLastMistake.selected} {dailyLastMistake.word}</div>
-                            <div style={{ fontSize: 15, color: GREEN, fontWeight: 700 }}>✓ {dailyLastMistake.article} {dailyLastMistake.word}</div>
-                            <p style={{ fontSize: 14, color: ORANGE, marginTop: 8, fontWeight: 700 }}>Review answers →</p>
-                          </>
-                        ) : (
-                          <>
-                            <p style={{ fontSize: 15, color: GREEN, fontWeight: 700, margin: 0 }}>✓ No mistakes</p>
-                            <p style={{ fontSize: 14, color: ORANGE, marginTop: 8, fontWeight: 700 }}>Review answers →</p>
-                          </>
-                        )}
-                      </div>
-                      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                        {dailyPassed && difficulty !== "artikelgott" && (
-                          <button
-                            onClick={() => {
-                              const next = nextDifficulty[difficulty];
-                              if (!next) return;
-                              startDaily(next);
-                            }}
-                            style={{ padding: "14px 0", borderRadius: 48, border: `2px solid ${GREEN}`, background: GREEN, color: "#FFFFFF", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
-                            Play Next Level
-                          </button>
-                        )}
-                        <button
-                          onClick={shareScore}
-                          style={{ padding: "14px 0", borderRadius: 48, border: `2px solid ${ORANGE}`, background: ORANGE, color: "#FFFFFF", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
-                          Share Score
-                        </button>
-                        <button
-                          onClick={() => setScreen("menu")}
-                          style={{ padding: "14px 0", borderRadius: 48, border: "2px solid #D8D1C7", background: "#FFFFFF", color: "#2D2D2D", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
-                          Home
-                        </button>
-                      </div>
-                    </>
+                    </div>
                   ) : (
                     <>
-                      {isNewHigh && (
-                        <div style={{ color: ORANGE, fontWeight: 800, fontSize: 16, marginBottom: 12 }}>🏆 NEW HIGH SCORE!</div>
-                      )}
-                      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 8 }}>
-                        <img src="/images/streak.png" style={{ width: 56, height: 56 }} />
-                        <div style={{ fontSize: 64, fontWeight: 800, color: ORANGE, lineHeight: 1 }}>{finalScore}</div>
-                      </div>
-                      <h2 style={{ margin: "0 0 8px", fontSize: 24, color: "#2D2D2D" }}>{modalTitle}</h2>
-                      <p style={{ color: "#767676", fontSize: 13, marginBottom: 16 }}>
-                        {DIFFICULTY_LABELS[difficulty]} •{" "}
-                        {isLevelComplete
-                          ? `All ${queue.length} words completed!`
-                          : isNewHigh
-                          ? `Previous best: ${previousBest}`
-                          : `Best: ${highScores[difficulty]}`}
+                      <p style={{ margin: 0, fontSize: 11, color: "#ADADAD", textTransform: "uppercase", letterSpacing: 1.5 }}>
+                        What is the article for...
                       </p>
-                      {!isLevelComplete && (
-                        <div
-                          onClick={() => setScreen("review")}
-                          style={{ background: "#FFF4E8", borderRadius: 16, padding: "14px 16px", marginBottom: 24, cursor: "pointer", border: `1px solid ${ORANGE}`, boxShadow: "0 2px 8px rgba(0,0,0,0.06)", transition: "all 0.15s" }}>
-                          <p style={{ fontSize: 12, color: "#767676", marginBottom: 4 }}>Last mistake</p>
-                          <div style={{ fontSize: 15, color: RED, fontWeight: 700 }}>✗ {selected} {current.word}</div>
-                          <div style={{ fontSize: 15, color: GREEN, fontWeight: 700 }}>✓ {current.article} {current.word}</div>
-                          <p style={{ fontSize: 14, color: ORANGE, marginTop: 8, fontWeight: 700 }}>Review all answers →</p>
-                        </div>
-                      )}
-                      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                        <button
-                          onClick={() => startGame(difficulty)}
-                          style={{ padding: "14px 0", borderRadius: 48, border: `2px solid ${GREEN}`, background: GREEN, color: "#FFFFFF", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
-                          Play Again
-                        </button>
-                        <button
-                          onClick={shareScore}
-                          style={{ padding: "14px 0", borderRadius: 48, border: `2px solid ${ORANGE}`, background: ORANGE, color: "#FFFFFF", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
-                          Share Score
-                        </button>
-                        <button
-                          onClick={() => setScreen("menu")}
-                          style={{ padding: "14px 0", borderRadius: 48, border: "2px solid #D8D1C7", background: "#FFFFFF", color: "#2D2D2D", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
-                          Home
-                        </button>
+
+                      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
+                        <h2 style={{ margin: 0, fontSize: current.word.length > 15 ? 32 : current.word.length > 10 ? 36 : current.word.length > 8 ? 40 : 48, fontWeight: 800, color: "#2D2D2D", wordBreak: "break-word", lineHeight: 1.1 }}>
+                          {current.word}
+                        </h2>
+
+                        <p style={{ margin: 0, fontSize: 16, fontWeight: 600, color: "#ADADAD" }}>
+                          ({current.meaning})
+                        </p>
                       </div>
+
+                      <div />
                     </>
                   )}
 
                 </div>
-              </div>
-            </motion.div>
-          )}
+              </motion.div>
+            </AnimatePresence>
 
-        {/* ── REVIEW ── */}
-        {screen === "review" && (
-          <motion.div
-                  key="review"
-                  {...PAGE_MOTION.right}
-                  transition={PAGE_EASING}
+            {/* Article buttons */}
+            <div style={{ position: "fixed", left: "50%", bottom: 32, transform: "translateX(-50%)", width: "calc(100% - 32px)", maxWidth: 448, display: "flex", gap: 8 }}>
+              {reviewAnswer ? (
+                <motion.button
+                  whileTap={{ scale: 0.97 }}
+                  onClick={handleContinue}
+                  style={{
+                    width: "100%",
+                    padding: "16px 0",
+                    borderRadius: 48,
+                    border: "2px solid #D8D1C7",
+                    background: "#FFFFFF",
+                    color: "#2D2D2D",
+                    fontSize: 18,
+                    fontWeight: 700,
+                    cursor: "pointer"
+                  }}
                 >
-            <div style={{ height: "100vh", display: "flex", flexDirection: "column", maxWidth: 480, margin: "0 auto", boxSizing: "border-box" }}>
-
-              {/* Fixed header */}
-              <div style={{ flexShrink: 0, padding: `${topInset}px 16px 12px`, background: "#FFFAF4" }}>
-                <div style={{ display: "flex", alignItems: "center" }}>
-                  <motion.button
-                    onClick={() => { setScreen("game"); setScreen("end"); }}
-                    whileTap={{ scale: 0.95, backgroundColor: "#E6E1DA" }}
-                    style={{ width: 40, height: 40, border: "none", background: "transparent", borderRadius: "50%", color: "#767676", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", padding: 0 }}>
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M20 12H4M10 18L4 12L10 6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
-                  </motion.button>
-                  <h1 style={{ margin: "0 0 0 12px", fontSize: 24, fontWeight: 800, color: "#2D2D2D" }}>Session Review</h1>
-                </div>
-              </div>
-
-              {/* Scrollable content with bottom fade */}
-              <div style={{ flex: 1, position: "relative", overflow: "hidden" }}>
-                <div style={{ height: "100%", overflowY: "auto", padding: "12px 16px 48px" }}>
-
-                  {/* Wrong answers */}
-                  {incorrectCount > 0 && (
-                    <div style={{ marginBottom: 24 }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
-                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                          <path d="M3 3L13 13M13 3L3 13" stroke={RED} strokeWidth="2" strokeLinecap="round" />
-                        </svg>
-                        <span style={{ fontSize: 16, fontWeight: 800, color: RED, textTransform: "uppercase", letterSpacing: 1 }}>
-                          {incorrectCount} mistake{incorrectCount !== 1 ? "s" : ""}
-                        </span>
-                      </div>
-                      {answerHistory.filter(a => !a.correct).map((answer, i) => (
-                        <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, background: "#FFF0F0", border: "2px solid " + RED, borderRadius: 16, padding: "8px 14px", marginBottom: 4 }}>
-                          <div style={{ flex: 1 }}>
-                            <div style={{ fontSize: 15, fontWeight: 700, lineHeight: 1.3 }}>
-                              <span style={{ color: RED }}>{answer.selected}</span>
-                              <span style={{ color: "#2D2D2D" }}> {answer.word}</span>
-                              <span style={{ color: "#ADADAD" }}> → </span>
-                              <span style={{ color: GREEN }}>{answer.article}</span>
-                              <span style={{ color: "#2D2D2D" }}> {answer.word}</span>
-                            </div>
-                            <div style={{ fontSize: 12, color: "#2D2D2D", fontWeight: 600 }}>{answer.meaning}</div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  {/* Correct answers */}
-                  {correctCount > 0 && (
-                    <div>
-                      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
-                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                          <path d="M2 8L6 12L14 4" stroke={GREEN} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                        </svg>
-                        <span style={{ fontSize: 16, fontWeight: 800, color: GREEN, textTransform: "uppercase", letterSpacing: 1 }}>
-                          {correctCount} correct
-                        </span>
-                      </div>
-                      {answerHistory.filter(a => a.correct).map((answer, i) => (
-                        <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, background: "#FFFFFF", border: "2px solid #F0EBE3", borderRadius: 16, padding: "8px 14px", marginBottom: 4 }}>
-                          <div style={{ flex: 1 }}>
-                            <div style={{ fontSize: 15, fontWeight: 700, color: "#2D2D2D", lineHeight: 1.3 }}>
-                              {answer.article} {answer.word}
-                            </div>
-                            <div style={{ fontSize: 12, color: "#2D2D2D", fontWeight: 600 }}>{answer.meaning}</div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                </div>
-                {/* Bottom fade overlay */}
-                <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: 64, background: "linear-gradient(to bottom, transparent, #FFFAF4)", pointerEvents: "none" }} />
-              </div>
-
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+                    Next Word
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                      <path
+                        d="M4 12H20M14 6L20 12L14 18"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </span>
+                </motion.button>
+              ) : (
+                ARTICLES.map(art => {
+                  const { bg, color, border } = btnStyle(art);
+                  return (
+                    <motion.button
+                      key={art}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => handleAnswer(art)}
+                      style={{
+                        flex: 1,
+                        padding: "16px 0",
+                        borderRadius: 48,
+                        border,
+                        background: bg,
+                        color,
+                        fontSize: 22,
+                        fontWeight: 700,
+                        cursor: selected ? "default" : "pointer",
+                        transition: "background 0.15s, color 0.15s"
+                      }}
+                    >
+                      {art}
+                    </motion.button>
+                  );
+                })
+              )}
             </div>
-          </motion.div>
-        )}
 
-        {/* ── LEADERBOARD ── */}  
-        {screen === "leaderboard" && (
-          <motion.div
-                  key="review"
-                  {...PAGE_MOTION.fade}
-                  transition={PAGE_EASING}
-                >
-            <div style={{ display: "flex", flexDirection: "column", height: "100vh", maxWidth: 480, margin: "0 auto", boxSizing: "border-box" }}>
+            {/* ─────────────────────────────────────────────
+                Popups (inline within Game screen)
+            ───────────────────────────────────────────── */}
 
-              {/* Header */}
-              <div style={{ flexShrink: 0, background: "#FFFAF4", padding: `${topInset}px 16px 12px` }}>
-                <div style={{ display: "flex", alignItems: "center", marginBottom: 24 }}>
-                  <motion.button
-                    onClick={() => { haptic("light"); setScreen("menu"); }}
-                    whileTap={{ scale: 0.95, backgroundColor: "#E6E1DA" }}
-                    style={{ width: 40, height: 40, border: "none", background: "transparent", borderRadius: "50%", color: "#767676", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", padding: 0 }}>
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M20 12H4M10 18L4 12L10 6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
-                  </motion.button>
-                  <h1 style={{ margin: "0 0 0 12px", fontSize: 24, fontWeight: 800, color: "#2D2D2D" }}>Leaderboard</h1>
-                </div>
-
-                {/* Tabs */}
-                <div style={{ display: "flex", background: "#FFFFFF", border: "2px solid #D8D1C7", borderRadius: 48, padding: 4, position: "relative" }}>
-                  {["beginner", "intermediate", "advanced", "artikelgott"].map(d => (
-                    <button
-                      key={d}
-                      onClick={() => { haptic("light"); switchTab(d); }}
-                      style={{ flex: 1, padding: "10px 0", border: "none", borderRadius: 48, background: "transparent", color: lbTab === d ? "#FFFFFF" : "#767676", fontSize: 14, fontWeight: 800, cursor: "pointer", position: "relative", zIndex: 1 }}>
-                      {lbTab === d && (
-                        <motion.div
-                          layoutId="leaderboardTab"
-                          style={{ position: "absolute", inset: 0, background: ORANGE, borderRadius: 48, zIndex: -1 }}
-                          transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                        />
-                      )}
-                      {DIFFICULTY_LABELS[d]}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Scrollable list */}
-              {lbLoading ? (
-                <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  <motion.div
-                    animate={{ rotate: 360 }}
-                    transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                    style={{ width: 32, height: 32, border: `3px solid #E6E1DA`, borderTop: `3px solid ${ORANGE}`, borderRadius: "50%" }}
-                  />
-                </div>
-              ) : currentLbData ? (
-                <>
-                  <div style={{ flex: 1, overflowY: "auto", padding: "12px 16px" }}>
-                    {currentLbData.top10.length === 0 ? (
-                      <p style={{ textAlign: "center", color: "#ADADAD", marginTop: 48 }}>No scores yet. Be the first!</p>
+            {/* ── QUIT GAME ── */}
+            {showQuitPopup && (
+              <div
+                onClick={() => setShowQuitPopup(false)}
+                style={{ position: "fixed", inset: 0, background: "rgba(45,45,45,0.45)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100, padding: 16 }}>
+                <motion.div
+                  onClick={e => e.stopPropagation()}
+                  initial={{ scale: 0.8, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  exit={{ scale: 0.8, opacity: 0 }}
+                  transition={{ duration: 0.25, ease: "easeOut" }}
+                  style={{ background: "#FFFFFF", borderRadius: 24, padding: "36px 28px", maxWidth: 320, width: "100%", textAlign: "center", boxShadow: "0 8px 40px rgba(0,0,0,0.12)" }}>
+                  <div style={{ fontSize: 48, marginBottom: 16 }}>🤔</div>
+                  <h2 style={{ margin: "0 0 12px", fontSize: 24, color: "#2D2D2D" }}>Quit game?</h2>
+                  <p style={{ color: "#767676", fontSize: 14, marginBottom: 28 }}>
+                    {mode === "daily" ? "Your progress will be saved." : "Your current streak will be lost."}
+                  </p>
+                  <div style={{ display: "flex", gap: 10 }}>
+                    {mode === "daily" ? (
+                      <>
+                        <button
+                          onClick={() => setShowQuitPopup(false)}
+                          style={{ flex: 1, padding: "13px 0", borderRadius: 24, border: `2px solid ${GREEN}`, background: GREEN, color: "#FFFFFF", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
+                          Keep Playing
+                        </button>
+                        <button
+                          onClick={() => setScreen("menu")}
+                          style={{ flex: 1, padding: "13px 0", borderRadius: 24, border: "2px solid #D8D1C7", background: "#FFFFFF", color: "#2D2D2D", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
+                          Save & Quit
+                        </button>
+                      </>
                     ) : (
-                      currentLbData.top10.map((player, i) => {
-                        const isMe = player.telegram_id === telegramId;
-                        return (
-                          <div
-                            key={player.id}
-                            style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 16px", borderRadius: 16, marginBottom: 4, background: isMe ? "#FFF4E8" : "#FFFFFF", border: `2px solid ${isMe ? ORANGE : "#F0EBE3"}` }}>
-                            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                              <span style={{ fontSize: 15, fontWeight: 800, color: i < 3 ? ORANGE : "#ADADAD", width: 24 }}>
-                                {i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `${i + 1}.`}
-                              </span>
-                              <span style={{ fontSize: 15, fontWeight: isMe ? 800 : 600, color: "#2D2D2D" }}>
-                                {player.username || "Anonymous"} {isMe ? "(you)" : ""}
-                              </span>
-                            </div>
-                            <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                              <img src="/icons/flame.svg" style={{ width: 16, height: 16 }} />
-                              <span style={{ fontSize: 15, fontWeight: 800, color: isMe ? ORANGE : "#2D2D2D" }}>{player.best_score}</span>
-                            </div>
-                          </div>
-                        );
-                      })
+                      <>
+                        <button
+                          onClick={() => setShowQuitPopup(false)}
+                          style={{ flex: 1, padding: "13px 0", borderRadius: 24, border: "2px solid #D8D1C7", background: "#FFFFFF", color: "#2D2D2D", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
+                          Keep Playing
+                        </button>
+                        <button
+                          onClick={() => setScreen("menu")}
+                          style={{ flex: 1, padding: "13px 0", borderRadius: 24, border: `2px solid ${RED}`, background: RED, color: "#FFFFFF", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
+                          Quit
+                        </button>
+                      </>
                     )}
                   </div>
+                </motion.div>
+              </div>
+            )}
 
-                  {/* Pinned bottom — only when user is outside top 10 */}
-                  {!isUserInTop10 && (
-                    <div style={{ flexShrink: 0, padding: "8px 16px 32px", borderTop: "1px solid #F0EBE3" }}>
-                      {currentLbData.userRow ? (
-                        <>
-                          <div style={{ textAlign: "center", color: "#ADADAD", fontSize: 18, padding: "4px 0 8px" }}>•••</div>
-                          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 16px", borderRadius: 16, background: "#FFF4E8", border: `2px solid ${ORANGE}` }}>
-                            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                              <span style={{ fontSize: 15, fontWeight: 800, color: ORANGE, width: 24 }}>{currentLbData.userRank}.</span>
-                              <span style={{ fontSize: 15, fontWeight: 800, color: "#2D2D2D" }}>
-                                {currentLbData.userRow.username || "Anonymous"} (you)
-                              </span>
-                            </div>
-                            <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                              <img src="/images/streak.png" style={{ width: 20, height: 20 }} />
-                              <span style={{ fontSize: 15, fontWeight: 800, color: ORANGE }}>{currentLbData.userRow.best_score}</span>
-                            </div>
-                          </div>
-                        </>
-                      ) : telegramId ? (
-                        <p style={{ textAlign: "center", color: "#ADADAD", fontSize: 14, padding: "12px 0", margin: 0 }}>
-                          You haven't played this level yet.
-                        </p>
-                      ) : null}
+          </div>
+        </motion.div>
+      )}
+
+      {/* ── END ── (Daily completed / Survival Game Over / Survival Level Complete)*/}
+      {screen === "end" && (
+          <motion.div
+            key="end"
+            initial={{ x: "100%" }}
+            animate={{ x: 0 }}
+            transition={PAGE_EASING}
+            style={PAGE_LAYOUT}
+          >
+            <div style={{ width: "100%", minHeight: "100%", boxSizing: "border-box", padding: `${topInset + 24}px 32px 40px`, display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", textAlign: "center" }}>
+              <div style={{ maxWidth: 420, width: "100%" }}>
+
+                {mode === "daily" ? (
+                  <>
+                    <div style={{ fontSize: 48, fontWeight: 800, color: ORANGE, lineHeight: 1, marginBottom: 12 }}>
+                      {finalScore}/10
                     </div>
-                  )}
-                </>
-              ) : null}
+                    <h2 style={{ margin: "0 0 8px", fontSize: 18, color: "#2D2D2D" }}>
+                      {finalScore === 10
+                        ? "Congrats! You did a perfect job!"
+                        : dailyPassed
+                        ? `Congrats! You passed ${DIFFICULTY_LABELS[difficulty]}.`
+                        : "Oh no! Come back tomorrow for a new challenge!"}
+                    </h2>
+                    <p style={{ color: "#767676", fontSize: 13, marginBottom: 20 }}>
+                      {DIFFICULTY_LABELS[difficulty]} • {new Date().toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                    </p>
+                    <div
+                      onClick={() => setOverlay("review")}
+                      style={{ background: "#FFF4E8", borderRadius: 16, padding: "14px 16px", marginBottom: 24, cursor: "pointer", border: `1px solid ${ORANGE}`, boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}>
+                      {dailyLastMistake ? (
+                        <>
+                          <p style={{ fontSize: 12, color: "#767676", marginBottom: 4 }}>Last mistake</p>
+                          <div style={{ fontSize: 15, color: RED, fontWeight: 700 }}>✗ {dailyLastMistake.selected} {dailyLastMistake.word}</div>
+                          <div style={{ fontSize: 15, color: GREEN, fontWeight: 700 }}>✓ {dailyLastMistake.article} {dailyLastMistake.word}</div>
+                          <p style={{ fontSize: 14, color: ORANGE, marginTop: 8, fontWeight: 700 }}>Review answers →</p>
+                        </>
+                      ) : (
+                        <>
+                          <p style={{ fontSize: 15, color: GREEN, fontWeight: 700, margin: 0 }}>✓ No mistakes</p>
+                          <p style={{ fontSize: 14, color: ORANGE, marginTop: 8, fontWeight: 700 }}>Review answers →</p>
+                        </>
+                      )}
+                    </div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                      {dailyPassed && difficulty !== "artikelgott" && (
+                        <button
+                          onClick={() => {
+                            const next = nextDifficulty[difficulty];
+                            if (!next) return;
+                            startDaily(next);
+                          }}
+                          style={{ padding: "14px 0", borderRadius: 48, border: `2px solid ${GREEN}`, background: GREEN, color: "#FFFFFF", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
+                          Play Next Level
+                        </button>
+                      )}
+                      <button
+                        onClick={shareScore}
+                        style={{ padding: "14px 0", borderRadius: 48, border: `2px solid ${ORANGE}`, background: ORANGE, color: "#FFFFFF", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
+                        Share Score
+                      </button>
+                      <button
+                        onClick={() => setScreen("menu")}
+                        style={{ padding: "14px 0", borderRadius: 48, border: "2px solid #D8D1C7", background: "#FFFFFF", color: "#2D2D2D", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
+                        Home
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    {isNewHigh && (
+                      <div style={{ color: ORANGE, fontWeight: 800, fontSize: 16, marginBottom: 12 }}>🏆 NEW HIGH SCORE!</div>
+                    )}
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 8 }}>
+                      <img src="/images/streak.png" style={{ width: 56, height: 56 }} />
+                      <div style={{ fontSize: 64, fontWeight: 800, color: ORANGE, lineHeight: 1 }}>{finalScore}</div>
+                    </div>
+                    <h2 style={{ margin: "0 0 8px", fontSize: 24, color: "#2D2D2D" }}>{modalTitle}</h2>
+                    <p style={{ color: "#767676", fontSize: 13, marginBottom: 16 }}>
+                      {DIFFICULTY_LABELS[difficulty]} •{" "}
+                      {isLevelComplete
+                        ? `All ${queue.length} words completed!`
+                        : isNewHigh
+                        ? `Previous best: ${previousBest}`
+                        : `Best: ${highScores[difficulty]}`}
+                    </p>
+                    {!isLevelComplete && (
+                      <div
+                        onClick={() => setOverlay("review")}
+                        style={{ background: "#FFF4E8", borderRadius: 16, padding: "14px 16px", marginBottom: 24, cursor: "pointer", border: `1px solid ${ORANGE}`, boxShadow: "0 2px 8px rgba(0,0,0,0.06)", transition: "all 0.15s" }}>
+                        <p style={{ fontSize: 12, color: "#767676", marginBottom: 4 }}>Last mistake</p>
+                        <div style={{ fontSize: 15, color: RED, fontWeight: 700 }}>✗ {selected} {current.word}</div>
+                        <div style={{ fontSize: 15, color: GREEN, fontWeight: 700 }}>✓ {current.article} {current.word}</div>
+                        <p style={{ fontSize: 14, color: ORANGE, marginTop: 8, fontWeight: 700 }}>Review all answers →</p>
+                      </div>
+                    )}
+                    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                      <button
+                        onClick={() => startGame(difficulty)}
+                        style={{ padding: "14px 0", borderRadius: 48, border: `2px solid ${GREEN}`, background: GREEN, color: "#FFFFFF", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
+                        Play Again
+                      </button>
+                      <button
+                        onClick={shareScore}
+                        style={{ padding: "14px 0", borderRadius: 48, border: `2px solid ${ORANGE}`, background: ORANGE, color: "#FFFFFF", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
+                        Share Score
+                      </button>
+                      <button
+                        onClick={() => setScreen("menu")}
+                        style={{ padding: "14px 0", borderRadius: 48, border: "2px solid #D8D1C7", background: "#FFFFFF", color: "#2D2D2D", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
+                        Home
+                      </button>
+                    </div>
+                  </>
+                )}
 
+              </div>
             </div>
           </motion.div>
-        )}
-      </AnimatePresence> {/* End Page AnimatePresence */}
-      </div>
-    );
-  }
+      )}
+    </AnimatePresence>
 
+    {/* ─────────────────────────────────────────────
+        Overlay Pages — Review / Leaderboard
+        (base layer above stays mounted underneath, untouched)
+    ───────────────────────────────────────────── */}
+    <AnimatePresence>
+      {/* ── REVIEW ── */}
+      {overlay === "review" && (
+        <motion.div
+                key="review"
+                initial={{ x: "100%" }}
+                animate={{ x: 0 }}
+                exit={{ x: "100%" }}
+                transition={PAGE_EASING}
+                style={{ ...PAGE_LAYOUT, zIndex: 20 }}
+              >
+          <div style={{ height: "100vh", display: "flex", flexDirection: "column", maxWidth: 480, margin: "0 auto", boxSizing: "border-box" }}>
+
+            {/* Fixed header */}
+            <div style={{ flexShrink: 0, padding: `${topInset}px 16px 12px`, background: "#FFFAF4" }}>
+              <div style={{ display: "flex", alignItems: "center" }}>
+                <motion.button
+                  onClick={() => setOverlay(null)}
+                  whileTap={{ scale: 0.95, backgroundColor: "#E6E1DA" }}
+                  style={{ width: 40, height: 40, border: "none", background: "transparent", borderRadius: "50%", color: "#767676", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", padding: 0 }}>
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M20 12H4M10 18L4 12L10 6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                </motion.button>
+                <h1 style={{ margin: "0 0 0 12px", fontSize: 24, fontWeight: 800, color: "#2D2D2D" }}>Session Review</h1>
+              </div>
+            </div>
+
+            {/* Scrollable content with bottom fade */}
+            <div style={{ flex: 1, position: "relative", overflow: "hidden" }}>
+              <div style={{ height: "100%", overflowY: "auto", padding: "12px 16px 48px" }}>
+
+                {/* Wrong answers */}
+                {incorrectCount > 0 && (
+                  <div style={{ marginBottom: 24 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                        <path d="M3 3L13 13M13 3L3 13" stroke={RED} strokeWidth="2" strokeLinecap="round" />
+                      </svg>
+                      <span style={{ fontSize: 16, fontWeight: 800, color: RED, textTransform: "uppercase", letterSpacing: 1 }}>
+                        {incorrectCount} mistake{incorrectCount !== 1 ? "s" : ""}
+                      </span>
+                    </div>
+                    {answerHistory.filter(a => !a.correct).map((answer, i) => (
+                      <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, background: "#FFF0F0", border: "2px solid " + RED, borderRadius: 16, padding: "8px 14px", marginBottom: 4 }}>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontSize: 15, fontWeight: 700, lineHeight: 1.3 }}>
+                            <span style={{ color: RED }}>{answer.selected}</span>
+                            <span style={{ color: "#2D2D2D" }}> {answer.word}</span>
+                            <span style={{ color: "#ADADAD" }}> → </span>
+                            <span style={{ color: GREEN }}>{answer.article}</span>
+                            <span style={{ color: "#2D2D2D" }}> {answer.word}</span>
+                          </div>
+                          <div style={{ fontSize: 12, color: "#2D2D2D", fontWeight: 600 }}>{answer.meaning}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Correct answers */}
+                {correctCount > 0 && (
+                  <div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+                      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                        <path d="M2 8L6 12L14 4" stroke={GREEN} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                      <span style={{ fontSize: 16, fontWeight: 800, color: GREEN, textTransform: "uppercase", letterSpacing: 1 }}>
+                        {correctCount} correct
+                      </span>
+                    </div>
+                    {answerHistory.filter(a => a.correct).map((answer, i) => (
+                      <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, background: "#FFFFFF", border: "2px solid #F0EBE3", borderRadius: 16, padding: "8px 14px", marginBottom: 4 }}>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontSize: 15, fontWeight: 700, color: "#2D2D2D", lineHeight: 1.3 }}>
+                            {answer.article} {answer.word}
+                          </div>
+                          <div style={{ fontSize: 12, color: "#2D2D2D", fontWeight: 600 }}>{answer.meaning}</div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+              </div>
+              {/* Bottom fade overlay */}
+              <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: 64, background: "linear-gradient(to bottom, transparent, #FFFAF4)", pointerEvents: "none" }} />
+            </div>
+
+          </div>
+        </motion.div>
+      )}
+
+      {/* ── LEADERBOARD ── */}  
+      {overlay === "leaderboard" && (
+        <motion.div
+                key="leaderboard"
+                initial={{ x: "100%" }}
+                animate={{ x: 0 }}
+                exit={{ x: "100%" }}
+                transition={PAGE_EASING}
+                style={{ ...PAGE_LAYOUT, zIndex: 20 }}
+              >
+          <div style={{ display: "flex", flexDirection: "column", height: "100vh", maxWidth: 480, margin: "0 auto", boxSizing: "border-box" }}>
+
+            {/* Header */}
+            <div style={{ flexShrink: 0, background: "#FFFAF4", padding: `${topInset}px 16px 12px` }}>
+              <div style={{ display: "flex", alignItems: "center", marginBottom: 24 }}>
+                <motion.button
+                  onClick={() => { haptic("light"); setOverlay(null); }}
+                  whileTap={{ scale: 0.95, backgroundColor: "#E6E1DA" }}
+                  style={{ width: 40, height: 40, border: "none", background: "transparent", borderRadius: "50%", color: "#767676", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", padding: 0 }}>
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M20 12H4M10 18L4 12L10 6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                </motion.button>
+                <h1 style={{ margin: "0 0 0 12px", fontSize: 24, fontWeight: 800, color: "#2D2D2D" }}>Leaderboard</h1>
+              </div>
+
+              {/* Tabs */}
+              <div style={{ display: "flex", background: "#FFFFFF", border: "2px solid #D8D1C7", borderRadius: 48, padding: 4, position: "relative" }}>
+                {["beginner", "intermediate", "advanced", "artikelgott"].map(d => (
+                  <button
+                    key={d}
+                    onClick={() => { haptic("light"); switchTab(d); }}
+                    style={{ flex: 1, padding: "10px 0", border: "none", borderRadius: 48, background: "transparent", color: lbTab === d ? "#FFFFFF" : "#767676", fontSize: 14, fontWeight: 800, cursor: "pointer", position: "relative", zIndex: 1 }}>
+                    {lbTab === d && (
+                      <motion.div
+                        layoutId="leaderboardTab"
+                        style={{ position: "absolute", inset: 0, background: ORANGE, borderRadius: 48, zIndex: -1 }}
+                        transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                      />
+                    )}
+                    {DIFFICULTY_LABELS[d]}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Scrollable list */}
+            {lbLoading ? (
+              <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <motion.div
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                  style={{ width: 32, height: 32, border: `3px solid #E6E1DA`, borderTop: `3px solid ${ORANGE}`, borderRadius: "50%" }}
+                />
+              </div>
+            ) : currentLbData ? (
+              <>
+                <div style={{ flex: 1, overflowY: "auto", padding: "12px 16px" }}>
+                  {currentLbData.top10.length === 0 ? (
+                    <p style={{ textAlign: "center", color: "#ADADAD", marginTop: 48 }}>No scores yet. Be the first!</p>
+                  ) : (
+                    currentLbData.top10.map((player, i) => {
+                      const isMe = player.telegram_id === telegramId;
+                      return (
+                        <div
+                          key={player.id}
+                          style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 16px", borderRadius: 16, marginBottom: 4, background: isMe ? "#FFF4E8" : "#FFFFFF", border: `2px solid ${isMe ? ORANGE : "#F0EBE3"}` }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                            <span style={{ fontSize: 15, fontWeight: 800, color: i < 3 ? ORANGE : "#ADADAD", width: 24 }}>
+                              {i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `${i + 1}.`}
+                            </span>
+                            <span style={{ fontSize: 15, fontWeight: isMe ? 800 : 600, color: "#2D2D2D" }}>
+                              {player.username || "Anonymous"} {isMe ? "(you)" : ""}
+                            </span>
+                          </div>
+                          <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                            <img src="/icons/flame.svg" style={{ width: 16, height: 16 }} />
+                            <span style={{ fontSize: 15, fontWeight: 800, color: isMe ? ORANGE : "#2D2D2D" }}>{player.best_score}</span>
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+
+                {/* Pinned bottom — only when user is outside top 10 */}
+                {!isUserInTop10 && (
+                  <div style={{ flexShrink: 0, padding: "8px 16px 32px", borderTop: "1px solid #F0EBE3" }}>
+                    {currentLbData.userRow ? (
+                      <>
+                        <div style={{ textAlign: "center", color: "#ADADAD", fontSize: 18, padding: "4px 0 8px" }}>•••</div>
+                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 16px", borderRadius: 16, background: "#FFF4E8", border: `2px solid ${ORANGE}` }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                            <span style={{ fontSize: 15, fontWeight: 800, color: ORANGE, width: 24 }}>{currentLbData.userRank}.</span>
+                            <span style={{ fontSize: 15, fontWeight: 800, color: "#2D2D2D" }}>
+                              {currentLbData.userRow.username || "Anonymous"} (you)
+                            </span>
+                          </div>
+                          <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                            <img src="/images/streak.png" style={{ width: 20, height: 20 }} />
+                            <span style={{ fontSize: 15, fontWeight: 800, color: ORANGE }}>{currentLbData.userRow.best_score}</span>
+                          </div>
+                        </div>
+                      </>
+                    ) : telegramId ? (
+                      <p style={{ textAlign: "center", color: "#ADADAD", fontSize: 14, padding: "12px 0", margin: 0 }}>
+                        You haven't played this level yet.
+                      </p>
+                    ) : null}
+                  </div>
+                )}
+              </>
+            ) : null}
+
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+
+    </div>
+  );
+}
