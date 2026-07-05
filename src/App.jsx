@@ -875,7 +875,7 @@ export default function App() {
       return {
         ...base,
         background: "#FAF7F2",       // flat off-white, matches Free Mode's disabled convention
-        border: "1px solid #E5E0D8", // receding, muted border
+        border: "2px solid #E5E0D8", // receding, muted border
       };
 
     case "completed":
@@ -883,19 +883,19 @@ export default function App() {
         ? {
             ...base,
             background: `${GREEN}1A`, // GREEN at ~10% opacity (hex alpha)
-            border: `1px solid ${GREEN}66`, // GREEN at ~40% opacity
+            border: `2px solid ${GREEN}66`, // GREEN at ~40% opacity
           }
         : {
             ...base,
             background: `${RED}1A`,
-            border: `1px solid ${RED}66`,
+            border: `2px solid ${RED}66`,
           };
 
     case "in_progress":
       return {
         ...base,
         background: menuBtnStyle.background,
-        border: "1px solid #D9D3C7", // slightly more present than default, still neutral
+        border: "2px solid #D9D3C7", // slightly more present than default, still neutral
       };
 
     case "ready":
@@ -1189,13 +1189,13 @@ return (
                                 isDisabled
                               )}
                             >
-                              <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                              <span style={{ display: "flex", alignItems: "center", gap: 6, opacity: isLocked ? 0.6 : 1 }}>
                                 {d === "artikelgott" && (
                                   <img src="/icons/crown.svg" width={20} height={20} />
                                 )}
                                 {d === "artikelgott" ? "Artikelgott" : DIFFICULTY_LABELS[d]}
                               </span>
-                              <span style={{ fontSize: 14, color: "#ADADAD", fontWeight: 700 }}>
+                              <span style={{ fontSize: 14, color: "#ADADAD", fontWeight: 700, opacity: isDisabled ? 0.6 : 1 }}>
                                 {subtitle}
                               </span>
                             </motion.button>
