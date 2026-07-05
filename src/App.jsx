@@ -417,46 +417,36 @@ export default function App() {
     };
   }, []);
 
-    // Telegram user detection
-    useEffect(() => {
-      const tg = window.Telegram?.WebApp;
+  // Telegram user detection
+  useEffect(() => {
+    const tg = window.Telegram?.WebApp;
+    if (tg) {
+      tg.ready();
+      tg.expand();
+      tg.requestFullscreen?.();
+      tg.setHeaderColor?.("#FFFAF4");
+      setTimeout(async () => {
+        const user = tg.initDataUnsafe?.user;
+        if (user?.first_name) setUserName(user.first_name);
+        if (user?.id) {
+          const id = String(user.id);
 
-      const loadUserData = async (id, name) => {
-        setTelegramId(id);
-        if (name) setUserName(name);
+          setTelegramId(id);
 
-        const scores = await loadHighScores(id);
-        setHighScores(scores);
+          const scores = await loadHighScores(id);
+          setHighScores(scores);
 
-        const unlocked = await loadUnlockedDifficulties(id);
-        setUnlockedLevels(unlocked);
+          const unlocked = await loadUnlockedDifficulties(id);
+          setUnlockedLevels(unlocked);
 
-        loadDailyStatuses(id);
+          loadDailyStatuses(id);
 
-        const migrated = localStorage.getItem("leaderboard_migrated");
-        if (!migrated) migrateLocalScores(id, name || "Anonymous");
-      };
-
-      if (tg) {
-        tg.ready();
-        tg.expand();
-        tg.requestFullscreen?.();
-        tg.setHeaderColor?.("#FFFAF4");
-
-        setTimeout(() => {
-          const user = tg.initDataUnsafe?.user;
-          if (user?.id) {
-            loadUserData(String(user.id), user.first_name);
-          } else if (import.meta.env.DEV) {
-            // Telegram SDK present but no user data (e.g. testing in browser via Telegram's dev tools)
-            loadUserData("999999", "Local Tester");
-          }
-        }, 300);
-      } else if (import.meta.env.DEV) {
-        // No Telegram at all — plain local browser dev
-        loadUserData("999999", "Local Tester");
-      }
-    }, []);
+          const migrated = localStorage.getItem("leaderboard_migrated");
+          if (!migrated) migrateLocalScores(id, user.first_name || "Anonymous");
+        }
+      }, 300);
+    }
+  }, []);
 
   const triggerHeartNotification = (type) => {
     setHeartNotification(type);
@@ -1336,6 +1326,7 @@ export default function App() {
 
 
       {/* ── GAME ── */}
+      {screen === "game" && current && (
       <AnimatePresence mode="wait">
         {!gameOver ? (
           <motion.div
@@ -1713,7 +1704,8 @@ export default function App() {
             </div>
           </motion.div>
         )}
-      </AnimatePresence>
-      </div>
+       </AnimatePresence>
+    )}
+    </div>
   );
 }
