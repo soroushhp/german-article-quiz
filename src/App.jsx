@@ -417,36 +417,46 @@ export default function App() {
     };
   }, []);
 
-  // Telegram user detection
-  useEffect(() => {
-    const tg = window.Telegram?.WebApp;
-    if (tg) {
-      tg.ready();
-      tg.expand();
-      tg.requestFullscreen?.();
-      tg.setHeaderColor?.("#FFFAF4");
-      setTimeout(async () => {
-        const user = tg.initDataUnsafe?.user;
-        if (user?.first_name) setUserName(user.first_name);
-        if (user?.id) {
-          const id = String(user.id);
+    // Telegram user detection
+    useEffect(() => {
+      const tg = window.Telegram?.WebApp;
 
-          setTelegramId(id);
+      const loadUserData = async (id, name) => {
+        setTelegramId(id);
+        if (name) setUserName(name);
 
-          const scores = await loadHighScores(id);
-          setHighScores(scores);
+        const scores = await loadHighScores(id);
+        setHighScores(scores);
 
-          const unlocked = await loadUnlockedDifficulties(id);
-          setUnlockedLevels(unlocked);
+        const unlocked = await loadUnlockedDifficulties(id);
+        setUnlockedLevels(unlocked);
 
-          loadDailyStatuses(id);
+        loadDailyStatuses(id);
 
-          const migrated = localStorage.getItem("leaderboard_migrated");
-          if (!migrated) migrateLocalScores(id, user.first_name || "Anonymous");
-        }
-      }, 300);
-    }
-  }, []);
+        const migrated = localStorage.getItem("leaderboard_migrated");
+        if (!migrated) migrateLocalScores(id, name || "Anonymous");
+      };
+
+      if (tg) {
+        tg.ready();
+        tg.expand();
+        tg.requestFullscreen?.();
+        tg.setHeaderColor?.("#FFFAF4");
+
+        setTimeout(() => {
+          const user = tg.initDataUnsafe?.user;
+          if (user?.id) {
+            loadUserData(String(user.id), user.first_name);
+          } else if (import.meta.env.DEV) {
+            // Telegram SDK present but no user data (e.g. testing in browser via Telegram's dev tools)
+            loadUserData("999999", "Local Tester");
+          }
+        }, 300);
+      } else if (import.meta.env.DEV) {
+        // No Telegram at all — plain local browser dev
+        loadUserData("999999", "Local Tester");
+      }
+    }, []);
 
   const triggerHeartNotification = (type) => {
     setHeartNotification(type);
@@ -1324,383 +1334,386 @@ export default function App() {
         </div>
       )}
 
+
       {/* ── GAME ── */}
-      {screen === "game" && current && (
-        <motion.div
-          initial={{ y: "100%", opacity: 0.8 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-        >
-          <div style={{ width: "100%", height: "100vh", paddingTop: topInset + TOP_BAR_HEIGHT, paddingBottom: 98, paddingLeft: 16, paddingRight: 16, boxSizing: "border-box", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+      <AnimatePresence mode="wait">
+        {!gameOver ? (
+          <motion.div
+            key="gameplay"
+            initial={{ opacity: 0, x: 40 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -60 }}
+            transition={{ duration: 0.28, ease: "easeInOut" }}
+          >
+            <div style={{ width: "100%", height: "100vh", paddingTop: topInset + TOP_BAR_HEIGHT, paddingBottom: 98, paddingLeft: 16, paddingRight: 16, boxSizing: "border-box", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
 
-            {/* Top bar */}
-            <div style={{ position: "fixed", top: topInset, left: 0, right: 0, background: "#FFFAF4", zIndex: 10, padding: "16px 16px 12px" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-                <button
-                  onClick={() => setShowQuitPopup(true)}
-                  style={{ border: "none", background: "transparent", fontSize: 32, color: "#767676", cursor: "pointer", lineHeight: 1, padding: 12, paddingLeft: 0 }}>
-                  ×
-                </button>
-                <span style={{ fontSize: 14, color: "#767676", fontWeight: 600 }}>
-                  {mode === "daily"
-                    ? `${DIFFICULTY_LABELS[difficulty]} • ${new Date().toLocaleDateString("en-US", { month: "short", day: "numeric" })}`
-                    : `${DIFFICULTY_LABELS[difficulty]} • Best: ${highScores[difficulty]}`}
-                </span>
-              </div>
+              {/* Top bar */}
+              <div style={{ position: "fixed", top: topInset, left: 0, right: 0, background: "#FFFAF4", zIndex: 10, padding: "16px 16px 12px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+                  <button
+                    onClick={() => setShowQuitPopup(true)}
+                    style={{ border: "none", background: "transparent", fontSize: 32, color: "#767676", cursor: "pointer", lineHeight: 1, padding: 12, paddingLeft: 0 }}>
+                    ×
+                  </button>
+                  <span style={{ fontSize: 14, color: "#767676", fontWeight: 600 }}>
+                    {mode === "daily"
+                      ? `${DIFFICULTY_LABELS[difficulty]} • ${new Date().toLocaleDateString("en-US", { month: "short", day: "numeric" })}`
+                      : `${DIFFICULTY_LABELS[difficulty]} • Best: ${highScores[difficulty]}`}
+                  </span>
+                </div>
 
-              {mode === "free" ? (
-                <>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                      {[1, 2, 3].map(n => (
-                        <img key={n} src="/icons/heart.svg" style={{ width: 32, height: 32, opacity: n <= hearts ? 1 : 0.25 }} />
+                {mode === "free" ? (
+                  <>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                        {[1, 2, 3].map(n => (
+                          <img key={n} src="/icons/heart.svg" style={{ width: 32, height: 32, opacity: n <= hearts ? 1 : 0.25 }} />
+                        ))}
+                      </div>
+                      <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                        <img src="/icons/flame.svg" style={{ width: 32, height: 32 }} />
+                        <span style={{ fontSize: 28, fontWeight: 700, color: ORANGE }}>{streak}</span>
+                      </div>
+                    </div>
+                    <div style={{ width: "100%", height: 6, background: "#E6E1DA", borderRadius: 999 }}>
+                      <div style={{ height: "100%", width: `${hearts === 3 ? 100 : (heartStreak % 10) * 10}%`, background: GREEN, borderRadius: 999, transition: "width 0.3s ease" }} />
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div style={{ display: "flex", justifyContent: "center", marginBottom: 8 }}>
+                      <span style={{ fontSize: 16, fontWeight: 700, color: "#767676" }}>
+                        {dailyResults.filter(Boolean).length} / 10
+                      </span>
+                    </div>
+                    <div style={{ display: "flex", gap: 6 }}>
+                      {Array.from({ length: 10 }).map((_, i) => (
+                        <div key={i} style={{ flex: 1, height: 8, borderRadius: 999, background: "#E6E1DA", overflow: "hidden" }}>
+                          <motion.div
+                            initial={{ width: 0 }}
+                            animate={{ width: dailyResults[i] !== undefined ? "100%" : "0%" }}
+                            transition={{ duration: 0.25, ease: "easeOut" }}
+                            style={{ height: "100%", borderRadius: 999, background: dailyResults[i] === true ? GREEN : RED }}
+                          />
+                        </div>
                       ))}
                     </div>
-                    <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                      <img src="/icons/flame.svg" style={{ width: 32, height: 32 }} />
-                      <span style={{ fontSize: 28, fontWeight: 700, color: ORANGE }}>{streak}</span>
-                    </div>
-                  </div>
-                  <div style={{ width: "100%", height: 6, background: "#E6E1DA", borderRadius: 999 }}>
-                    <div style={{ height: "100%", width: `${hearts === 3 ? 100 : (heartStreak % 10) * 10}%`, background: GREEN, borderRadius: 999, transition: "width 0.3s ease" }} />
-                  </div>
-                </>
-              ) : (
-                <>
-                  <div style={{ display: "flex", justifyContent: "center", marginBottom: 8 }}>
-                    <span style={{ fontSize: 16, fontWeight: 700, color: "#767676" }}>
-                      {dailyResults.filter(Boolean).length} / 10
-                    </span>
-                  </div>
-                  <div style={{ display: "flex", gap: 6 }}>
-                    {Array.from({ length: 10 }).map((_, i) => (
-                      <div key={i} style={{ flex: 1, height: 8, borderRadius: 999, background: "#E6E1DA", overflow: "hidden" }}>
-                        <motion.div
-                          initial={{ width: 0 }}
-                          animate={{ width: dailyResults[i] !== undefined ? "100%" : "0%" }}
-                          transition={{ duration: 0.25, ease: "easeOut" }}
-                          style={{ height: "100%", borderRadius: 999, background: dailyResults[i] === true ? GREEN : RED }}
-                        />
-                      </div>
-                    ))}
-                  </div>
-                </>
-              )}
-            </div>
+                  </>
+                )}
+              </div>
 
-            {/* Heart notification */}
-            <AnimatePresence>
-              {heartNotification && (
-                <div style={{ position: "fixed", top: 152, left: 0, right: 0, bottom: 98, display: "flex", alignItems: "center", justifyContent: "center", zIndex: 50, pointerEvents: "none" }}>
-                  <motion.div
-                    key={heartNotification}
-                    initial={{ opacity: 0, scale: 0.5, y: 20 }}
-                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                    exit={{ opacity: 0, scale: 0.9, y: -20 }}
-                    transition={{ duration: 0.3, ease: "easeOut" }}
-                    style={{ display: "flex", alignItems: "center", gap: 10, background: heartNotification === "gain" ? "rgba(46,139,87,0.12)" : "rgba(217,74,74,0.10)", borderRadius: 24, padding: "16px 28px" }}>
-                    <img src="/images/heart.png" style={{ width: 64, height: 64 }} />
-                    <span style={{ fontSize: 42, fontWeight: 800, color: heartNotification === "gain" ? GREEN : RED }}>
-                      {heartNotification === "gain" ? "+1" : "-1"}
+              {/* Heart notification */}
+              <AnimatePresence>
+                {heartNotification && (
+                  <div style={{ position: "fixed", top: 152, left: 0, right: 0, bottom: 98, display: "flex", alignItems: "center", justifyContent: "center", zIndex: 50, pointerEvents: "none" }}>
+                    <motion.div
+                      key={heartNotification}
+                      initial={{ opacity: 0, scale: 0.5, y: 20 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.9, y: -20 }}
+                      transition={{ duration: 0.3, ease: "easeOut" }}
+                      style={{ display: "flex", alignItems: "center", gap: 10, background: heartNotification === "gain" ? "rgba(46,139,87,0.12)" : "rgba(217,74,74,0.10)", borderRadius: 24, padding: "16px 28px" }}>
+                      <img src="/images/heart.png" style={{ width: 64, height: 64 }} />
+                      <span style={{ fontSize: 42, fontWeight: 800, color: heartNotification === "gain" ? GREEN : RED }}>
+                        {heartNotification === "gain" ? "+1" : "-1"}
+                      </span>
+                    </motion.div>
+                  </div>
+                )}
+              </AnimatePresence>
+
+              {/* Word card */}
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={idx}
+                  initial={{ opacity: 0, x: 18 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -30 }}
+                  transition={{ duration: 0.22, ease: "easeInOut" }}
+                  style={{ width: "100%", maxWidth: 448, margin: "0 auto" }}>
+                  <div style={{ background: "#FFFFFF", borderRadius: 24, boxShadow: "0 4px 16px rgba(0,0,0,0.06)", padding: "32px 16px", textAlign: "center", height: 300, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "space-between" }}>
+
+                    {reviewAnswer ? (
+                      <div style={{ display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", height: "100%", gap: 12 }}>
+                        <h3 style={{
+                          margin: 0,
+                          fontSize: 22,
+                          fontWeight: 700,
+                          color: RED,
+                          textDecoration: "line-through",
+                          textDecorationThickness: 2,
+                          opacity: 0.75
+                        }}>
+                          {reviewAnswer.selected} {reviewAnswer.word}
+                        </h3>
+
+                        <span style={{ fontSize: 20, color: "#ADADAD", lineHeight: 1 }}>↓</span>
+
+                        <div style={{ textAlign: "center" }}>
+                          <h3 style={{ margin: 0, fontSize: 32, fontWeight: 800, color: GREEN }}>
+                            {reviewAnswer.article} {reviewAnswer.word}
+                          </h3>
+                          <p style={{ fontSize: 16, fontWeight: 600, color: "#ADADAD", margin: "4px 0 0" }}>
+                            ({reviewAnswer.meaning})
+                          </p>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <p style={{ margin: 0, fontSize: 11, color: "#ADADAD", textTransform: "uppercase", letterSpacing: 1.5 }}>
+                          What is the article for...
+                        </p>
+
+                        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
+                          <h2 style={{ margin: 0, fontSize: current.word.length > 15 ? 32 : current.word.length > 10 ? 36 : current.word.length > 8 ? 40 : 48, fontWeight: 800, color: "#2D2D2D", wordBreak: "break-word", lineHeight: 1.1 }}>
+                            {current.word}
+                          </h2>
+
+                          <p style={{ margin: 0, fontSize: 16, fontWeight: 600, color: "#ADADAD" }}>
+                            ({current.meaning})
+                          </p>
+                        </div>
+
+                        <div />
+                      </>
+                    )}
+
+                  </div>
+                </motion.div>
+              </AnimatePresence>
+
+              {/* Article buttons */}
+              <div style={{ position: "fixed", left: "50%", bottom: 32, transform: "translateX(-50%)", width: "calc(100% - 32px)", maxWidth: 448, display: "flex", gap: 8 }}>
+                {reviewAnswer ? (
+                  <motion.button
+                    whileTap={{ scale: 0.97 }}
+                    onClick={handleContinue}
+                    style={{
+                      width: "100%",
+                      padding: "16px 0",
+                      borderRadius: 48,
+                      border: "2px solid #D8D1C7",
+                      background: "#FFFFFF",
+                      color: "#2D2D2D",
+                      fontSize: 18,
+                      fontWeight: 700,
+                      cursor: "pointer"
+                    }}
+                  >
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+                      Next Word
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                        <path
+                          d="M4 12H20M14 6L20 12L14 18"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
                     </span>
+                  </motion.button>
+                ) : (
+                  ARTICLES.map(art => {
+                    const { bg, color, border } = btnStyle(art);
+                    return (
+                      <motion.button
+                        key={art}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => handleAnswer(art)}
+                        style={{
+                          flex: 1,
+                          padding: "16px 0",
+                          borderRadius: 48,
+                          border,
+                          background: bg,
+                          color,
+                          fontSize: 22,
+                          fontWeight: 700,
+                          cursor: selected ? "default" : "pointer",
+                          transition: "background 0.15s, color 0.15s"
+                        }}
+                      >
+                        {art}
+                      </motion.button>
+                    );
+                  })
+                )}
+              </div>
+
+              {/* Quit popup */}
+              {showQuitPopup && (
+                <div
+                  onClick={() => setShowQuitPopup(false)}
+                  style={{ position: "fixed", inset: 0, background: "rgba(45,45,45,0.45)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100, padding: 16 }}>
+                  <motion.div
+                    onClick={e => e.stopPropagation()}
+                    initial={{ scale: 0.8, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ duration: 0.2, ease: "easeOut" }}
+                    style={{ background: "#FFFFFF", borderRadius: 24, padding: "36px 28px", maxWidth: 320, width: "100%", textAlign: "center", boxShadow: "0 8px 40px rgba(0,0,0,0.12)" }}>
+                    <div style={{ fontSize: 48, marginBottom: 16 }}>🤔</div>
+                    <h2 style={{ margin: "0 0 12px", fontSize: 24, color: "#2D2D2D" }}>Quit game?</h2>
+                    <p style={{ color: "#767676", fontSize: 14, marginBottom: 28 }}>
+                      {mode === "daily" ? "Your progress will be saved." : "Your current streak will be lost."}
+                    </p>
+                    <div style={{ display: "flex", gap: 10 }}>
+                      {mode === "daily" ? (
+                        <>
+                          <button
+                            onClick={() => setShowQuitPopup(false)}
+                            style={{ flex: 1, padding: "13px 0", borderRadius: 24, border: `2px solid ${GREEN}`, background: GREEN, color: "#FFFFFF", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
+                            Keep Playing
+                          </button>
+                          <button
+                            onClick={() => setScreen("menu")}
+                            style={{ flex: 1, padding: "13px 0", borderRadius: 24, border: "2px solid #D8D1C7", background: "#FFFFFF", color: "#2D2D2D", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
+                            Save & Quit
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <button
+                            onClick={() => setShowQuitPopup(false)}
+                            style={{ flex: 1, padding: "13px 0", borderRadius: 24, border: "2px solid #D8D1C7", background: "#FFFFFF", color: "#2D2D2D", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
+                            Keep Playing
+                          </button>
+                          <button
+                            onClick={() => setScreen("menu")}
+                            style={{ flex: 1, padding: "13px 0", borderRadius: 24, border: `2px solid ${RED}`, background: RED, color: "#FFFFFF", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
+                            Quit
+                          </button>
+                        </>
+                      )}
+                    </div>
                   </motion.div>
                 </div>
               )}
-            </AnimatePresence>
 
-            {/* Word card */}
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={idx}
-                initial={{ opacity: 0, x: 18 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -30 }}
-                transition={{ duration: 0.22, ease: "easeInOut" }}
-                style={{ width: "100%", maxWidth: 448, margin: "0 auto" }}>
-                <div style={{ background: "#FFFFFF", borderRadius: 24, boxShadow: "0 4px 16px rgba(0,0,0,0.06)", padding: "32px 16px", textAlign: "center", height: 300, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "space-between" }}>
-
-                  {reviewAnswer ? (
-                    <>
-                    <div style={{ display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", height: "100%", gap: 12 }}>
-                      <h3 style={{
-                        margin: 0,
-                        fontSize: 22,
-                        fontWeight: 700,
-                        color: RED,
-                        textDecoration: "line-through",
-                        textDecorationThickness: 2,
-                        opacity: 0.75
-                      }}>
-                        {reviewAnswer.selected} {reviewAnswer.word}
-                      </h3>
-
-                      <span style={{ fontSize: 20, color: "#ADADAD", lineHeight: 1 }}>↓</span>
-
-                      <div style={{ textAlign: "center" }}>
-                        <h3 style={{ margin: 0, fontSize: 32, fontWeight: 800, color: GREEN }}>
-                          {reviewAnswer.article} {reviewAnswer.word}
-                        </h3>
-                        <p style={{ fontSize: 16, fontWeight: 600, color: "#ADADAD", margin: "4px 0 0" }}>
-                          ({reviewAnswer.meaning})
-                        </p>
-                      </div>
-                    </div>
-                    </>
-                  ) : (
-                    <>
-                      <p style={{ margin: 0, fontSize: 11, color: "#ADADAD", textTransform: "uppercase", letterSpacing: 1.5 }}>
-                        What is the article for...
-                      </p>
-
-                      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
-                        <h2 style={{ margin: 0, fontSize: current.word.length > 15 ? 32 : current.word.length > 10 ? 36 : current.word.length > 8 ? 40 : 48, fontWeight: 800, color: "#2D2D2D", wordBreak: "break-word", lineHeight: 1.1 }}>
-                          {current.word}
-                        </h2>
-
-                        <p style={{ margin: 0, fontSize: 16, fontWeight: 600, color: "#ADADAD" }}>
-                          ({current.meaning})
-                        </p>
-                      </div>
-
-                      <div />
-                    </>
-                  )}
-
-                </div>
-              </motion.div>
-            </AnimatePresence>
-
-            {/* Article buttons */}
-            <div style={{ position: "fixed", left: "50%", bottom: 32, transform: "translateX(-50%)", width: "calc(100% - 32px)", maxWidth: 448, display: "flex", gap: 8 }}>
-              {reviewAnswer ? (
-                <motion.button
-                  whileTap={{ scale: 0.97 }}
-                  onClick={handleContinue}
-                  style={{
-                    width: "100%",
-                    padding: "16px 0",
-                    borderRadius: 48,
-                    border: "2px solid #D8D1C7",
-                    background: "#FFFFFF",
-                    color: "#2D2D2D",
-                    fontSize: 18,
-                    fontWeight: 700,
-                    cursor: "pointer"
-                  }}
-                >
-                <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
-                  Next Word
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                    <path
-                      d="M4 12H20M14 6L20 12L14 18"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                </span>
-                </motion.button>
-              ) : (
-                ARTICLES.map(art => {
-                  const { bg, color, border } = btnStyle(art);
-                  return (
-                    <motion.button
-                      key={art}
-                      whileTap={{ scale: 0.95 }}
-                      onClick={() => handleAnswer(art)}
-                      style={{
-                        flex: 1,
-                        padding: "16px 0",
-                        borderRadius: 48,
-                        border,
-                        background: bg,
-                        color,
-                        fontSize: 22,
-                        fontWeight: 700,
-                        cursor: selected ? "default" : "pointer",
-                        transition: "background 0.15s, color 0.15s"
-                      }}
-                    >
-                      {art}
-                    </motion.button>
-                  );
-                })
-              )}
             </div>
+          </motion.div>
+        ) : (
+          <motion.div
+            key="gameover"
+            initial={{ opacity: 0, x: 40 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -60 }}
+            transition={{ duration: 0.28, ease: "easeInOut" }}
+          >
+            <div style={{ width: "100%", minHeight: "100vh", boxSizing: "border-box", padding: `${topInset + 24}px 32px 40px`, display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", textAlign: "center" }}>
+              <div style={{ maxWidth: 420, width: "100%" }}>
 
-            {/* Quit popup */}
-            {showQuitPopup && (
-              <div
-                onClick={() => setShowQuitPopup(false)}
-                style={{ position: "fixed", inset: 0, background: "rgba(45,45,45,0.45)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100, padding: 16 }}>
-                <motion.div
-                  onClick={e => e.stopPropagation()}
-                  initial={{ scale: 0.8, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  transition={{ duration: 0.2, ease: "easeOut" }}
-                  style={{ background: "#FFFFFF", borderRadius: 24, padding: "36px 28px", maxWidth: 320, width: "100%", textAlign: "center", boxShadow: "0 8px 40px rgba(0,0,0,0.12)" }}>
-                  <div style={{ fontSize: 48, marginBottom: 16 }}>🤔</div>
-                  <h2 style={{ margin: "0 0 12px", fontSize: 24, color: "#2D2D2D" }}>Quit game?</h2>
-                  <p style={{ color: "#767676", fontSize: 14, marginBottom: 28 }}>
-                    {mode === "daily" ? "Your progress will be saved." : "Your current streak will be lost."}
-                  </p>
-                  <div style={{ display: "flex", gap: 10 }}>
-                    {mode === "daily" ? (
-                      <>
+                {mode === "daily" ? (
+                  <>
+                    <div style={{ fontSize: 48, fontWeight: 800, color: ORANGE, lineHeight: 1, marginBottom: 12 }}>
+                      {finalScore}/10
+                    </div>
+                    <h2 style={{ margin: "0 0 8px", fontSize: 18, color: "#2D2D2D" }}>
+                      {finalScore === 10
+                        ? "Congrats! You did a perfect job!"
+                        : dailyPassed
+                        ? `Congrats! You passed ${DIFFICULTY_LABELS[difficulty]}.`
+                        : "Oh no! Come back tomorrow for a new challenge!"}
+                    </h2>
+                    <p style={{ color: "#767676", fontSize: 13, marginBottom: 20 }}>
+                      {DIFFICULTY_LABELS[difficulty]} • {new Date().toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                    </p>
+                    <div
+                      onClick={() => setScreen("review")}
+                      style={{ background: "#FFF4E8", borderRadius: 16, padding: "14px 16px", marginBottom: 24, cursor: "pointer", border: `1px solid ${ORANGE}`, boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}>
+                      {dailyLastMistake ? (
+                        <>
+                          <p style={{ fontSize: 12, color: "#767676", marginBottom: 4 }}>Last mistake</p>
+                          <div style={{ fontSize: 15, color: RED, fontWeight: 700 }}>✗ {dailyLastMistake.selected} {dailyLastMistake.word}</div>
+                          <div style={{ fontSize: 15, color: GREEN, fontWeight: 700 }}>✓ {dailyLastMistake.article} {dailyLastMistake.word}</div>
+                          <p style={{ fontSize: 14, color: ORANGE, marginTop: 8, fontWeight: 700 }}>Review answers →</p>
+                        </>
+                      ) : (
+                        <>
+                          <p style={{ fontSize: 15, color: GREEN, fontWeight: 700, margin: 0 }}>✓ No mistakes</p>
+                          <p style={{ fontSize: 14, color: ORANGE, marginTop: 8, fontWeight: 700 }}>Review answers →</p>
+                        </>
+                      )}
+                    </div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                      {dailyPassed && difficulty !== "artikelgott" && (
                         <button
-                          onClick={() => setShowQuitPopup(false)}
-                          style={{ flex: 1, padding: "13px 0", borderRadius: 24, border: `2px solid ${GREEN}`, background: GREEN, color: "#FFFFFF", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
-                          Keep Playing
+                          onClick={() => {
+                            const next = nextDifficulty[difficulty];
+                            if (!next) return;
+
+                            setGameOver(false);
+                            startDaily(next);
+                          }}
+                          style={{ padding: "14px 0", borderRadius: 48, border: `2px solid ${GREEN}`, background: GREEN, color: "#FFFFFF", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
+                          Play Next Level
                         </button>
-                        <button
-                          onClick={() => setScreen("menu")}
-                          style={{ flex: 1, padding: "13px 0", borderRadius: 24, border: "2px solid #D8D1C7", background: "#FFFFFF", color: "#2D2D2D", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
-                          Save & Quit
-                        </button>
-                      </>
-                    ) : (
-                      <>
-                        <button
-                          onClick={() => setShowQuitPopup(false)}
-                          style={{ flex: 1, padding: "13px 0", borderRadius: 24, border: "2px solid #D8D1C7", background: "#FFFFFF", color: "#2D2D2D", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
-                          Keep Playing
-                        </button>
-                        <button
-                          onClick={() => setScreen("menu")}
-                          style={{ flex: 1, padding: "13px 0", borderRadius: 24, border: `2px solid ${RED}`, background: RED, color: "#FFFFFF", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
-                          Quit
-                        </button>
-                      </>
+                      )}
+                      <button
+                        onClick={shareScore}
+                        style={{ padding: "14px 0", borderRadius: 48, border: `2px solid ${ORANGE}`, background: ORANGE, color: "#FFFFFF", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
+                        Share Score
+                      </button>
+                      <button
+                        onClick={() => setScreen("menu")}
+                        style={{ padding: "14px 0", borderRadius: 48, border: "2px solid #D8D1C7", background: "#FFFFFF", color: "#2D2D2D", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
+                        Home
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    {isNewHigh && (
+                      <div style={{ color: ORANGE, fontWeight: 800, fontSize: 16, marginBottom: 12 }}>🏆 NEW HIGH SCORE!</div>
                     )}
-                  </div>
-                </motion.div>
-              </div>
-            )}
-
-            {/* Game over modal */}
-            {gameOver && (
-              <div style={{ position: "fixed", inset: 0, background: "rgba(45,45,45,0.45)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100, padding: 16 }}>
-                <motion.div
-                  initial={{ scale: 0.8, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  transition={{ duration: 0.25, ease: "easeOut" }}
-                  style={{ background: "#FFFFFF", borderRadius: 24, padding: "48px 36px", maxWidth: 360, width: "100%", textAlign: "center", boxShadow: "0 8px 40px rgba(0,0,0,0.12)" }}>
-
-                  {mode === "daily" ? (
-                    <>
-                      <div style={{ fontSize: 48, fontWeight: 800, color: ORANGE, lineHeight: 1, marginBottom: 12 }}>
-                        {finalScore}/10
-                      </div>
-                      <h2 style={{ margin: "0 0 8px", fontSize: 18, color: "#2D2D2D" }}>
-                        {finalScore === 10
-                          ? "Congrats! You did a perfect job!"
-                          : dailyPassed
-                          ? `Congrats! You passed ${DIFFICULTY_LABELS[difficulty]}.`
-                          : "Oh no! Come back tomorrow for a new challenge!"}
-                      </h2>
-                      <p style={{ color: "#767676", fontSize: 13, marginBottom: 20 }}>
-                        {DIFFICULTY_LABELS[difficulty]} • {new Date().toLocaleDateString("en-US", { month: "short", day: "numeric" })}
-                      </p>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 8 }}>
+                      <img src="/images/streak.png" style={{ width: 56, height: 56 }} />
+                      <div style={{ fontSize: 64, fontWeight: 800, color: ORANGE, lineHeight: 1 }}>{finalScore}</div>
+                    </div>
+                    <h2 style={{ margin: "0 0 8px", fontSize: 24, color: "#2D2D2D" }}>{modalTitle}</h2>
+                    <p style={{ color: "#767676", fontSize: 13, marginBottom: 16 }}>
+                      {DIFFICULTY_LABELS[difficulty]} •{" "}
+                      {isLevelComplete
+                        ? `All ${queue.length} words completed!`
+                        : isNewHigh
+                        ? `Previous best: ${previousBest}`
+                        : `Best: ${highScores[difficulty]}`}
+                    </p>
+                    {!isLevelComplete && (
                       <div
                         onClick={() => setScreen("review")}
-                        style={{ background: "#FFF4E8", borderRadius: 16, padding: "14px 16px", marginBottom: 24, cursor: "pointer", border: `1px solid ${ORANGE}`, boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}>
-                        {dailyLastMistake ? (
-                          <>
-                            <p style={{ fontSize: 12, color: "#767676", marginBottom: 4 }}>Last mistake</p>
-                            <div style={{ fontSize: 15, color: RED, fontWeight: 700 }}>✗ {dailyLastMistake.selected} {dailyLastMistake.word}</div>
-                            <div style={{ fontSize: 15, color: GREEN, fontWeight: 700 }}>✓ {dailyLastMistake.article} {dailyLastMistake.word}</div>
-                            <p style={{ fontSize: 14, color: ORANGE, marginTop: 8, fontWeight: 700 }}>Review answers →</p>
-                          </>
-                        ) : (
-                          <>
-                            <p style={{ fontSize: 15, color: GREEN, fontWeight: 700, margin: 0 }}>✓ No mistakes</p>
-                            <p style={{ fontSize: 14, color: ORANGE, marginTop: 8, fontWeight: 700 }}>Review answers →</p>
-                          </>
-                        )}
+                        style={{ background: "#FFF4E8", borderRadius: 16, padding: "14px 16px", marginBottom: 24, cursor: "pointer", border: `1px solid ${ORANGE}`, boxShadow: "0 2px 8px rgba(0,0,0,0.06)", transition: "all 0.15s" }}>
+                        <p style={{ fontSize: 12, color: "#767676", marginBottom: 4 }}>Last mistake</p>
+                        <div style={{ fontSize: 15, color: RED, fontWeight: 700 }}>✗ {selected} {current.word}</div>
+                        <div style={{ fontSize: 15, color: GREEN, fontWeight: 700 }}>✓ {current.article} {current.word}</div>
+                        <p style={{ fontSize: 14, color: ORANGE, marginTop: 8, fontWeight: 700 }}>Review all answers →</p>
                       </div>
-                      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                        {dailyPassed && difficulty !== "artikelgott" && (
-                          <button
-                            onClick={() => {
-                              const next = nextDifficulty[difficulty];
-                              if (!next) return;
+                    )}
+                    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                      <button
+                        onClick={() => startGame(difficulty)}
+                        style={{ padding: "14px 0", borderRadius: 48, border: `2px solid ${GREEN}`, background: GREEN, color: "#FFFFFF", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
+                        Play Again
+                      </button>
+                      <button
+                        onClick={shareScore}
+                        style={{ padding: "14px 0", borderRadius: 48, border: `2px solid ${ORANGE}`, background: ORANGE, color: "#FFFFFF", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
+                        Share Score
+                      </button>
+                      <button
+                        onClick={() => setScreen("menu")}
+                        style={{ padding: "14px 0", borderRadius: 48, border: "2px solid #D8D1C7", background: "#FFFFFF", color: "#2D2D2D", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
+                        Home
+                      </button>
+                    </div>
+                  </>
+                )}
 
-                              setGameOver(false);
-                              startDaily(next);
-                            }}
-                            style={{ padding: "14px 0", borderRadius: 48, border: `2px solid ${GREEN}`, background: GREEN, color: "#FFFFFF", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
-                            Play Next Level
-                          </button>
-                        )}
-                        <button
-                          onClick={shareScore}
-                          style={{ padding: "14px 0", borderRadius: 48, border: `2px solid ${ORANGE}`, background: ORANGE, color: "#FFFFFF", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
-                          Share Score
-                        </button>
-                        <button
-                          onClick={() => setScreen("menu")}
-                          style={{ padding: "14px 0", borderRadius: 48, border: "2px solid #D8D1C7", background: "#FFFFFF", color: "#2D2D2D", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
-                          Home
-                        </button>
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      {isNewHigh && (
-                        <div style={{ color: ORANGE, fontWeight: 800, fontSize: 16, marginBottom: 12 }}>🏆 NEW HIGH SCORE!</div>
-                      )}
-                      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 8 }}>
-                        <img src="/images/streak.png" style={{ width: 56, height: 56 }} />
-                        <div style={{ fontSize: 64, fontWeight: 800, color: ORANGE, lineHeight: 1 }}>{finalScore}</div>
-                      </div>
-                      <h2 style={{ margin: "0 0 8px", fontSize: 24, color: "#2D2D2D" }}>{modalTitle}</h2>
-                      <p style={{ color: "#767676", fontSize: 13, marginBottom: 16 }}>
-                        {DIFFICULTY_LABELS[difficulty]} •{" "}
-                        {isLevelComplete
-                          ? `All ${queue.length} words completed!`
-                          : isNewHigh
-                          ? `Previous best: ${previousBest}`
-                          : `Best: ${highScores[difficulty]}`}
-                      </p>
-                      {!isLevelComplete && (
-                        <div
-                          onClick={() => setScreen("review")}
-                          style={{ background: "#FFF4E8", borderRadius: 16, padding: "14px 16px", marginBottom: 24, cursor: "pointer", border: `1px solid ${ORANGE}`, boxShadow: "0 2px 8px rgba(0,0,0,0.06)", transition: "all 0.15s" }}>
-                          <p style={{ fontSize: 12, color: "#767676", marginBottom: 4 }}>Last mistake</p>
-                          <div style={{ fontSize: 15, color: RED, fontWeight: 700 }}>✗ {selected} {current.word}</div>
-                          <div style={{ fontSize: 15, color: GREEN, fontWeight: 700 }}>✓ {current.article} {current.word}</div>
-                          <p style={{ fontSize: 14, color: ORANGE, marginTop: 8, fontWeight: 700 }}>Review all answers →</p>
-                        </div>
-                      )}
-                      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                        <button
-                          onClick={() => startGame(difficulty)}
-                          style={{ padding: "14px 0", borderRadius: 48, border: `2px solid ${GREEN}`, background: GREEN, color: "#FFFFFF", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
-                          Play Again
-                        </button>
-                        <button
-                          onClick={shareScore}
-                          style={{ padding: "14px 0", borderRadius: 48, border: `2px solid ${ORANGE}`, background: ORANGE, color: "#FFFFFF", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
-                          Share Score
-                        </button>
-                        <button
-                          onClick={() => setScreen("menu")}
-                          style={{ padding: "14px 0", borderRadius: 48, border: "2px solid #D8D1C7", background: "#FFFFFF", color: "#2D2D2D", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
-                          Home
-                        </button>
-                      </div>
-                    </>
-                  )}
-
-                </motion.div>
               </div>
-            )}
-
-          </div>
-        </motion.div>
-      )}
-
-    </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      </div>
   );
 }
