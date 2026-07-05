@@ -54,6 +54,15 @@ const PAGE_MOTION = {
   }
 };
 
+const PAGE_LAYOUT = {
+  position: "fixed",
+  inset: 0,
+  width: "100%",
+  height: "100vh",
+  background: "#FFFAF4",
+  overflow: "hidden"
+};
+
 // ── Helpers ────────────────────────────────────────────────
 function shuffle(arr) { return [...arr].sort(() => Math.random() - 0.5); }
 function getHS(d) { try { return parseInt(localStorage.getItem(`hs_${d}`) || "0", 10); } catch { return 0; } }
@@ -874,6 +883,7 @@ export default function App() {
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ duration: 0.25 }}
+            exit={{ scale: 0.8, opacity: 0 }}
             style={{
               background: "#FFFFFF",
               borderRadius: 24,
@@ -882,7 +892,7 @@ export default function App() {
               width: "100%",
               boxShadow: "0 8px 40px rgba(0,0,0,0.12)"
             }}
-          >
+            >
             <h2 style={{ margin: "0 0 20px", color: "#2D2D2D" }}>
               How to Play
             </h2>
@@ -914,8 +924,12 @@ export default function App() {
               </p>
             </div>
 
-            <button
-              onClick={() => setShowHelp(false)}
+            <motion.button
+              onClick={() => {
+                haptic("light");
+                setTimeout(() => setShowHelp(false), 120);
+              }}
+              whileTap={{ scale: 0.97 }}
               style={{
                 width: "100%",
                 padding: "14px 0",
@@ -927,9 +941,9 @@ export default function App() {
                 fontWeight: 700,
                 cursor: "pointer"
               }}
-            >
+              >
               Got it
-            </button>
+            </motion.button>
           </motion.div>
         </div>
       )}
@@ -944,8 +958,9 @@ export default function App() {
                 key="menu"
                 {...PAGE_MOTION.fade}
                 transition={PAGE_EASING}
+                style={PAGE_LAYOUT}
               >   
-                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "100vh", padding: `${topInset}px 32px 24px`, boxSizing: "border-box" }}>
+                <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: `${topInset}px 32px 24px`, boxSizing: "border-box" }}>
                   <div style={{ maxWidth: 420, width: "100%" }}>
 
                     {/* Top bar */}
@@ -1201,10 +1216,13 @@ export default function App() {
         {screen === "game" && (
         <motion.div
           key="game"
-          {...PAGE_MOTION.up}
+          initial={{ y: "100%" }}
+          animate={{ y: 0 }}
+          exit={{ x: "100%" }}
           transition={PAGE_EASING}
+          style={PAGE_LAYOUT}
         >
-            <div style={{ width: "100%", height: "100vh", paddingTop: topInset + TOP_BAR_HEIGHT, paddingBottom: 98, paddingLeft: 16, paddingRight: 16, boxSizing: "border-box", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+            <div style={{ width: "100%", height: "100%", paddingTop: topInset + TOP_BAR_HEIGHT, paddingBottom: 98, paddingLeft: 16, paddingRight: 16, boxSizing: "border-box", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
 
               {/* Top bar */}
               <div style={{ position: "fixed", top: topInset, left: 0, right: 0, background: "#FFFAF4", zIndex: 10, padding: "16px 16px 12px" }}>
@@ -1413,7 +1431,8 @@ export default function App() {
                     onClick={e => e.stopPropagation()}
                     initial={{ scale: 0.8, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
-                    transition={{ duration: 0.2, ease: "easeOut" }}
+                    exit={{ scale: 0.8, opacity: 0 }}
+                    transition={{ duration: 0.25, ease: "easeOut" }}
                     style={{ background: "#FFFFFF", borderRadius: 24, padding: "36px 28px", maxWidth: 320, width: "100%", textAlign: "center", boxShadow: "0 8px 40px rgba(0,0,0,0.12)" }}>
                     <div style={{ fontSize: 48, marginBottom: 16 }}>🤔</div>
                     <h2 style={{ margin: "0 0 12px", fontSize: 24, color: "#2D2D2D" }}>Quit game?</h2>
@@ -1461,12 +1480,11 @@ export default function App() {
         {screen === "end" && (
             <motion.div
               key="end"
-              initial={{ opacity: 0, x: 40 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ x: "-100%" }}
-              transition={{ duration: 0.28, ease: "easeInOut" }}
+              {...PAGE_MOTION.right}
+              transition={PAGE_EASING}
+              style={PAGE_LAYOUT}
             >
-              <div style={{ width: "100%", minHeight: "100vh", boxSizing: "border-box", padding: `${topInset + 24}px 32px 40px`, display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", textAlign: "center" }}>
+              <div style={{ width: "100%", minHeight: "100%", boxSizing: "border-box", padding: `${topInset + 24}px 32px 40px`, display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", textAlign: "center" }}>
                 <div style={{ maxWidth: 420, width: "100%" }}>
 
                   {mode === "daily" ? (
@@ -1582,9 +1600,8 @@ export default function App() {
         {screen === "review" && (
           <motion.div
                   key="review"
-                  initial={{ x: "100%" }}
-                  animate={{ x: 0 }}
-                  exit={{ x: "100%" }}
+                  {...PAGE_MOTION.right}
+                  transition={PAGE_EASING}
                 >
             <div style={{ height: "100vh", display: "flex", flexDirection: "column", maxWidth: 480, margin: "0 auto", boxSizing: "border-box" }}>
 
@@ -1670,9 +1687,8 @@ export default function App() {
         {screen === "leaderboard" && (
           <motion.div
                   key="review"
-                  initial={{ x: "100%" }}
-                  animate={{ x: 0 }}
-                  exit={{ x: "100%" }}
+                  {...PAGE_MOTION.fade}
+                  transition={PAGE_EASING}
                 >
             <div style={{ display: "flex", flexDirection: "column", height: "100vh", maxWidth: 480, margin: "0 auto", boxSizing: "border-box" }}>
 
@@ -1779,7 +1795,7 @@ export default function App() {
             </div>
           </motion.div>
         )}
-</AnimatePresence>
+      </AnimatePresence> {/* End Page AnimatePresence */}
       </div>
     );
   }
