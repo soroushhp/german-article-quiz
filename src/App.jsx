@@ -13,6 +13,7 @@ const nextDifficulty = {
   intermediate: "advanced",
   advanced: "artikelgott"
 };
+
 const GREEN = "#2E8B57";
 const RED = "#D94A4A";
 const ORANGE = "#FF7A00";
@@ -863,6 +864,46 @@ export default function App() {
     width: "100%",
   };
 
+  function getDailyButtonStyle(status, isPassed, isDisabled) {
+  const base = {
+    ...menuBtnStyle,
+    cursor: isDisabled ? "default" : "pointer",
+  };
+
+  switch (status) {
+    case "locked":
+      return {
+        ...base,
+        background: "#FAF7F2",       // flat off-white, matches Free Mode's disabled convention
+        border: "1px solid #E5E0D8", // receding, muted border
+      };
+
+    case "completed":
+      return isPassed
+        ? {
+            ...base,
+            background: `${GREEN}1A`, // GREEN at ~10% opacity (hex alpha)
+            border: `1px solid ${GREEN}66`, // GREEN at ~40% opacity
+          }
+        : {
+            ...base,
+            background: `${RED}1A`,
+            border: `1px solid ${RED}66`,
+          };
+
+    case "in_progress":
+      return {
+        ...base,
+        background: menuBtnStyle.background,
+        border: "1px solid #D9D3C7", // slightly more present than default, still neutral
+      };
+
+    case "ready":
+    default:
+      return base; // full default menuBtnStyle, no overrides
+  }
+}
+
   // ── Leaderboard helpers ────────────────────────────────
   const currentLbData   = lbData[lbTab];
   const isUserInTop10   = currentLbData?.top10?.some(p => p.telegram_id === telegramId);
@@ -972,7 +1013,7 @@ return (
               key="menu"
               style={PAGE_LAYOUT}
             >   
-              <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: `${topInset}px 32px 24px`, boxSizing: "border-box" }}>
+              <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: `${topInset}px 32px 64px`, boxSizing: "border-box" }}>
                 <div style={{ maxWidth: 420, width: "100%" }}>
 
                   {/* Top bar */}
@@ -994,7 +1035,7 @@ return (
 
                   {/* Logo */}
                   <div style={{ textAlign: "center", marginBottom: 32 }}>
-                    <img src="/favicon.svg" style={{ width: 64, height: 64, marginBottom: 12 }} />
+                    <img src="/favicon.svg" style={{ width: 72, height: 72, marginBottom: 8 }} />
                     <h1 style={{ fontSize: 36, fontWeight: 800, color: "#2D2D2D", letterSpacing: "-1px", margin: 0 }}>
                       Article Fever
                     </h1>
@@ -1142,12 +1183,11 @@ return (
                               }}
                               whileTap={{ scale: isInteractive ? 0.97 : 1 }}
                               whileHover={isInteractive ? { scale: 1.02, background: "#FDEFD8" } : {}}
-                              style={{
-                                ...menuBtnStyle,
-                                opacity: isDisabled ? 0.6 : 1,
-                                cursor: isInteractive ? "pointer" : "default",
-                                ...(d === "artikelgott" && { background: "#fff6eb", border: `2px solid ${ORANGE}` })
-                              }}
+                              style={getDailyButtonStyle(
+                                isLocked ? "locked" : status,
+                                isPassed,
+                                isDisabled
+                              )}
                             >
                               <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
                                 {d === "artikelgott" && (
@@ -1182,10 +1222,6 @@ return (
                               opacity: unlockedLevels[d] ? 1 : 0.6,
                               ...menuBtnStyle,
                               cursor: unlockedLevels[d] ? "pointer" : "default",
-                              ...(d === "artikelgott" && {
-                                background: "#fff6eb",
-                                border: `2px solid ${ORANGE}`
-                              })
                             }}
                           >
                             <span style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
