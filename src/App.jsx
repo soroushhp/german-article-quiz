@@ -64,7 +64,7 @@ const LEADERBOARD_MOTION = {
 };
 
 const PAGE_EASING = {
-  duration: 0.35,
+  duration: 0.5,
   ease: [0.22, 1, 0.36, 1]
 };
 
@@ -1534,7 +1534,7 @@ return (
             style={PAGE_LAYOUT}
           >
             <div style={{ width: "100%", minHeight: "100%", boxSizing: "border-box", padding: `${topInset + 24}px 32px 40px`, display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", textAlign: "center" }}>
-              <div style={{ maxWidth: 420, width: "100%" }}>
+              <div style={{ maxWidth: 480, width: "100%" }}>
 
                 {mode === "daily" ? (
                   <>
@@ -1598,8 +1598,8 @@ return (
                       <div style={{ color: ORANGE, fontWeight: 800, fontSize: 16, marginBottom: 12 }}>🏆 NEW HIGH SCORE!</div>
                     )}
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 8 }}>
-                      <img src="/images/streak.png" style={{ width: 56, height: 56 }} />
-                      <div style={{ fontSize: 64, fontWeight: 800, color: ORANGE, lineHeight: 1 }}>{finalScore}</div>
+                      <img src="/icons/flame.svg" style={{ width: 76, height: 76 }} />
+                      <div style={{ fontSize: 96, fontWeight: 800, color: ORANGE, lineHeight: 1 }}>{finalScore}</div>
                     </div>
                     <h2 style={{ margin: "0 0 8px", fontSize: 24, color: "#2D2D2D" }}>{modalTitle}</h2>
                     <p style={{ color: "#767676", fontSize: 13, marginBottom: 16 }}>
@@ -1611,14 +1611,39 @@ return (
                         : `Best: ${highScores[difficulty]}`}
                     </p>
                     {!isLevelComplete && (
-                      <div
-                        onClick={() => setOverlay("review")}
-                        style={{ background: "#FFF4E8", borderRadius: 16, padding: "14px 16px", marginBottom: 24, cursor: "pointer", border: `1px solid ${ORANGE}`, boxShadow: "0 2px 8px rgba(0,0,0,0.06)", transition: "all 0.15s" }}>
-                        <p style={{ fontSize: 12, color: "#767676", marginBottom: 4 }}>Last mistake</p>
-                        <div style={{ fontSize: 15, color: RED, fontWeight: 700 }}>✗ {selected} {current.word}</div>
-                        <div style={{ fontSize: 15, color: GREEN, fontWeight: 700 }}>✓ {current.article} {current.word}</div>
-                        <p style={{ fontSize: 14, color: ORANGE, marginTop: 8, fontWeight: 700 }}>Review all answers →</p>
-                      </div>
+                      <motion.div
+                        whileHover={{ scale: 1.01 }}
+                        whileTap={{ scale: 0.98 }}
+                      >
+                        <div
+                          onClick={() => setOverlay("review")}
+                          style={{
+                            background: "#FFF4E8",
+                            borderRadius: 16,
+                            padding: "16px 24px",
+                            margin: "0 auto 48px",
+                            marginBottom: 48,
+                            cursor: "pointer",
+                            border: `2px solid ${ORANGE}`,
+                            boxShadow: "0 4px 8px rgba(0,0,0,0.06)",
+                            transition: "all 0.35s",
+                            minHeight: 220,
+                            maxWidth: 400,
+                            display: "flex",
+                            flexDirection: "column"
+                          }}
+                        >
+                          <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", textAlign: "center" }}>
+                            <p style={{ margin: 0, fontSize: 14, color: "#767676" }}>Last mistake</p>
+                            <div style={{ fontSize: 20, color: RED, fontWeight: 700, textDecoration: "line-through", opacity: 0.75 }}>{selected} {current.word}</div>
+                            <div style={{ fontSize: 30, color: GREEN, fontWeight: 800 }}>{current.article} {current.word}</div>
+                          </div>
+
+                        <p style={{ margin: 0, textAlign: "center", fontSize: 17, color: ORANGE, fontWeight: 800 }}>
+                          Review all answers →
+                        </p>
+                        </div>
+                      </motion.div>
                     )}
                     <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                       <button
