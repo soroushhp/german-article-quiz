@@ -19,9 +19,9 @@ const RED = "#D94A4A";
 const ORANGE = "#FF7A00";
 
 const UNLOCK_REQUIREMENTS = {
-  intermediate: "30-word streak in Easy",
-  advanced: "50-word streak in Medium",
-  artikelgott: "75-word streak in Hard"
+  intermediate: "30 in Easy",
+  advanced: "50 in Medium",
+  artikelgott: "75 in Hard"
 };
 
 const MENU_MOTION = {
