@@ -310,6 +310,7 @@ export default function App() {
   const [dailyResults, setDailyResults] = useState([]);
   const [dailyPassed, setDailyPassed] = useState(false);
   const [dailyProgress, setDailyProgress] = useState({});
+  const [dailyStatusesLoaded, setDailyStatusesLoaded] = useState(false);
   const [unlockedLevels, setUnlockedLevels] = useState({
     beginner: true,
     intermediate: false,
@@ -418,7 +419,7 @@ export default function App() {
   let menuInfo = "";
 
   if (mode === "daily") {
-    const hasLoadedDaily = Object.keys(dailyProgress).length > 0;
+    const hasLoadedDaily = dailyStatusesLoaded;
 
     if (!hasLoadedDaily) {
       menuInfo = "Loading...";
@@ -557,6 +558,7 @@ export default function App() {
     const map = {};
     rows.forEach(row => { map[row.difficulty] = row; });
     setDailyProgress(map);
+    setDailyStatusesLoaded(true);
   };
 
   const startDaily = async (diff) => {
