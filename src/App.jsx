@@ -19,9 +19,9 @@ const RED = "#D94A4A";
 const ORANGE = "#FF7A00";
 
 const UNLOCK_REQUIREMENTS = {
-  intermediate: "30 streak in Easy ",
-  advanced: "50 streak in Medium ",
-  artikelgott: "75 streak in Hard "
+  intermediate: "30-word streak in Easy",
+  advanced: "50-word streak in Medium",
+  artikelgott: "75-word streak in Hard"
 };
 
 const MENU_MOTION = {
@@ -433,8 +433,8 @@ export default function App() {
     }
   } else {
     menuInfo = Object.values(unlockedLevels ?? {}).every(Boolean)
-      ? "Unlimited practice. Improve your best streaks."
-      : "Unlock levels by reaching streaks.";
+      ? "Unlimited practice. Improve your word streaks."
+      : "Unlock levels by building your word streak";
   }
 
   // Leaderboard state
