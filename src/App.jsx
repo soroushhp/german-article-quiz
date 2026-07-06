@@ -434,7 +434,7 @@ export default function App() {
   } else {
     menuInfo = Object.values(unlockedLevels ?? {}).every(Boolean)
       ? "Unlimited practice. Improve your word streaks."
-      : "Unlock levels by building your word streak";
+      : "Unlock levels by building your word streak.";
   }
 
   // Leaderboard state
