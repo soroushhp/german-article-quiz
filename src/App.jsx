@@ -1617,7 +1617,8 @@ return (
                         <>
                           {isNewHigh && (
                             <div style={{ color: ORANGE, fontWeight: 800, fontSize: 16, marginBottom: 12 }}>🏆 NEW HIGH SCORE!</div>
-                          )}
+                          )}  
+                          <div>                   
                           <div style={{ display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 8 }}>
                             <img src="/icons/flame.svg" style={{ width: 76, height: 76 }} />
                             <div style={{ fontSize: 96, fontWeight: 800, color: ORANGE, lineHeight: 1 }}>{finalScore}</div>
@@ -1631,11 +1632,13 @@ return (
                               ? `Previous best: ${previousBest}`
                               : `Best: ${highScores[difficulty]}`}
                           </p>
+                          </div> 
+
                           <motion.div
                             whileHover={{ scale: 1.01 }}
                             whileTap={{ scale: 0.98 }}
                             onClick={() => setOverlay("review")}
-                            style={{ margin: "0 auto 48px", width: "100%", maxWidth: 360, cursor: "pointer" }}
+                            style={{ margin: "0 auto 48px", width: "100%", maxWidth: 300, cursor: "pointer" }}
                           >
                             <div
                               style={{
