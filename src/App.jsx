@@ -1528,149 +1528,167 @@ return (
 
       {/* ── END ── (Daily completed / Survival Game Over / Survival Level Complete)*/}
       {screen === "end" && (
-          <motion.div
-            key="end"
-            initial={{ x: "100%" }}
-            animate={{ x: 0 }}
-            transition={PAGE_EASING}
-            style={PAGE_LAYOUT}
-          >
-            <div style={{ width: "100%", minHeight: "100%", boxSizing: "border-box", padding: `${topInset + 24}px 32px 40px`, display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", textAlign: "center" }}>
-              <div style={{ maxWidth: 480, width: "100%" }}>
+                <motion.div
+                  key="end"
+                  initial={{ x: "100%" }}
+                  animate={{ x: 0 }}
+                  transition={PAGE_EASING}
+                  style={PAGE_LAYOUT}
+                >
+                  <div style={{ width: "100%", height: "90%", boxSizing: "border-box", padding: `${topInset + 24}px 32px 40px`, display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center" }}>
+                    <div style={{ maxWidth: 480, width: "100%", flex: 1, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
 
-                {mode === "daily" ? (
-                  <>
-                    <div style={{ fontSize: 48, fontWeight: 800, color: ORANGE, lineHeight: 1, marginBottom: 12 }}>
-                      {finalScore}/10
-                    </div>
-                    <h2 style={{ margin: "0 0 8px", fontSize: 18, color: "#2D2D2D" }}>
-                      {finalScore === 10
-                        ? "Congrats! You did a perfect job!"
-                        : dailyPassed
-                        ? `Congrats! You passed ${DIFFICULTY_LABELS[difficulty]}.`
-                        : "Oh no! Come back tomorrow for a new challenge!"}
-                    </h2>
-                    <p style={{ color: "#767676", fontSize: 13, marginBottom: 20 }}>
-                      {DIFFICULTY_LABELS[difficulty]} • {new Date().toLocaleDateString("en-US", { month: "short", day: "numeric" })}
-                    </p>
-                    <div
-                      onClick={() => setOverlay("review")}
-                      style={{ background: "#FFF4E8", borderRadius: 16, padding: "14px 16px", marginBottom: 24, cursor: "pointer", border: `1px solid ${ORANGE}`, boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}>
-                      {dailyLastMistake ? (
+                      {mode === "daily" ? (
                         <>
-                          <p style={{ fontSize: 12, color: "#767676", marginBottom: 4 }}>Last mistake</p>
-                          <div style={{ fontSize: 15, color: RED, fontWeight: 700 }}>✗ {dailyLastMistake.selected} {dailyLastMistake.word}</div>
-                          <div style={{ fontSize: 15, color: GREEN, fontWeight: 700 }}>✓ {dailyLastMistake.article} {dailyLastMistake.word}</div>
-                          <p style={{ fontSize: 14, color: ORANGE, marginTop: 8, fontWeight: 700 }}>Review answers →</p>
+                          <div>
+                            <div style={{ fontSize: 64, fontWeight: 800, color: ORANGE, lineHeight: 1, marginBottom: 12 }}>
+                              {finalScore}/10
+                            </div>
+                            <h2 style={{ margin: "0 0 8px", fontSize: 18, color: "#2D2D2D" }}>
+                              {finalScore === 10
+                                ? "Congrats! You did a perfect job!"
+                                : dailyPassed
+                                ? `Congrats! You passed ${DIFFICULTY_LABELS[difficulty]}.`
+                                : "Oh no! Come back tomorrow for a new challenge!"}
+                            </h2>
+                            <p style={{ color: "#767676", fontSize: 13, marginBottom: 20 }}>
+                              {DIFFICULTY_LABELS[difficulty]} • {new Date().toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                            </p>
+                          </div> 
+                          <motion.div
+                            whileHover={{ scale: 1.01 }}
+                            whileTap={{ scale: 0.98 }}
+                            onClick={() => setOverlay("review")}
+                            style={{ margin: "0 auto 48px", width: "100%", maxWidth: 360, cursor: "pointer" }}
+                          >
+                            <div
+                              style={{
+                                background: "#FFF4E8",
+                                borderRadius: 16,
+                                padding: "16px 24px",
+                                border: `2px solid ${ORANGE}`,
+                                boxShadow: "0 4px 8px rgba(0,0,0,0.06)",
+                                transition: "all 0.35s",
+                                display: "flex",
+                                flexDirection: "column"
+                              }}
+                            >
+                              {dailyLastMistake ? (
+                                <>
+                                  <p style={{ fontSize: 12, color: "#767676", marginBottom: 4 }}>Last mistake</p>
+                                  <div style={{ fontSize: 15, color: RED, fontWeight: 700 }}>✗ {dailyLastMistake.selected} {dailyLastMistake.word}</div>
+                                  <div style={{ fontSize: 15, color: GREEN, fontWeight: 700 }}>✓ {dailyLastMistake.article} {dailyLastMistake.word}</div>
+                                  <p style={{ fontSize: 14, color: ORANGE, marginTop: 8, fontWeight: 700 }}>Review answers →</p>
+                                </>
+                              ) : (
+                                <>
+                                  <p style={{ fontSize: 15, color: GREEN, fontWeight: 700, marginBottom: 32 }}>✓ No mistakes</p>
+                                  <p style={{ fontSize: 14, color: ORANGE, marginTop: 8, fontWeight: 700 }}>Review answers →</p>
+                                </>
+                              )}
+                            </div>
+                          </motion.div>
+
+                          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                            {dailyPassed && difficulty !== "artikelgott" && (
+                              <button
+                                onClick={() => {
+                                  const next = nextDifficulty[difficulty];
+                                  if (!next) return;
+                                  startDaily(next);
+                                }}
+                                style={{ padding: "14px 0", borderRadius: 48, border: `2px solid ${GREEN}`, background: GREEN, color: "#FFFFFF", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
+                                Play Next Level
+                              </button>
+                            )}
+                            <button
+                              onClick={shareScore}
+                              style={{ padding: "14px 0", borderRadius: 48, border: `2px solid ${ORANGE}`, background: ORANGE, color: "#FFFFFF", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
+                              Share Score
+                            </button>
+                            <button
+                              onClick={() => setScreen("menu")}
+                              style={{ padding: "14px 0", borderRadius: 48, border: "2px solid #D8D1C7", background: "#FFFFFF", color: "#2D2D2D", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
+                              Home
+                            </button>
+                          </div>
                         </>
                       ) : (
                         <>
-                          <p style={{ fontSize: 15, color: GREEN, fontWeight: 700, margin: 0 }}>✓ No mistakes</p>
-                          <p style={{ fontSize: 14, color: ORANGE, marginTop: 8, fontWeight: 700 }}>Review answers →</p>
+                          {isNewHigh && (
+                            <div style={{ color: ORANGE, fontWeight: 800, fontSize: 16, marginBottom: 12 }}>🏆 NEW HIGH SCORE!</div>
+                          )}
+                          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 8 }}>
+                            <img src="/icons/flame.svg" style={{ width: 76, height: 76 }} />
+                            <div style={{ fontSize: 96, fontWeight: 800, color: ORANGE, lineHeight: 1 }}>{finalScore}</div>
+                          </div>
+                          <h2 style={{ margin: "0 0 8px", fontSize: 24, color: "#2D2D2D" }}>{modalTitle}</h2>
+                          <p style={{ color: "#767676", fontSize: 13, marginBottom: 16 }}>
+                            {DIFFICULTY_LABELS[difficulty]} •{" "}
+                            {isLevelComplete
+                              ? `All ${queue.length} words completed!`
+                              : isNewHigh
+                              ? `Previous best: ${previousBest}`
+                              : `Best: ${highScores[difficulty]}`}
+                          </p>
+                          <motion.div
+                            whileHover={{ scale: 1.01 }}
+                            whileTap={{ scale: 0.98 }}
+                            onClick={() => setOverlay("review")}
+                            style={{ margin: "0 auto 48px", width: "100%", maxWidth: 360, cursor: "pointer" }}
+                          >
+                            <div
+                              style={{
+                                background: "#FFF4E8",
+                                borderRadius: 16,
+                                padding: "16px 24px",
+                                border: `2px solid ${ORANGE}`,
+                                boxShadow: "0 4px 8px rgba(0,0,0,0.06)",
+                                transition: "all 0.35s",
+                                display: "flex",
+                                flexDirection: "column"
+                              }}
+                            >
+                              {isLevelComplete ? (
+                                <>
+                                  <p style={{ fontSize: 15, color: GREEN, fontWeight: 700, marginBottom: 32 }}>✓ No mistakes</p>
+                                  <p style={{ fontSize: 14, color: ORANGE, marginTop: 8, fontWeight: 700 }}>Review answers →</p>
+                                </>
+                              ) : (
+                                <>
+                                  <p style={{ fontSize: 12, color: "#767676", marginBottom: 4 }}>Last mistake</p>
+                                  <div style={{ fontSize: 15, color: RED, fontWeight: 700 }}>✗ {selected} {current.word}</div>
+                                  <div style={{ fontSize: 15, color: GREEN, fontWeight: 700 }}>✓ {current.article} {current.word}</div>
+                                  <p style={{ fontSize: 14, color: ORANGE, marginTop: 8, fontWeight: 700 }}>Review answers →</p>
+                                </>
+                              )}
+                            </div>
+                          </motion.div>
+
+                          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                            <button
+                              onClick={() => startGame(difficulty)}
+                              style={{ padding: "14px 0", borderRadius: 48, border: `2px solid ${GREEN}`, background: GREEN, color: "#FFFFFF", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
+                              Play Again
+                            </button>
+                            <button
+                              onClick={shareScore}
+                              style={{ padding: "14px 0", borderRadius: 48, border: `2px solid ${ORANGE}`, background: ORANGE, color: "#FFFFFF", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
+                              Share Score
+                            </button>
+                            <button
+                              onClick={() => setScreen("menu")}
+                              style={{ padding: "14px 0", borderRadius: 48, border: "2px solid #D8D1C7", background: "#FFFFFF", color: "#2D2D2D", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
+                              Home
+                            </button>
+                          </div>
                         </>
                       )}
-                    </div>
-                    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                      {dailyPassed && difficulty !== "artikelgott" && (
-                        <button
-                          onClick={() => {
-                            const next = nextDifficulty[difficulty];
-                            if (!next) return;
-                            startDaily(next);
-                          }}
-                          style={{ padding: "14px 0", borderRadius: 48, border: `2px solid ${GREEN}`, background: GREEN, color: "#FFFFFF", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
-                          Play Next Level
-                        </button>
-                      )}
-                      <button
-                        onClick={shareScore}
-                        style={{ padding: "14px 0", borderRadius: 48, border: `2px solid ${ORANGE}`, background: ORANGE, color: "#FFFFFF", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
-                        Share Score
-                      </button>
-                      <button
-                        onClick={() => setScreen("menu")}
-                        style={{ padding: "14px 0", borderRadius: 48, border: "2px solid #D8D1C7", background: "#FFFFFF", color: "#2D2D2D", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
-                        Home
-                      </button>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    {isNewHigh && (
-                      <div style={{ color: ORANGE, fontWeight: 800, fontSize: 16, marginBottom: 12 }}>🏆 NEW HIGH SCORE!</div>
-                    )}
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 8 }}>
-                      <img src="/icons/flame.svg" style={{ width: 76, height: 76 }} />
-                      <div style={{ fontSize: 96, fontWeight: 800, color: ORANGE, lineHeight: 1 }}>{finalScore}</div>
-                    </div>
-                    <h2 style={{ margin: "0 0 8px", fontSize: 24, color: "#2D2D2D" }}>{modalTitle}</h2>
-                    <p style={{ color: "#767676", fontSize: 13, marginBottom: 16 }}>
-                      {DIFFICULTY_LABELS[difficulty]} •{" "}
-                      {isLevelComplete
-                        ? `All ${queue.length} words completed!`
-                        : isNewHigh
-                        ? `Previous best: ${previousBest}`
-                        : `Best: ${highScores[difficulty]}`}
-                    </p>
-                    {!isLevelComplete && (
-                      <motion.div
-                        whileHover={{ scale: 1.01 }}
-                        whileTap={{ scale: 0.98 }}
-                      >
-                        <div
-                          onClick={() => setOverlay("review")}
-                          style={{
-                            background: "#FFF4E8",
-                            borderRadius: 16,
-                            padding: "16px 24px",
-                            margin: "0 auto 48px",
-                            marginBottom: 48,
-                            cursor: "pointer",
-                            border: `2px solid ${ORANGE}`,
-                            boxShadow: "0 4px 8px rgba(0,0,0,0.06)",
-                            transition: "all 0.35s",
-                            minHeight: 220,
-                            maxWidth: 400,
-                            display: "flex",
-                            flexDirection: "column"
-                          }}
-                        >
-                          <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", textAlign: "center" }}>
-                            <p style={{ margin: 0, fontSize: 14, color: "#767676" }}>Last mistake</p>
-                            <div style={{ fontSize: 20, color: RED, fontWeight: 700, textDecoration: "line-through", opacity: 0.75 }}>{selected} {current.word}</div>
-                            <div style={{ fontSize: 30, color: GREEN, fontWeight: 800 }}>{current.article} {current.word}</div>
-                          </div>
 
-                        <p style={{ margin: 0, textAlign: "center", fontSize: 17, color: ORANGE, fontWeight: 800 }}>
-                          Review all answers →
-                        </p>
-                        </div>
-                      </motion.div>
-                    )}
-                    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                      <button
-                        onClick={() => startGame(difficulty)}
-                        style={{ padding: "14px 0", borderRadius: 48, border: `2px solid ${GREEN}`, background: GREEN, color: "#FFFFFF", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
-                        Play Again
-                      </button>
-                      <button
-                        onClick={shareScore}
-                        style={{ padding: "14px 0", borderRadius: 48, border: `2px solid ${ORANGE}`, background: ORANGE, color: "#FFFFFF", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
-                        Share Score
-                      </button>
-                      <button
-                        onClick={() => setScreen("menu")}
-                        style={{ padding: "14px 0", borderRadius: 48, border: "2px solid #D8D1C7", background: "#FFFFFF", color: "#2D2D2D", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
-                        Home
-                      </button>
                     </div>
-                  </>
-                )}
-
-              </div>
-            </div>
-          </motion.div>
-      )}
+                  </div>
+                </motion.div>
+            )}
     </AnimatePresence>
 
     {/* ─────────────────────────────────────────────
@@ -1888,3 +1906,4 @@ return (
     </div>
   );
 }
+        
