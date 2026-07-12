@@ -1440,6 +1440,19 @@ return (
                   </div>
                   <div style={{ width: "100%", height: 6, background: "#E6E1DA", borderRadius: 999 }}>
                     <div style={{ height: "100%", width: `${hearts === 3 ? 100 : (heartStreak % 10) * 10}%`, background: GREEN, borderRadius: 999, transition: "width 0.3s ease" }} />
+                    <p
+                      style={{
+                        margin: "8px 0 0",
+                        textAlign: "center",
+                        fontSize: 12,
+                        fontWeight: 600,
+                        color: "#767676"
+                      }}
+                    >
+                      {hearts === 3
+                        ? "Heart Full"
+                        : `${heartStreak % 10} / 10 to next Heart`}
+                    </p>
                   </div>
                 </>
               ) : (
