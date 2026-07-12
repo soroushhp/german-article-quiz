@@ -2084,8 +2084,17 @@ return (
                               </span>
                             </div>
                             <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                              <img src="/icons/flame.svg" style={{ width: 16, height: 16 }} />
-                              <span style={{ fontSize: 15, fontWeight: 800, color: isMe ? ORANGE : "#2D2D2D" }}>{player.best_score}</span>
+                              <img
+                                src={leaderboardMode === "daily"
+                                  ? "/images/daily.png"
+                                  : "/icons/flame.svg"}
+                                style={{ width: 16, height: 16 }}
+                              />
+                              <span style={{ fontSize: 15, fontWeight: 800, color: isMe ? ORANGE : "#2D2D2D" }}>
+                                {leaderboardMode === "daily"
+                                  ? player.passed_challenges
+                                  : player.best_score}
+                              </span>
                             </div>
                           </div>
                         );
