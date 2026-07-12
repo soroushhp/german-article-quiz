@@ -1967,12 +1967,12 @@ return (
                     onClick={() => switchLeaderboardMode(mode)}
                     style={{
                       flex: 1,
-                      padding: "10px 0",
+                      padding: "8px 0",
                       border: "none",
                       borderRadius: 48,
                       background: "transparent",
                       color: leaderboardMode === mode ? "#FFFFFF" : "#767676",
-                      fontSize: 14,
+                      fontSize: 16,
                       fontWeight: 800,
                       cursor: "pointer",
                       position: "relative",
