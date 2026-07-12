@@ -1468,7 +1468,7 @@ return (
             {/* Heart notification */}
             <AnimatePresence>
               {heartNotification && (
-                <div style={{ position: "fixed", top: 152, left: 0, right: 0, bottom: 98, display: "flex", alignItems: "center", justifyContent: "center", zIndex: 50, pointerEvents: "none" }}>
+                <div style={{ position: "fixed", top: 100, left: 0, right: 0, bottom: 98, display: "flex", alignItems: "center", justifyContent: "center", zIndex: 50, pointerEvents: "none" }}>
                   <motion.div
                     key={heartNotification}
                     initial={{ opacity: 0, scale: 0.5, y: 20 }}
@@ -2056,7 +2056,7 @@ return (
 
               {/* Scrollable list */}
               {lbLoading ? (
-                <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <div style={{ flex: 1, display: "flex", alignItems: "center", paddingTop: 64, justifyContent: "center" }}>
                   <motion.div
                     animate={{ rotate: 360 }}
                     transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
