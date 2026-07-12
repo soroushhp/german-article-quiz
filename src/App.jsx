@@ -1468,7 +1468,7 @@ return (
             {/* Heart notification */}
             <AnimatePresence>
               {heartNotification && (
-                <div style={{ position: "fixed", top: 48, left: 0, right: 0, bottom: 98, display: "flex", alignItems: "center", justifyContent: "center", zIndex: 50, pointerEvents: "none" }}>
+                <div style={{ position: "fixed", top: 48, left: 0, right: 0, bottom: 128, display: "flex", alignItems: "center", justifyContent: "center", zIndex: 50, pointerEvents: "none" }}>
                   <motion.div
                     key={heartNotification}
                     initial={{ opacity: 0, scale: 0.5, y: 20 }}
