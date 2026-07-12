@@ -1282,11 +1282,12 @@ return (
                                   display: "inline-flex",
                                   alignItems: "center",
                                   justifyContent: "center",
+                                  color: "#2D2D2D",
                                   gap: 6
                                 }}
                               >
                                 <img src="/icons/continue.svg" width={16} height={16} />
-                                <span>Continue ({dailyProgress[d]?.current_word}/10)</span>
+                                <span>Continue</span>
                               </span>
                             );
                           else
@@ -1447,7 +1448,7 @@ return (
                 <>
                   <div style={{ display: "flex", justifyContent: "center", marginBottom: 8 }}>
                     <span style={{ fontSize: 16, fontWeight: 700, color: "#767676" }}>
-                      {dailyResults.length === 10 ? 10 : idx + 1}/10
+                      Word {dailyResults.length === 10 ? 10 : idx + 1} of 10
                     </span>
                   </div>
                   <div style={{ display: "flex", gap: 6 }}>
