@@ -790,7 +790,7 @@ export default function App() {
       if (score >= 8) {
         await saveDailyChallengePassed(
           telegramId,
-          username,
+          userName || "Anonymous",
           difficulty
         );
       }
