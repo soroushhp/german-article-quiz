@@ -1321,7 +1321,7 @@ return (
                                 )}
                                 {d === "artikelgott" ? "Artikelgott" : DIFFICULTY_LABELS[d]}
                               </span>
-                              <span style={{ fontSize: 14, color: "#ADADAD", fontWeight: 700, opacity: isDisabled ? 0.6 : 1 }}>
+                              <span style={{ fontSize: 14, color: "#ADADAD", fontWeight: 700 }}>
                                 {subtitle}
                               </span>
                             </motion.button>
