@@ -586,11 +586,11 @@ export default function App() {
       if (user?.id) {
         loadUserData(String(user.id), user.first_name);
       } else if (import.meta.env.DEV) {
-        loadUserData("999998", "Local Tester");
+        loadUserData("999997", "Local Tester");
       }
     }, 300);
   } else if (import.meta.env.DEV) {
-    loadUserData("999998", "Local Tester");
+    loadUserData("999997", "Local Tester");
   }
   }, []);
 
