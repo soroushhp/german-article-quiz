@@ -2053,6 +2053,21 @@ return (
                     ))}
                 </div>
               </div>
+              
+              {/* Mode Subtitles */}
+              <p
+                style={{
+                  margin: "16px 0 4px",
+                  textAlign: "center",
+                  fontSize: 13,
+                  fontWeight: 600,
+                  color: "#767676"
+                }}
+              >
+                {leaderboardMode === "daily"
+                  ? "Total Passed Challenges"
+                  : "Best Run"}
+              </p>
 
               {/* Scrollable list */}
               {lbLoading ? (
@@ -2065,7 +2080,7 @@ return (
                 </div>
               ) : currentLbData ? (
                 <>
-                  <div style={{ flex: 1, overflowY: "auto", padding: "12px 16px" }}>
+                  <div style={{ flex: 1, overflowY: "auto", padding: "4px 16px" }}>
                     {currentLbData.top10.length === 0 ? (
                       <p style={{ textAlign: "center", color: "#ADADAD", marginTop: 48 }}>No scores yet. Be the first!</p>
                     ) : (
