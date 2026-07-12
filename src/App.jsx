@@ -1312,7 +1312,6 @@ return (
                               whileHover={isInteractive ? { scale: 1.02, background: "#FDEFD8" } : {}}
                               style={getDailyButtonStyle(
                                 isLocked ? "locked" : status,
-                                isPassed,
                                 isDisabled
                               )}
                             >
