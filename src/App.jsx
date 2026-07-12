@@ -140,6 +140,34 @@ async function saveScore(telegramId, username, difficulty, score) {
   }
 }
 
+async function saveDailyChallengePassed(telegramId, username, difficulty) {
+  const { data } = await supabase
+    .from("daily_leaderboard")
+    .select("*")
+    .eq("telegram_id", telegramId)
+    .eq("difficulty", difficulty)
+    .maybeSingle();
+
+  if (!data) {
+    await supabase.from("daily_leaderboard").insert({
+      telegram_id: telegramId,
+      username,
+      difficulty,
+      passed_challenges: 1
+    });
+    return;
+  }
+
+  await supabase
+    .from("daily_leaderboard")
+    .update({
+      passed_challenges: data.passed_challenges + 1,
+      username,
+      updated_at: new Date().toISOString()
+    })
+    .eq("id", data.id);
+}
+
 async function getDailyStatuses(telegramId, date) {
   const { data, error } = await supabase
     .from("daily_challenges")
@@ -273,7 +301,7 @@ async function isDifficultyUnlocked(telegramId, difficulty) {
 }
 
 
-async function fetchLeaderboardData(diff, telegramId) {
+async function fetchSurvivalLeaderboardData(diff, telegramId) {
   const { data: top10 } = await supabase
     .from("leaderboard")
     .select("*")
@@ -297,6 +325,34 @@ async function fetchLeaderboardData(diff, telegramId) {
     .select("*", { count: "exact", head: true })
     .eq("difficulty", diff)
     .gt("best_score", userRow.best_score);
+
+  return { top10: top10 || [], userRow, userRank: count + 1 };
+}
+
+async function fetchDailyLeaderboardData(diff, telegramId) {
+  const { data: top10 } = await supabase
+    .from("daily_leaderboard")
+    .select("*")
+    .eq("difficulty", diff)
+    .order("passed_challenges", { ascending: false })
+    .limit(10);
+
+  if (!telegramId) return { top10: top10 || [], userRow: null, userRank: null };
+
+  const { data: userRow } = await supabase
+    .from("daily_leaderboard")
+    .select("*")
+    .eq("telegram_id", telegramId)
+    .eq("difficulty", diff)
+    .maybeSingle();
+
+  if (!userRow) return { top10: top10 || [], userRow: null, userRank: null };
+
+  const { count } = await supabase
+    .from("daily_leaderboard")
+    .select("*", { count: "exact", head: true })
+    .eq("difficulty", diff)
+    .gt("passed_challenges", userRow.passed_challenges)
 
   return { top10: top10 || [], userRow, userRank: count + 1 };
 }
@@ -439,8 +495,22 @@ export default function App() {
   }
 
   // Leaderboard state
-  const [lbTab, setLbTab]     = useState("beginner");
-  const [lbData, setLbData]   = useState({ beginner: null, intermediate: null, advanced: null, artikelgott: null });
+  const [leaderboardMode, setLeaderboardMode] = useState("daily");
+  const [lbTab, setLbTab] = useState("beginner");
+  const [dailyLbData, setDailyLbData] = useState({
+    beginner: null,
+    intermediate: null,
+    advanced: null,
+    artikelgott: null
+  });
+
+  const [survivalLbData, setSurvivalLbData] = useState({
+    beginner: null,
+    intermediate: null,
+    advanced: null,
+    artikelgott: null
+  });
+
   const [lbLoading, setLbLoading] = useState(false);
 
   // Telegram haptic API
@@ -530,23 +600,74 @@ export default function App() {
   };
 
   // ── Leaderboard loading ────────────────────────────────
+  const fetchLeaderboard = (diff) =>
+    leaderboardMode === "daily"
+      ? fetchDailyLeaderboardData(diff, telegramId)
+      : fetchSurvivalLeaderboardData(diff, telegramId);
+
   const openLeaderboard = async () => {
     if (lbLoading) return;
     const initialTab = difficulty || "beginner";
     setOverlay("leaderboard");
     setLbTab(initialTab);
     setLbLoading(true);
-    const result = await fetchLeaderboardData(initialTab, telegramId);
-    setLbData(prev => ({ ...prev, [initialTab]: result }));
+    const result = await fetchLeaderboard(initialTab);
+    if (leaderboardMode === "daily") {
+      setDailyLbData(prev => ({ ...prev, [initialTab]: result }));
+    } else {
+      setSurvivalLbData(prev => ({ ...prev, [initialTab]: result }));
+    }
+    setLbLoading(false);
+  };
+
+  const switchLeaderboardMode = async (mode) => {
+  if (mode === leaderboardMode) return;
+
+    setLeaderboardMode(mode);
+
+    const cache =
+      mode === "daily"
+        ? dailyLbData
+        : survivalLbData;
+
+    if (cache[lbTab]) return;
+
+    setLbLoading(true);
+
+    const result =
+      mode === "daily"
+        ? await fetchDailyLeaderboardData(lbTab, telegramId)
+        : await fetchSurvivalLeaderboardData(lbTab, telegramId);
+
+    if (mode === "daily") {
+      setDailyLbData(prev => ({ ...prev, [lbTab]: result }));
+    } else {
+      setSurvivalLbData(prev => ({ ...prev, [lbTab]: result }));
+    }
+
     setLbLoading(false);
   };
 
   const switchTab = async (diff) => {
     setLbTab(diff);
-    if (lbData[diff]) return;
+
+    const currentData =
+      leaderboardMode === "daily"
+        ? dailyLbData
+        : survivalLbData;
+
+    if (currentData[diff]) return;
+
     setLbLoading(true);
-    const result = await fetchLeaderboardData(diff, telegramId);
-    setLbData(prev => ({ ...prev, [diff]: result }));
+
+    const result = await fetchLeaderboard(diff);
+
+    if (leaderboardMode === "daily") {
+      setDailyLbData(prev => ({ ...prev, [diff]: result }));
+    } else {
+      setSurvivalLbData(prev => ({ ...prev, [diff]: result }));
+    }
+
     setLbLoading(false);
   };
 
@@ -633,52 +754,64 @@ export default function App() {
   };
 
   const handleDailyAnswer = async (isCorrect) => {
-  const nextIdx = idx + 1;
-  const nextResults = [...dailyResults, isCorrect];
-  const score = nextResults.filter(Boolean).length;
-  const isComplete = nextIdx >= queue.length;
+    const nextIdx = idx + 1;
+    const nextResults = [...dailyResults, isCorrect];
+    const score = nextResults.filter(Boolean).length;
+    const isComplete = nextIdx >= queue.length;
 
-  setDailyResults(nextResults);
+    setDailyResults(nextResults);
 
-  const updatedHistory = [
-    ...answerHistory,
-    {
-      word: queue[idx].word,
-      meaning: queue[idx].meaning,
-      article: queue[idx].article,
-      selected,
-      correct: isCorrect
+    const updatedHistory = [
+      ...answerHistory,
+      {
+        word: queue[idx].word,
+        meaning: queue[idx].meaning,
+        article: queue[idx].article,
+        selected,
+        correct: isCorrect
+      }
+    ];
+
+    await saveDailyProgress({
+      telegram_id: telegramId,
+      date: new Date().toISOString().slice(0, 10),
+      difficulty,
+      status: isComplete ? "completed" : "in_progress",
+      current_word: nextIdx,
+      score,
+      results: nextResults,
+      answer_history: updatedHistory,
+      completed: isComplete,
+      passed: isComplete ? score >= 8 : false,
+      last_played_at: new Date().toISOString()
+    });
+
+    if (isComplete) {
+      if (score >= 8) {
+        await saveDailyChallengePassed(
+          telegramId,
+          username,
+          difficulty
+        );
+      }
+
+      await loadDailyStatuses();
+
+      const lastMistake = [...updatedHistory]
+        .reverse()
+        .find(entry => !entry.correct) || null;
+
+      setDailyLastMistake(lastMistake);
+      setFinalScore(score);
+      setDailyPassed(score >= 8);
+      setScreen("end");
+      return;
     }
-  ];
 
-  await saveDailyProgress({
-    telegram_id: telegramId,
-    date: new Date().toISOString().slice(0, 10),
-    difficulty,
-    status: isComplete ? "completed" : "in_progress",
-    current_word: nextIdx,
-    score,
-    results: nextResults,
-    answer_history: updatedHistory,
-    completed: isComplete,
-    passed: isComplete ? score >= 8 : false,
-    last_played_at: new Date().toISOString()
-  });
-
-  if (isComplete) {
-    await loadDailyStatuses();
-    const lastMistake = [...updatedHistory].reverse().find(entry => !entry.correct) || null;
-    setDailyLastMistake(lastMistake);
-    setFinalScore(score);
-    setDailyPassed(score >= 8);
-    setScreen("end");
-    return;
-  }
-
-  setTimeout(() => {
-    setIdx(nextIdx);
-    setSelected(null);
-  }, 600);
+    setTimeout(() => {
+      setIdx(nextIdx);
+      setSelected(null);
+    }, 600);
   };
 
   const handleFreeAnswer = (isCorrect, selectedArticle) => {
@@ -907,7 +1040,10 @@ export default function App() {
 }
 
   // ── Leaderboard helpers ────────────────────────────────
-  const currentLbData   = lbData[lbTab];
+  const currentLbData =
+  leaderboardMode === "daily"
+    ? dailyLbData[lbTab]
+    : survivalLbData[lbTab];
   const isUserInTop10   = currentLbData?.top10?.some(p => p.telegram_id === telegramId);
   const correctCount    = answerHistory.filter(a => a.correct).length;
   const incorrectCount  = answerHistory.length - correctCount;
@@ -1813,93 +1949,180 @@ return (
                 <h1 style={{ margin: "0 0 0 12px", fontSize: 24, fontWeight: 800, color: "#2D2D2D" }}>Leaderboard</h1>
               </div>
 
-              {/* Tabs */}
-              <div style={{ display: "flex", background: "#FFFFFF", border: "2px solid #D8D1C7", borderRadius: 48, padding: 4, position: "relative" }}>
-                {["beginner", "intermediate", "advanced", "artikelgott"].map(d => (
+              {/* Mode Tabs */}
+              <div
+                style={{
+                  display: "flex",
+                  background: "#FFFFFF",
+                  border: "2px solid #D8D1C7",
+                  borderRadius: 48,
+                  padding: 4,
+                  marginBottom: 12,
+                  position: "relative"
+                }}
+              >
+                {["daily", "survival"].map(mode => (
                   <button
-                    key={d}
-                    onClick={() => { haptic("light"); switchTab(d); }}
-                    style={{ flex: 1, padding: "10px 0", border: "none", borderRadius: 48, background: "transparent", color: lbTab === d ? "#FFFFFF" : "#767676", fontSize: 14, fontWeight: 800, cursor: "pointer", position: "relative", zIndex: 1 }}>
-                    {lbTab === d && (
+                    key={mode}
+                    onClick={() => switchLeaderboardMode(mode)}
+                    style={{
+                      flex: 1,
+                      padding: "10px 0",
+                      border: "none",
+                      borderRadius: 48,
+                      background: "transparent",
+                      color: leaderboardMode === mode ? "#FFFFFF" : "#767676",
+                      fontSize: 14,
+                      fontWeight: 800,
+                      cursor: "pointer",
+                      position: "relative",
+                      zIndex: 1
+                    }}
+                  >
+                    {leaderboardMode === mode && (
                       <motion.div
-                        layoutId="leaderboardTab"
-                        style={{ position: "absolute", inset: 0, background: ORANGE, borderRadius: 48, zIndex: -1 }}
+                        layoutId="leaderboardModeTab"
+                        style={{
+                          position: "absolute",
+                          inset: 0,
+                          background: ORANGE,
+                          borderRadius: 48,
+                          zIndex: -1
+                        }}
                         transition={{ type: "spring", stiffness: 400, damping: 30 }}
                       />
                     )}
-                    {DIFFICULTY_LABELS[d]}
+
+                    {mode === "daily" ? "Daily" : "Survival"}
                   </button>
                 ))}
               </div>
             </div>
 
-            {/* Scrollable list */}
-            {lbLoading ? (
-              <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <motion.div
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                  style={{ width: 32, height: 32, border: `3px solid #E6E1DA`, borderTop: `3px solid ${ORANGE}`, borderRadius: "50%" }}
-                />
-              </div>
-            ) : currentLbData ? (
-              <>
-                <div style={{ flex: 1, overflowY: "auto", padding: "12px 16px" }}>
-                  {currentLbData.top10.length === 0 ? (
-                    <p style={{ textAlign: "center", color: "#ADADAD", marginTop: 48 }}>No scores yet. Be the first!</p>
-                  ) : (
-                    currentLbData.top10.map((player, i) => {
-                      const isMe = player.telegram_id === telegramId;
-                      return (
-                        <div
-                          key={player.id}
-                          style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 16px", borderRadius: 16, marginBottom: 4, background: isMe ? "#FFF4E8" : "#FFFFFF", border: `2px solid ${isMe ? ORANGE : "#F0EBE3"}` }}>
-                          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                            <span style={{ fontSize: 15, fontWeight: 800, color: i < 3 ? ORANGE : "#ADADAD", width: 24 }}>
-                              {i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `${i + 1}.`}
-                            </span>
-                            <span style={{ fontSize: 15, fontWeight: isMe ? 800 : 600, color: "#2D2D2D" }}>
-                              {player.username || "Anonymous"} {isMe ? "(you)" : ""}
-                            </span>
-                          </div>
-                          <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                            <img src="/icons/flame.svg" style={{ width: 16, height: 16 }} />
-                            <span style={{ fontSize: 15, fontWeight: 800, color: isMe ? ORANGE : "#2D2D2D" }}>{player.best_score}</span>
-                          </div>
-                        </div>
-                      );
-                    })
-                  )}
-                </div>
+          {/* Content */}
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={leaderboardMode}
+              initial={{ opacity: 0, x: leaderboardMode === "daily" ? -20 : 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: leaderboardMode === "daily" ? 20 : -20 }}
+              transition={{ duration: 0.2 }}
+            >
+              {/* Difficulty Tabs */}
+              <div style={{ padding: "0 20px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", padding: "0 12px", marginTop: 0, borderBottom: "2px solid #E6E1DA" }}>
+                    {[
+                      ["beginner", "Easy"],
+                      ["intermediate", "Medium"],
+                      ["advanced", "Hard"],
+                      ["artikelgott", "Artikelgott"]
+                    ].map(([value, label]) => (
+                      <button
+                        key={value}
+                        onClick={() => { haptic("light"); switchTab(value); }}
+                        style={{
+                          flex: 1,
+                          background: "none",
+                          border: "none",
+                          padding: "8px 0",
+                          cursor: "pointer",
+                          color: lbTab === value ? "#2D2D2D" : "#ADADAD",
+                          fontSize: 14,
+                          fontWeight: lbTab === value ? 800 : 600,
+                          position: "relative"
+                        }}
+                      >
+                        {label}
 
-                {/* Pinned bottom — only when user is outside top 10 */}
-                {!isUserInTop10 && (
-                  <div style={{ flexShrink: 0, padding: "8px 16px 32px", borderTop: "1px solid #F0EBE3" }}>
-                    {currentLbData.userRow ? (
-                      <>
-                        <div style={{ textAlign: "center", color: "#ADADAD", fontSize: 18, padding: "4px 0 8px" }}>•••</div>
-                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 16px", borderRadius: 16, background: "#FFF4E8", border: `2px solid ${ORANGE}` }}>
-                          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                            <span style={{ fontSize: 15, fontWeight: 800, color: ORANGE, width: 24 }}>{currentLbData.userRank}.</span>
-                            <span style={{ fontSize: 15, fontWeight: 800, color: "#2D2D2D" }}>
-                              {currentLbData.userRow.username || "Anonymous"} (you)
-                            </span>
+                        {lbTab === value && (
+                          <motion.div
+                            layoutId="leaderboardDifficulty"
+                            style={{
+                              position: "absolute",
+                              left: 4,
+                              right: 4,
+                              bottom: -2,
+                              height: 3,
+                              borderRadius: 999,
+                              background: ORANGE
+                            }}
+                            transition={{ type: "spring", stiffness: 450, damping: 35 }}
+                          />
+                        )}
+                      </button>
+                    ))}
+                </div>
+              </div>
+
+              {/* Scrollable list */}
+              {lbLoading ? (
+                <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <motion.div
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                    style={{ width: 32, height: 32, border: `3px solid #E6E1DA`, borderTop: `3px solid ${ORANGE}`, borderRadius: "50%" }}
+                  />
+                </div>
+              ) : currentLbData ? (
+                <>
+                  <div style={{ flex: 1, overflowY: "auto", padding: "12px 16px" }}>
+                    {currentLbData.top10.length === 0 ? (
+                      <p style={{ textAlign: "center", color: "#ADADAD", marginTop: 48 }}>No scores yet. Be the first!</p>
+                    ) : (
+                      currentLbData.top10.map((player, i) => {
+                        const isMe = player.telegram_id === telegramId;
+                        return (
+                          <div
+                            key={player.id}
+                            style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 16px", borderRadius: 16, marginBottom: 4, background: isMe ? "#FFF4E8" : "#FFFFFF", border: `2px solid ${isMe ? ORANGE : "#F0EBE3"}` }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                              <span style={{ fontSize: 15, fontWeight: 800, color: i < 3 ? ORANGE : "#ADADAD", width: 24 }}>
+                                {i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `${i + 1}.`}
+                              </span>
+                              <span style={{ fontSize: 15, fontWeight: isMe ? 800 : 600, color: "#2D2D2D" }}>
+                                {player.username || "Anonymous"} {isMe ? "(you)" : ""}
+                              </span>
+                            </div>
+                            <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                              <img src="/icons/flame.svg" style={{ width: 16, height: 16 }} />
+                              <span style={{ fontSize: 15, fontWeight: 800, color: isMe ? ORANGE : "#2D2D2D" }}>{player.best_score}</span>
+                            </div>
                           </div>
-                          <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                            <img src="/images/streak.png" style={{ width: 20, height: 20 }} />
-                            <span style={{ fontSize: 15, fontWeight: 800, color: ORANGE }}>{currentLbData.userRow.best_score}</span>
-                          </div>
-                        </div>
-                      </>
-                    ) : telegramId ? (
-                      <p style={{ textAlign: "center", color: "#ADADAD", fontSize: 14, padding: "12px 0", margin: 0 }}>
-                        You haven't played this level yet.
-                      </p>
-                    ) : null}
+                        );
+                      })
+                    )}
                   </div>
-                )}
-              </>
-            ) : null}
+
+                  {/* Pinned bottom — only when user is outside top 10 */}
+                  {!isUserInTop10 && (
+                    <div style={{ flexShrink: 0, padding: "8px 16px 32px", borderTop: "1px solid #F0EBE3" }}>
+                      {currentLbData.userRow ? (
+                        <>
+                          <div style={{ textAlign: "center", color: "#ADADAD", fontSize: 18, padding: "4px 0 8px" }}>•••</div>
+                          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 16px", borderRadius: 16, background: "#FFF4E8", border: `2px solid ${ORANGE}` }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                              <span style={{ fontSize: 15, fontWeight: 800, color: ORANGE, width: 24 }}>{currentLbData.userRank}.</span>
+                              <span style={{ fontSize: 15, fontWeight: 800, color: "#2D2D2D" }}>
+                                {currentLbData.userRow.username || "Anonymous"} (you)
+                              </span>
+                            </div>
+                            <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                              <img src="/images/streak.png" style={{ width: 20, height: 20 }} />
+                              <span style={{ fontSize: 15, fontWeight: 800, color: ORANGE }}>{currentLbData.userRow.best_score}</span>
+                            </div>
+                          </div>
+                        </>
+                      ) : telegramId ? (
+                        <p style={{ textAlign: "center", color: "#ADADAD", fontSize: 14, padding: "12px 0", margin: 0 }}>
+                          You haven't played this level yet.
+                        </p>
+                      ) : null}
+                    </div>
+                  )}
+                </>
+              ) : null}
+            </motion.div>
+          </AnimatePresence>
 
           </div>
         </motion.div>
