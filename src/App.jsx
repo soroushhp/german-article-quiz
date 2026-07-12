@@ -2102,7 +2102,7 @@ return (
                         return (
                           <div
                             key={player.id}
-                            style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 16px", borderRadius: 16, marginBottom: 4, background: isMe ? "#FFF4E8" : "#FFFFFF", border: `2px solid ${isMe ? ORANGE : "#F0EBE3"}` }}>
+                            style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 16px", borderRadius: 16, marginBottom: 4, background: isMe ? "#FFF4E8" : "#FFFFFF", border: `2px solid ${isMe ? ORANGE : "#F0EBE3"}` }}>
                             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                               <span style={{ fontSize: 15, fontWeight: 800, color: i < 3 ? ORANGE : "#ADADAD", width: 24 }}>
                                 {i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `${i + 1}.`}
@@ -2136,7 +2136,7 @@ return (
                       {currentLbData.userRow ? (
                         <>
                           <div style={{ textAlign: "center", color: "#ADADAD", fontSize: 18, padding: "4px 0 8px" }}>•••</div>
-                          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 16px", borderRadius: 16, background: "#FFF4E8", border: `2px solid ${ORANGE}` }}>
+                          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 16px", borderRadius: 16, background: "#FFF4E8", border: `2px solid ${ORANGE}` }}>
                             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                               <span style={{ fontSize: 15, fontWeight: 800, color: ORANGE, width: 24 }}>{currentLbData.userRank}.</span>
                               <span style={{ fontSize: 15, fontWeight: 800, color: "#2D2D2D" }}>
