@@ -999,45 +999,34 @@ export default function App() {
     width: "100%",
   };
 
-  function getDailyButtonStyle(status, isPassed, isDisabled) {
-  const base = {
-    ...menuBtnStyle,
-    cursor: isDisabled ? "default" : "pointer",
-  };
+  function getDailyButtonStyle(status, isDisabled) {
+    const base = {
+      ...menuBtnStyle,
+      cursor: isDisabled ? "default" : "pointer",
+    };
 
-  switch (status) {
-    case "locked":
-      return {
-        ...base,
-        background: "#FAF7F2",       // flat off-white, matches Free Mode's disabled convention
-        border: "2px solid #E5E0D8", // receding, muted border
-      };
+    switch (status) {
+      case "locked":
+      case "completed":
+        return {
+          ...base,
+          opacity: 0.65,
+          background: "#FAF7F2",
+          border: "2px solid #E5E0D8",
+        };
 
-    case "completed":
-      return isPassed
-        ? {
-            ...base,
-            background: `${GREEN}1A`, // GREEN at ~10% opacity (hex alpha)
-            border: `2px solid ${GREEN}66`, // GREEN at ~40% opacity
-          }
-        : {
-            ...base,
-            background: `${RED}1A`,
-            border: `2px solid ${RED}66`,
-          };
+      case "in_progress":
+        return {
+          ...base,
+          background: menuBtnStyle.background,
+          border: "2px solid #D9D3C7",
+        };
 
-    case "in_progress":
-      return {
-        ...base,
-        background: menuBtnStyle.background,
-        border: "2px solid #D9D3C7", // slightly more present than default, still neutral
-      };
-
-    case "ready":
-    default:
-      return base; // full default menuBtnStyle, no overrides
+      case "ready":
+      default:
+        return base;
+    }
   }
-}
 
   // ── Leaderboard helpers ────────────────────────────────
   const currentLbData =
@@ -1282,8 +1271,8 @@ return (
                           );
                           else if (isCompleted)
                           subtitle = (
-                            <span style={{ color: isPassed ? GREEN : RED }}>
-                              {isPassed ? "✓" : "✗"} {score}/10
+                            <span style={{ color: isPassed ? GREEN : RED, fontWeight: 700 }}>
+                              {isPassed ? "✓ Completed" : "✗ Failed"}
                             </span>
                           );
                           else if (isInProgress)
