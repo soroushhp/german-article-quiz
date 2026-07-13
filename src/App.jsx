@@ -83,7 +83,7 @@ const PAGE_LAYOUT = {
   inset: 0,
   width: "100%",
   height: "100vh",
-  background: "#FFFAF4",
+  background: BG,
   overflow: "hidden"
 };
 
@@ -586,7 +586,7 @@ export default function App() {
     }
 
     try {
-      tg.setHeaderColor?.("#FFFAF4");
+      tg.setHeaderColor?.(BG);
     } catch (e) {
       console.warn("setHeaderColor not supported:", e);
     }
@@ -983,12 +983,12 @@ export default function App() {
   const current = queue[idx];
 
   const btnStyle = (art) => {
-    if (!selected) return { bg: "#FFFFFF", color: TEXT, border: "2px solid BORDER" };
+    if (!selected) return { bg: SURFACE, color: TEXT, border: `2px solid ${BORDER}` };
     const isCorrect = art === queue[idx].article;
     const isChosen  = art === selected;
-    if (isCorrect)              return { bg: GREEN, color: "#FFFFFF", border: `2px solid ${GREEN}` };
-    if (isChosen && !isCorrect) return { bg: RED,   color: "#FFFFFF", border: `2px solid ${RED}` };
-    return { bg: "#FFFFFF", color: TEXT_SECONDARY, border: `2px solid ${BORDER}` };
+    if (isCorrect)              return { bg: GREEN, color: SURFACE, border: `2px solid ${GREEN}` };
+    if (isChosen && !isCorrect) return { bg: RED,   color: SURFACE, border: `2px solid ${RED}` };
+    return { bg: SURFACE, color: TEXT_SECONDARY, border: `2px solid ${BORDER}` };
   };
 
   const modalTitle = isLevelComplete ? "Level Complete!" : isNewHigh ? "New High Score!" : "Streak Broken!";
@@ -997,7 +997,7 @@ export default function App() {
     padding: "16px 24px",
     borderRadius: 48,
     border: `2px solid ${BORDER}`,
-    background: "#FFFFFF",
+    background: SURFACE,
     color: TEXT,
     fontSize: 16,
     fontWeight: 700,
@@ -1021,7 +1021,7 @@ export default function App() {
         return {
           ...base,
           opacity: 0.65,
-          background: "#FAF7F2",
+          background: SURFACE,
           border: `2px solid ${BORDER}`,
         };
 
@@ -1049,7 +1049,7 @@ export default function App() {
 
 // ── Render ─────────────────────────────────────────────
 return (
-  <div style={{ width: "100%", minHeight: "100vh", background: "#FFFAF4", color: TEXT, fontFamily: "'Nunito', sans-serif", colorScheme: "light", position: "relative", overflow: "hidden" }}>
+  <div style={{ width: "100%", minHeight: "100vh", background: BG, color: TEXT, fontFamily: "'Nunito', sans-serif", colorScheme: "light", position: "relative", overflow: "hidden" }}>
 
     {/* ─────────────────────────────────────────────
         Popups
@@ -1077,7 +1077,7 @@ return (
           transition={{ duration: 0.25 }}
           exit={{ scale: 0.8, opacity: 0 }}
           style={{
-            background: "#FFFFFF",
+            background: SURFACE,
             borderRadius: 24,
             padding: "32px 24px",
             maxWidth: 420,
@@ -1128,7 +1128,7 @@ return (
               borderRadius: 48,
               border: `2px solid ${GREEN}`,
               background: GREEN,
-              color: "#FFFFFF",
+              color: SURFACE,
               fontSize: 15,
               fontWeight: 700,
               cursor: "pointer"
@@ -1157,15 +1157,15 @@ return (
                   <div style={{ position: "fixed", top: topInset, right: 16, display: "flex", gap: 8, zIndex: 10 }}>
                     <motion.button
                       onClick={() => { haptic("light"); openLeaderboard(); }}
-                      whileTap={{ scale: 0.95, backgroundColor: "#fff6eb" }}
-                      style={{ width: 36, height: 36, border: "2px solid #FF7A00", background: "transparent", borderRadius: "50%", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", padding: 0, fontSize: 20 }}>
+                      whileTap={{ scale: 0.95, backgroundColor: BORDER_LIGHT }}
+                      style={{ width: 36, height: 36, border: `2px solid ${ORANGE}`, background: "transparent", borderRadius: "50%", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", padding: 0, fontSize: 20 }}>
                       <img src="/icons/podium.svg" width={28} height={28} />
                     </motion.button>
 
                     <motion.button
                       onClick={() => setShowHelp(true)}
-                      whileTap={{ scale: 0.95, backgroundColor: BORDER }}
-                      style={{ width: 36, height: 36, border: "2px solid BORDER", background: "transparent", borderRadius: "50%", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", padding: 0, fontSize: 20, fontWeight: 800 }}>
+                      whileTap={{ scale: 0.95, backgroundColor: BORDER_LIGHT }}
+                      style={{ width: 36, height: 36, border: `2px solid ${TEXT_SECONDARY}`, background: "transparent", borderRadius: "50%", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", padding: 0, fontSize: 20, fontWeight: 800 }}>
                       <img src="/icons/help.svg" width={28} height={28} />
                     </motion.button>
                   </div>
@@ -1179,12 +1179,12 @@ return (
                   </div>
 
                   {/* Mode toggle */}
-                  <div style={{ display: "flex", background: "#FFFFFF", border: "2px solid BORDER", borderRadius: 48, padding: 4, marginBottom: 24, position: "relative" }}>
+                  <div style={{ display: "flex", background: SURFACE, border: `2px solid ${BORDER}`, borderRadius: 48, padding: 4, marginBottom: 24, position: "relative" }}>
                     {["daily", "free"].map(m => (
                       <button
                         key={m}
                         onClick={() => { haptic("light"); setMode(m); }}
-                        style={{ flex: 1, padding: "12px 0", border: "none", borderRadius: 48, background: "transparent", color: mode === m ? "#FFFFFF" : TEXT_SECONDARY, fontSize: 15, fontWeight: 800, cursor: "pointer", position: "relative", zIndex: 1 }}
+                        style={{ flex: 1, padding: "12px 0", border: "none", borderRadius: 48, background: "transparent", color: mode === m ? SURFACE : TEXT_SECONDARY, fontSize: 15, fontWeight: 800, cursor: "pointer", position: "relative", zIndex: 1 }}
                       >
                         {mode === m && (
                           <motion.div
@@ -1410,7 +1410,7 @@ return (
           <div style={{ width: "100%", height: "100%", paddingTop: topInset + TOP_BAR_HEIGHT, paddingBottom: 98, paddingLeft: 16, paddingRight: 16, boxSizing: "border-box", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
 
             {/* Top bar */}
-            <div style={{ position: "fixed", top: topInset, left: 0, right: 0, background: "#FFFAF4", zIndex: 10, padding: "16px 16px 12px" }}>
+            <div style={{ position: "fixed", top: topInset, left: 0, right: 0, background: BG, zIndex: 10, padding: "16px 16px 12px" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
                 <button
                   onClick={() => setShowQuitPopup(true)}
@@ -1506,7 +1506,7 @@ return (
                 exit={{ opacity: 0, x: -30 }}
                 transition={{ duration: 0.22, ease: "easeInOut" }}
                 style={{ width: "100%", maxWidth: 448, margin: "0 auto" }}>
-                <div style={{ background: "#FFFFFF", borderRadius: 24, boxShadow: "0 4px 16px rgba(0,0,0,0.06)", padding: "32px 16px", textAlign: "center", height: 300, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "space-between" }}>
+                <div style={{ background: SURFACE, borderRadius: 24, boxShadow: "0 4px 16px rgba(0,0,0,0.06)", padding: "32px 16px", textAlign: "center", height: 300, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "space-between" }}>
 
                   {reviewAnswer ? (
                     <div style={{ display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", height: "100%", gap: 12 }}>
@@ -1567,8 +1567,8 @@ return (
                     width: "100%",
                     padding: "16px 0",
                     borderRadius: 48,
-                    border: "2px solid BORDER",
-                    background: "#FFFFFF",
+                    border: `2px solid ${BORDER}`,
+                    background: SURFACE,
                     color: TEXT,
                     fontSize: 18,
                     fontWeight: 700,
@@ -1631,7 +1631,7 @@ return (
                   animate={{ scale: 1, opacity: 1 }}
                   exit={{ scale: 0.8, opacity: 0 }}
                   transition={{ duration: 0.25, ease: "easeOut" }}
-                  style={{ background: "#FFFFFF", borderRadius: 24, padding: "36px 28px", maxWidth: 320, width: "100%", textAlign: "center", boxShadow: "0 8px 40px rgba(0,0,0,0.12)" }}>
+                  style={{ background: SURFACE, borderRadius: 24, padding: "36px 28px", maxWidth: 320, width: "100%", textAlign: "center", boxShadow: "0 8px 40px rgba(0,0,0,0.12)" }}>
                   <div style={{ fontSize: 48, marginBottom: 16 }}>🤔</div>
                   <h2 style={{ margin: "0 0 12px", fontSize: 24, color: TEXT }}>Quit game?</h2>
                   <p style={{ color: TEXT_SECONDARY, fontSize: 14, marginBottom: 28 }}>
@@ -1642,12 +1642,12 @@ return (
                       <>
                         <button
                           onClick={() => setShowQuitPopup(false)}
-                          style={{ flex: 1, padding: "13px 0", borderRadius: 24, border: `2px solid ${GREEN}`, background: GREEN, color: "#FFFFFF", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
+                          style={{ flex: 1, padding: "13px 0", borderRadius: 24, border: `2px solid ${GREEN}`, background: GREEN, color: SURFACE, fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
                           Keep Playing
                         </button>
                         <button
                           onClick={() => setScreen("menu")}
-                          style={{ flex: 1, padding: "13px 0", borderRadius: 24, border: "2px solid BORDER", background: "#FFFFFF", color: TEXT, fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
+                          style={{ flex: 1, padding: "13px 0", borderRadius: 24, border: `2px solid ${BORDER}`, background: SURFACE, color: TEXT, fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
                           Save & Quit
                         </button>
                       </>
@@ -1655,12 +1655,12 @@ return (
                       <>
                         <button
                           onClick={() => setShowQuitPopup(false)}
-                          style={{ flex: 1, padding: "13px 0", borderRadius: 24, border: "2px solid BORDER", background: "#FFFFFF", color: TEXT, fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
+                          style={{ flex: 1, padding: "13px 0", borderRadius: 24, border: `2px solid ${BORDER}`, background: SURFACE, color: TEXT, fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
                           Keep Playing
                         </button>
                         <button
                           onClick={() => setScreen("menu")}
-                          style={{ flex: 1, padding: "13px 0", borderRadius: 24, border: `2px solid ${RED}`, background: RED, color: "#FFFFFF", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
+                          style={{ flex: 1, padding: "13px 0", borderRadius: 24, border: `2px solid ${RED}`, background: RED, color: SURFACE, fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
                           Quit
                         </button>
                       </>
@@ -1745,18 +1745,18 @@ return (
                                   if (!next) return;
                                   startDaily(next);
                                 }}
-                                style={{ padding: "14px 0", borderRadius: 48, border: `2px solid ${GREEN}`, background: GREEN, color: "#FFFFFF", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
+                                style={{ padding: "14px 0", borderRadius: 48, border: `2px solid ${GREEN}`, background: GREEN, color: SURFACE, fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
                                 Play Next Level
                               </button>
                             )}
                             <button
                               onClick={shareScore}
-                              style={{ padding: "14px 0", borderRadius: 48, border: `2px solid ${ORANGE}`, background: ORANGE, color: "#FFFFFF", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
+                              style={{ padding: "14px 0", borderRadius: 48, border: `2px solid ${ORANGE}`, background: ORANGE, color: SURFACE, fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
                               Share Score
                             </button>
                             <button
                               onClick={() => setScreen("menu")}
-                              style={{ padding: "14px 0", borderRadius: 48, border: `2px solid ${BORDER}`, background: "#FFFFFF", color: TEXT, fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
+                              style={{ padding: "14px 0", borderRadius: 48, border: `2px solid ${BORDER}`, background: SURFACE, color: TEXT, fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
                               Home
                             </button>
                           </div>
@@ -1819,17 +1819,17 @@ return (
                           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                             <button
                               onClick={() => startGame(difficulty)}
-                              style={{ padding: "14px 0", borderRadius: 48, border: `2px solid ${GREEN}`, background: GREEN, color: "#FFFFFF", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
+                              style={{ padding: "14px 0", borderRadius: 48, border: `2px solid ${GREEN}`, background: GREEN, color: SURFACE, fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
                               Play Again
                             </button>
                             <button
                               onClick={shareScore}
-                              style={{ padding: "14px 0", borderRadius: 48, border: `2px solid ${ORANGE}`, background: ORANGE, color: "#FFFFFF", fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
+                              style={{ padding: "14px 0", borderRadius: 48, border: `2px solid ${ORANGE}`, background: ORANGE, color: SURFACE, fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
                               Share Score
                             </button>
                             <button
                               onClick={() => setScreen("menu")}
-                              style={{ padding: "14px 0", borderRadius: 48, border: `2px solid ${BORDER}`, background: "#FFFFFF", color: TEXT, fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
+                              style={{ padding: "14px 0", borderRadius: 48, border: `2px solid ${BORDER}`, background: SURFACE, color: TEXT, fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
                               Home
                             </button>
                           </div>
@@ -1860,7 +1860,7 @@ return (
           <div style={{ height: "100vh", display: "flex", flexDirection: "column", maxWidth: 480, margin: "0 auto", boxSizing: "border-box" }}>
 
             {/* Fixed header */}
-            <div style={{ flexShrink: 0, padding: `${topInset}px 16px 12px`, background: "#FFFAF4" }}>
+            <div style={{ flexShrink: 0, padding: `${topInset}px 16px 12px`, background: BG }}>
               <div style={{ display: "flex", alignItems: "center" }}>
                 <motion.button
                   onClick={() => setOverlay(null)}
@@ -1916,7 +1916,7 @@ return (
                       </span>
                     </div>
                     {answerHistory.filter(a => a.correct).map((answer, i) => (
-                      <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, background: "#FFFFFF", border: "2px solid #F0EBE3", borderRadius: 16, padding: "8px 14px", marginBottom: 4 }}>
+                      <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, background: SURFACE, border: "2px solid #F0EBE3", borderRadius: 16, padding: "8px 14px", marginBottom: 4 }}>
                         <div style={{ flex: 1 }}>
                           <div style={{ fontSize: 15, fontWeight: 700, color: TEXT, lineHeight: 1.3 }}>
                             {answer.article} {answer.word}
@@ -1930,7 +1930,7 @@ return (
 
               </div>
               {/* Bottom fade overlay */}
-              <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: 64, background: "linear-gradient(to bottom, transparent, #FFFAF4)", pointerEvents: "none" }} />
+              <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: 64, background: "linear-gradient(to bottom, transparent, ${BG})", pointerEvents: "none" }} />
             </div>
 
           </div>
@@ -1950,7 +1950,7 @@ return (
           <div style={{ display: "flex", flexDirection: "column", height: "100vh", maxWidth: 480, margin: "0 auto", boxSizing: "border-box" }}>
 
             {/* Header */}
-            <div style={{ flexShrink: 0, background: "#FFFAF4", padding: `${topInset}px 16px 12px` }}>
+            <div style={{ flexShrink: 0, background: BG, padding: `${topInset}px 16px 12px` }}>
               <div style={{ display: "flex", alignItems: "center", marginBottom: 24 }}>
                 <motion.button
                   onClick={() => { haptic("light"); setOverlay(null); }}
@@ -1965,7 +1965,7 @@ return (
               <div
                 style={{
                   display: "flex",
-                  background: "#FFFFFF",
+                  background: SURFACE,
                   border: `2px solid ${BORDER}`,
                   borderRadius: 48,
                   padding: 4,
@@ -1983,7 +1983,7 @@ return (
                       border: "none",
                       borderRadius: 48,
                       background: "transparent",
-                      color: leaderboardMode === mode ? "#FFFFFF" : TEXT_SECONDARY,
+                      color: leaderboardMode === mode ? SURFACE : TEXT_SECONDARY,
                       fontSize: 16,
                       fontWeight: 800,
                       cursor: "pointer",
@@ -2101,7 +2101,7 @@ return (
                         return (
                           <div
                             key={player.id}
-                            style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 16px", borderRadius: 16, marginBottom: 4, background: isMe ? "#FFF4E8" : "#FFFFFF", border: `2px solid ${isMe ? ORANGE : "#F0EBE3"}` }}>
+                            style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 16px", borderRadius: 16, marginBottom: 4, background: isMe ? "#FFF4E8" : SURFACE, border: `2px solid ${isMe ? ORANGE : "#F0EBE3"}` }}>
                             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                               <span style={{ fontSize: 15, fontWeight: 800, color: i < 3 ? ORANGE : TEXT_SECONDARY, width: 24 }}>
                                 {i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `${i + 1}.`}
