@@ -14,7 +14,7 @@ const nextDifficulty = {
   advanced: "artikelgott"
 };
 
-const ORANGE = "#FF7A00";
+const PRIMARY = "#FF7A00";
 const GREEN = "#2E8B57";
 const RED = "#D94A4A";
 
@@ -1090,7 +1090,7 @@ return (
           </h2>
 
           <div style={{ marginBottom: 24 }}>
-            <h3 style={{ margin: "0 0 8px", color: ORANGE }}>
+            <h3 style={{ margin: "0 0 8px", color: PRIMARY }}>
               📅 Daily
             </h3>
 
@@ -1103,7 +1103,7 @@ return (
           </div>
 
           <div style={{ marginBottom: 24 }}>
-            <h3 style={{ margin: "0 0 8px", color: ORANGE }}>
+            <h3 style={{ margin: "0 0 8px", color: PRIMARY }}>
               ⚡ Survival
             </h3>
 
@@ -1158,7 +1158,7 @@ return (
                     <motion.button
                       onClick={() => { haptic("light"); openLeaderboard(); }}
                       whileTap={{ scale: 0.95, backgroundColor: BORDER_LIGHT }}
-                      style={{ width: 36, height: 36, border: `2px solid ${ORANGE}`, background: "transparent", borderRadius: "50%", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", padding: 0, fontSize: 20 }}>
+                      style={{ width: 36, height: 36, border: `2px solid ${PRIMARY}`, background: "transparent", borderRadius: "50%", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", padding: 0, fontSize: 20 }}>
                       <img src="/icons/podium.svg" width={28} height={28} />
                     </motion.button>
 
@@ -1189,7 +1189,7 @@ return (
                         {mode === m && (
                           <motion.div
                             layoutId="homeModeTab"
-                            style={{ position: "absolute", inset: 0, background: ORANGE, borderRadius: 48, zIndex: -1 }}
+                            style={{ position: "absolute", inset: 0, background: PRIMARY, borderRadius: 48, zIndex: -1 }}
                             transition={{ type: "spring", stiffness: 400, damping: 30 }}
                           />
                         )}
@@ -1434,7 +1434,7 @@ return (
                     </div>
                     <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
                       <img src="/icons/flame.svg" style={{ width: 32, height: 32 }} />
-                      <span style={{ fontSize: 28, fontWeight: 700, color: ORANGE }}>{streak}</span>
+                      <span style={{ fontSize: 28, fontWeight: 700, color: PRIMARY }}>{streak}</span>
                     </div>
                   </div>
                   <div style={{ width: "100%", height: 6, background: BORDER_LIGHT, borderRadius: 999 }}>
@@ -1689,7 +1689,7 @@ return (
                       {mode === "daily" ? (
                         <>
                           <div>
-                            <div style={{ fontSize: 64, fontWeight: 800, color: ORANGE, lineHeight: 1, marginBottom: 12 }}>
+                            <div style={{ fontSize: 64, fontWeight: 800, color: PRIMARY, lineHeight: 1, marginBottom: 12 }}>
                               {finalScore}/10
                             </div>
                             <h2 style={{ margin: "0 0 8px", fontSize: 18, color: TEXT }}>
@@ -1714,7 +1714,7 @@ return (
                                 background: "#FFF4E8",
                                 borderRadius: 16,
                                 padding: "16px 24px",
-                                border: `2px solid ${ORANGE}`,
+                                border: `2px solid ${PRIMARY}`,
                                 boxShadow: "0 4px 8px rgba(0,0,0,0.06)",
                                 transition: "all 0.35s",
                                 display: "flex",
@@ -1726,12 +1726,12 @@ return (
                                   <p style={{ fontSize: 12, color: TEXT_SECONDARY, marginBottom: 4 }}>Last mistake</p>
                                   <div style={{ fontSize: 15, color: RED, fontWeight: 700 }}>✗ {dailyLastMistake.selected} {dailyLastMistake.word}</div>
                                   <div style={{ fontSize: 15, color: GREEN, fontWeight: 700 }}>✓ {dailyLastMistake.article} {dailyLastMistake.word}</div>
-                                  <p style={{ fontSize: 14, color: ORANGE, marginTop: 8, fontWeight: 700 }}>Review answers →</p>
+                                  <p style={{ fontSize: 14, color: PRIMARY, marginTop: 8, fontWeight: 700 }}>Review answers →</p>
                                 </>
                               ) : (
                                 <>
                                   <p style={{ fontSize: 15, color: GREEN, fontWeight: 700, marginBottom: 32 }}>✓ No mistakes</p>
-                                  <p style={{ fontSize: 14, color: ORANGE, marginTop: 8, fontWeight: 700 }}>Review answers →</p>
+                                  <p style={{ fontSize: 14, color: PRIMARY, marginTop: 8, fontWeight: 700 }}>Review answers →</p>
                                 </>
                               )}
                             </div>
@@ -1751,7 +1751,7 @@ return (
                             )}
                             <button
                               onClick={shareScore}
-                              style={{ padding: "14px 0", borderRadius: 48, border: `2px solid ${ORANGE}`, background: ORANGE, color: SURFACE, fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
+                              style={{ padding: "14px 0", borderRadius: 48, border: `2px solid ${PRIMARY}`, background: PRIMARY, color: SURFACE, fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
                               Share Score
                             </button>
                             <button
@@ -1764,12 +1764,12 @@ return (
                       ) : (
                         <>
                           {isNewHigh && (
-                            <div style={{ color: ORANGE, fontWeight: 800, fontSize: 16, marginBottom: 12 }}>🏆 NEW HIGH SCORE!</div>
+                            <div style={{ color: PRIMARY, fontWeight: 800, fontSize: 16, marginBottom: 12 }}>🏆 NEW HIGH SCORE!</div>
                           )}  
                           <div>                   
                           <div style={{ display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 8 }}>
                             <img src="/icons/flame.svg" style={{ width: 76, height: 76 }} />
-                            <div style={{ fontSize: 96, fontWeight: 800, color: ORANGE, lineHeight: 1 }}>{finalScore}</div>
+                            <div style={{ fontSize: 96, fontWeight: 800, color: PRIMARY, lineHeight: 1 }}>{finalScore}</div>
                           </div>
                           <h2 style={{ margin: "0 0 8px", fontSize: 24, color: TEXT }}>{modalTitle}</h2>
                           <p style={{ color: TEXT_SECONDARY, fontSize: 13, marginBottom: 16 }}>
@@ -1793,7 +1793,7 @@ return (
                                 background: "#FFF4E8",
                                 borderRadius: 16,
                                 padding: "16px 24px",
-                                border: `2px solid ${ORANGE}`,
+                                border: `2px solid ${PRIMARY}`,
                                 boxShadow: "0 4px 8px rgba(0,0,0,0.06)",
                                 transition: "all 0.35s",
                                 display: "flex",
@@ -1803,14 +1803,14 @@ return (
                               {isLevelComplete ? (
                                 <>
                                   <p style={{ fontSize: 15, color: GREEN, fontWeight: 700, marginBottom: 32 }}>✓ No mistakes</p>
-                                  <p style={{ fontSize: 14, color: ORANGE, marginTop: 8, fontWeight: 700 }}>Review answers →</p>
+                                  <p style={{ fontSize: 14, color: PRIMARY, marginTop: 8, fontWeight: 700 }}>Review answers →</p>
                                 </>
                               ) : (
                                 <>
                                   <p style={{ fontSize: 12, color: TEXT_SECONDARY, marginBottom: 4 }}>Last mistake</p>
                                   <div style={{ fontSize: 15, color: RED, fontWeight: 700 }}>✗ {selected} {current.word}</div>
                                   <div style={{ fontSize: 15, color: GREEN, fontWeight: 700 }}>✓ {current.article} {current.word}</div>
-                                  <p style={{ fontSize: 14, color: ORANGE, marginTop: 8, fontWeight: 700 }}>Review answers →</p>
+                                  <p style={{ fontSize: 14, color: PRIMARY, marginTop: 8, fontWeight: 700 }}>Review answers →</p>
                                 </>
                               )}
                             </div>
@@ -1824,7 +1824,7 @@ return (
                             </button>
                             <button
                               onClick={shareScore}
-                              style={{ padding: "14px 0", borderRadius: 48, border: `2px solid ${ORANGE}`, background: ORANGE, color: SURFACE, fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
+                              style={{ padding: "14px 0", borderRadius: 48, border: `2px solid ${PRIMARY}`, background: PRIMARY, color: SURFACE, fontSize: 15, fontWeight: 700, cursor: "pointer" }}>
                               Share Score
                             </button>
                             <button
@@ -1997,7 +1997,7 @@ return (
                         style={{
                           position: "absolute",
                           inset: 0,
-                          background: ORANGE,
+                          background: PRIMARY,
                           borderRadius: 48,
                           zIndex: -1
                         }}
@@ -2056,7 +2056,7 @@ return (
                               bottom: -2,
                               height: 3,
                               borderRadius: 999,
-                              background: ORANGE
+                              background: PRIMARY
                             }}
                             transition={{ type: "spring", stiffness: 450, damping: 35 }}
                           />
@@ -2087,7 +2087,7 @@ return (
                   <motion.div
                     animate={{ rotate: 360 }}
                     transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                    style={{ width: 32, height: 32, border: `3px solid ${BORDER_LIGHT}`, borderTop: `3px solid ${ORANGE}`, borderRadius: "50%" }}
+                    style={{ width: 32, height: 32, border: `3px solid ${BORDER_LIGHT}`, borderTop: `3px solid ${PRIMARY}`, borderRadius: "50%" }}
                   />
                 </div>
               ) : currentLbData ? (
@@ -2101,9 +2101,9 @@ return (
                         return (
                           <div
                             key={player.id}
-                            style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 16px", borderRadius: 16, marginBottom: 4, background: isMe ? "#FFF4E8" : SURFACE, border: `2px solid ${isMe ? ORANGE : "#F0EBE3"}` }}>
+                            style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 16px", borderRadius: 16, marginBottom: 4, background: isMe ? "#FFF4E8" : SURFACE, border: `2px solid ${isMe ? PRIMARY : "#F0EBE3"}` }}>
                             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                              <span style={{ fontSize: 15, fontWeight: 800, color: i < 3 ? ORANGE : TEXT_SECONDARY, width: 24 }}>
+                              <span style={{ fontSize: 15, fontWeight: 800, color: i < 3 ? PRIMARY : TEXT_SECONDARY, width: 24 }}>
                                 {i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `${i + 1}.`}
                               </span>
                               <span style={{ fontSize: 15, fontWeight: isMe ? 800 : 600, color: TEXT }}>
@@ -2117,7 +2117,7 @@ return (
                                   : "/icons/flame.svg"}
                                 style={{ width: 16, height: 16 }}
                               />
-                              <span style={{ fontSize: 15, fontWeight: 800, color: isMe ? ORANGE : TEXT }}>
+                              <span style={{ fontSize: 15, fontWeight: 800, color: isMe ? PRIMARY : TEXT }}>
                                 {leaderboardMode === "daily"
                                   ? player.passed_challenges
                                   : player.best_score}
@@ -2135,16 +2135,16 @@ return (
                       {currentLbData.userRow ? (
                         <>
                           <div style={{ textAlign: "center", color: TEXT_MUTED, fontSize: 18, padding: "4px 0 8px" }}>•••</div>
-                          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 16px", borderRadius: 16, background: "#FFF4E8", border: `2px solid ${ORANGE}` }}>
+                          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 16px", borderRadius: 16, background: "#FFF4E8", border: `2px solid ${PRIMARY}` }}>
                             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                              <span style={{ fontSize: 15, fontWeight: 800, color: ORANGE, width: 24 }}>{currentLbData.userRank}.</span>
+                              <span style={{ fontSize: 15, fontWeight: 800, color: PRIMARY, width: 24 }}>{currentLbData.userRank}.</span>
                               <span style={{ fontSize: 15, fontWeight: 800, color: TEXT }}>
                                 {currentLbData.userRow.username || "Anonymous"} (you)
                               </span>
                             </div>
                             <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
                               <img src="/images/streak.png" style={{ width: 20, height: 20 }} />
-                              <span style={{ fontSize: 15, fontWeight: 800, color: ORANGE }}>{currentLbData.userRow.best_score}</span>
+                              <span style={{ fontSize: 15, fontWeight: 800, color: PRIMARY }}>{currentLbData.userRow.best_score}</span>
                             </div>
                           </div>
                         </>
