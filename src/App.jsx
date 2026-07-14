@@ -1154,20 +1154,68 @@ return (
                 <div style={{ maxWidth: 420, width: "100%" }}>
 
                   {/* Top bar */}
-                  <div style={{ position: "fixed", top: topInset, right: 16, display: "flex", gap: 8, zIndex: 10 }}>
+                  <div
+                    style={{
+                      position: "fixed",
+                      top: topInset,
+                      left: 16,
+                      right: 16,
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      zIndex: 10
+                    }}
+                  >
                     <motion.button
-                      onClick={() => { haptic("light"); openLeaderboard(); }}
-                      whileTap={{ scale: 0.95, backgroundColor: BORDER_LIGHT }}
-                      style={{ width: 36, height: 36, border: `2px solid ${PRIMARY}`, background: "transparent", borderRadius: "50%", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", padding: 0, fontSize: 20 }}>
-                      <img src="/icons/podium.svg" width={28} height={28} />
+                      onClick={() => { haptic("light"); openProfile(); }}
+                      whileTap={{ scale: 0.97, backgroundColor: BORDER_LIGHT }}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 10,
+                        padding: "6px 12px 6px 6px",
+                        border: `2px solid ${BORDER}`,
+                        background: SURFACE,
+                        borderRadius: 999,
+                        cursor: "pointer"
+                      }}
+                    >
+                      <img
+                        src={userPhoto || "/icons/profile.svg"}
+                        style={{
+                          width: 32,
+                          height: 32,
+                          borderRadius: "50%",
+                          objectFit: "cover"
+                        }}
+                      />
+
+                      <span
+                        style={{
+                          color: TEXT,
+                          fontSize: 15,
+                          fontWeight: 700
+                        }}
+                      >
+                        {firstName ? `Hi, ${firstName}!` : "Profile"}
+                      </span>
                     </motion.button>
 
-                    <motion.button
-                      onClick={() => setShowHelp(true)}
-                      whileTap={{ scale: 0.95, backgroundColor: BORDER_LIGHT }}
-                      style={{ width: 36, height: 36, border: `2px solid ${TEXT_SECONDARY}`, background: "transparent", borderRadius: "50%", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", padding: 0, fontSize: 20, fontWeight: 800 }}>
-                      <img src="/icons/help.svg" width={28} height={28} />
-                    </motion.button>
+                      <div style={{ display: "flex", gap: 8 }}>
+                        <motion.button
+                          onClick={() => { haptic("light"); openLeaderboard(); }}
+                          whileTap={{ scale: 0.95, backgroundColor: BORDER_LIGHT }}
+                          style={{ width: 36, height: 36, border: `2px solid ${PRIMARY}`, background: "transparent", borderRadius: "50%", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", padding: 0, fontSize: 20 }}>
+                          <img src="/icons/podium.svg" width={28} height={28} />
+                        </motion.button>
+
+                        <motion.button
+                          onClick={() => setShowHelp(true)}
+                          whileTap={{ scale: 0.95, backgroundColor: BORDER_LIGHT }}
+                          style={{ width: 36, height: 36, border: `2px solid ${TEXT_SECONDARY}`, background: "transparent", borderRadius: "50%", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", padding: 0, fontSize: 20, fontWeight: 800 }}>
+                          <img src="/icons/help.svg" width={28} height={28} />
+                        </motion.button>
+                      </div>
                   </div>
 
                   {/* Logo */}
