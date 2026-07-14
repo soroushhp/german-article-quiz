@@ -431,6 +431,15 @@ export default function App() {
 
   const [dailyCountdown, setDailyCountdown] = useState("");
 
+  const cardStyle = {
+    background: SURFACE,
+    border: `2px solid ${BORDER}`,
+    borderRadius: 20,
+    padding: 20,
+    marginBottom: 16,
+    boxShadow: "0 4px 8px rgba(0,0,0,0.04)"
+  };
+
   // Ticking countdown to next midnight, updates every second
   useEffect(() => {
     const tick = () => {
@@ -1038,6 +1047,40 @@ export default function App() {
       default:
         return base;
     }
+  }
+
+
+  function StatRow({ label, value }) {
+    return (
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          padding: "8px 0"
+        }}
+      >
+        <span
+          style={{
+            color: TEXT_SECONDARY,
+            fontSize: 15,
+            fontWeight: 600
+          }}
+        >
+          {label}
+        </span>
+
+        <span
+          style={{
+            color: TEXT,
+            fontSize: 17,
+            fontWeight: 800
+          }}
+        >
+          {value}
+        </span>
+      </div>
+    );
   }
 
   // ── Leaderboard helpers ────────────────────────────────
@@ -2338,8 +2381,40 @@ return (
               </p>
             </div>
 
+            <div style={cardStyle}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
+                <img src="/icons/chart.svg" width={22} height={22} />
+                <h3 style={{ margin: 0, fontSize: 20, fontWeight: 800, color: TEXT }}>Overall</h3>
+              </div>
 
+              <StatRow label="Total Answers" value="2841" />
+              <StatRow label="Correct Answers" value="2315" />
+              <StatRow label="Accuracy" value="81%" />
+            </div>
 
+            <div style={cardStyle}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
+                <img src="/images/daily.png" width={22} height={22} />
+                <h3 style={{ margin: 0, fontSize: 20, fontWeight: 800, color: TEXT }}>Daily</h3>
+              </div>
+
+              <StatRow label="Challenges Passed" value="42" />
+              <StatRow label="Current Streak" value="6" />
+              <StatRow label="Best Streak" value="18" />
+              <StatRow label="Accuracy" value="84%" />
+            </div>
+
+            <div style={cardStyle}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
+                <img src="/icons/flame.svg" width={22} height={22} />
+                <h3 style={{ margin: 0, fontSize: 20, fontWeight: 800, color: TEXT }}>Survival</h3>
+              </div>
+
+              <StatRow label="Best Run" value="145" />
+              <StatRow label="Games Played" value="93" />
+              <StatRow label="Words Answered" value="864" />
+              <StatRow label="Accuracy" value="79%" />
+            </div>
 
 
           </div>
