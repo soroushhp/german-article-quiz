@@ -427,6 +427,7 @@ export default function App() {
 
   const [userName, setUserName] = useState("");
   const [telegramId, setTelegramId] = useState(null);
+  const [userPhoto, setUserPhoto] = useState(null);
 
   const [dailyCountdown, setDailyCountdown] = useState("");
 
@@ -557,9 +558,10 @@ export default function App() {
   useEffect(() => {
   const tg = window.Telegram?.WebApp;
 
-  const loadUserData = async (id, name) => {
+  const loadUserData = async (id, name, photo) => {
     setTelegramId(id);
     if (name) setUserName(name);
+    if (photo) setUserPhoto(photo);
 
     const scores = await loadHighScores(id);
     setHighScores(scores);
@@ -594,13 +596,13 @@ export default function App() {
     setTimeout(() => {
       const user = tg.initDataUnsafe?.user;
       if (user?.id) {
-        loadUserData(String(user.id), user.first_name);
+        loadUserData(String(user.id), user.first_name, user.photo_url);
       } else if (import.meta.env.DEV) {
-        loadUserData("999997", "Local Tester");
+        loadUserData("999997", "Local Tester", null);
       }
     }, 300);
   } else if (import.meta.env.DEV) {
-    loadUserData("999997", "Local Tester");
+    loadUserData("999997", "Local Tester", null);
   }
   }, []);
 
@@ -1197,7 +1199,7 @@ return (
                           fontWeight: 700
                         }}
                       >
-                        {firstName ? `Hi, ${firstName}!` : "Profile"}
+                        {userName ? `Hi, ${userName}!` : "Profile"}
                       </span>
                     </motion.button>
 
