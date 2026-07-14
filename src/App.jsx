@@ -1169,7 +1169,7 @@ return (
                     }}
                   >
                     <motion.button
-                      onClick={() => { haptic("light"); openProfile(); }}
+                      onClick={() => { haptic("light"); setOverlay("profile"); }}
                       whileTap={{ scale: 0.97, opacity: 0.7 }}
                       style={{
                         display: "flex",
@@ -2218,8 +2218,136 @@ return (
           </div>
         </motion.div>
       )}
-    </AnimatePresence>
 
+      {/* ── PROFILE ── */}
+      {overlay === "profile" && (
+        <motion.div
+          key="profile"
+          initial={{ x: "100%" }}
+          animate={{ x: 0 }}
+          exit={{ x: "100%" }}
+          transition={PAGE_EASING}
+          style={{ ...PAGE_LAYOUT, zIndex: 20 }}
+        >
+          {/* Header */}
+          <div
+            style={{
+              flexShrink: 0,
+              padding: `${topInset}px 16px 24px`
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center" }}>
+              <motion.button
+                onClick={() => {
+                  haptic("light");
+                  setOverlay(null);
+                }}
+                whileTap={{ scale: 0.95, backgroundColor: BORDER_LIGHT }}
+                style={{
+                  width: 40,
+                  height: 40,
+                  border: "none",
+                  background: "transparent",
+                  borderRadius: "50%",
+                  color: TEXT_SECONDARY,
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  padding: 0
+                }}
+              >
+                <svg
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                >
+                  <path
+                    d="M20 12H4M10 18L4 12L10 6"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </motion.button>
+
+              <h1
+                style={{
+                  margin: "0 0 0 12px",
+                  fontSize: 24,
+                  fontWeight: 800,
+                  color: TEXT
+                }}
+              >
+                Profile
+              </h1>
+            </div>
+          </div>
+
+          {/* Scrollable Content */}
+          <div
+            style={{
+              flex: 1,
+              overflowY: "auto",
+              padding: "0 20px 32px"
+            }}
+          >
+            {/* Profile Header */}
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                marginBottom: 32
+              }}
+            >
+              <img
+                src={userPhoto || "/icons/profile.svg"}
+                style={{
+                  width: 88,
+                  height: 88,
+                  borderRadius: "50%",
+                  objectFit: "cover",
+                  border: `3px solid ${SURFACE}`,
+                  boxShadow: "0 4px 12px rgba(0,0,0,0.08)"
+                }}
+              />
+
+              <h2
+                style={{
+                  margin: "16px 0 4px",
+                  fontSize: 24,
+                  fontWeight: 800,
+                  color: TEXT
+                }}
+              >
+                {userName || "Player"}
+              </h2>
+
+              <p
+                style={{
+                  margin: 0,
+                  fontSize: 14,
+                  fontWeight: 600,
+                  color: TEXT_SECONDARY
+                }}
+              >
+                Article Fever Player
+              </p>
+            </div>
+
+
+
+
+
+          </div>
+
+        </motion.div>
+        )}
+
+    </AnimatePresence>
     </div>
   );
 }
