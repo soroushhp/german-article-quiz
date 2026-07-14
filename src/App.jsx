@@ -1187,6 +1187,7 @@ return (
                           width: 36,
                           height: 36,
                           borderRadius: "50%",
+                          border: `2px solid ${BORDER}`,
                           objectFit: "cover"
                         }}
                       />
