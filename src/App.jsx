@@ -1222,7 +1222,7 @@ return (
 
                   {/* Logo */}
                   <div style={{ textAlign: "center", marginBottom: 48 }}>
-                    <h1 style={{ fontSize: 36, fontWeight: 800, color: TEXT, letterSpacing: "0px", margin: 0 }}>
+                    <h1 style={{ fontSize: 32, fontWeight: 800, color: TEXT, letterSpacing: "0px", margin: 0 }}>
                       Article Fever
                     </h1>
                     <div style={{ width: 145, height: 4, borderRadius: 999, margin: "0px auto",
