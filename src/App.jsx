@@ -1170,23 +1170,22 @@ return (
                   >
                     <motion.button
                       onClick={() => { haptic("light"); openProfile(); }}
-                      whileTap={{ scale: 0.97, backgroundColor: BORDER_LIGHT }}
+                      whileTap={{ scale: 0.97, opacity: 0.7 }}
                       style={{
                         display: "flex",
                         alignItems: "center",
                         gap: 10,
-                        padding: "6px 12px 6px 6px",
-                        border: `2px solid ${BORDER}`,
-                        background: SURFACE,
-                        borderRadius: 999,
+                        border: "none",
+                        background: "transparent",
+                        padding: 0,
                         cursor: "pointer"
                       }}
                     >
                       <img
                         src={userPhoto || "/icons/profile.svg"}
                         style={{
-                          width: 32,
-                          height: 32,
+                          width: 36,
+                          height: 36,
                           borderRadius: "50%",
                           objectFit: "cover"
                         }}
