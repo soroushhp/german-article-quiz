@@ -1264,7 +1264,7 @@ return (
                   </div>
 
                   {/* Logo */}
-                  <div style={{ textAlign: "center", marginBottom: 48, marginTop: -28 }}>
+                  <div style={{ textAlign: "center", marginBottom: 48 }}>
                     <h1 style={{ fontSize: 32, fontWeight: 800, color: TEXT, letterSpacing: "0px", margin: 0 }}>
                       Article Fever
                     </h1>
@@ -2432,7 +2432,7 @@ return (
                 left: 0,
                 right: 0,
                 bottom: 0,
-                height: 64,
+                height: 96,
                 pointerEvents: "none",
                 background: `linear-gradient(to bottom, transparent, ${BG})`
               }}
