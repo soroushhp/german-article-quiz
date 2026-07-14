@@ -1214,7 +1214,7 @@ return (
                         <motion.button
                           onClick={() => setShowHelp(true)}
                           whileTap={{ scale: 0.95, backgroundColor: BORDER_LIGHT }}
-                          style={{ width: 36, height: 36, border: `2px solid ${TEXT_SECONDARY}`, background: "transparent", borderRadius: "50%", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", padding: 0, fontSize: 20, fontWeight: 800 }}>
+                          style={{ width: 36, height: 36, border: `2px solid ${BORDER}`, background: "transparent", borderRadius: "50%", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", padding: 0, fontSize: 20, fontWeight: 800 }}>
                           <img src="/icons/help.svg" width={28} height={28} />
                         </motion.button>
                       </div>
