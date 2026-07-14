@@ -1073,7 +1073,7 @@ export default function App() {
         <span
           style={{
             color: TEXT,
-            fontSize: 17,
+            fontSize: 15,
             fontWeight: 800
           }}
         >
@@ -2270,7 +2270,7 @@ return (
           animate={{ x: 0 }}
           exit={{ x: "100%" }}
           transition={PAGE_EASING}
-          style={{ ...PAGE_LAYOUT, zIndex: 20 }}
+          style={{ ...PAGE_LAYOUT, display: "flex", flexDirection: "column", zIndex: 20 }}
         >
           {/* Header */}
           <div
@@ -2329,92 +2329,114 @@ return (
             </div>
           </div>
 
-          {/* Scrollable Content */}
+          {/* Profile Header */}
           <div
             style={{
-              flex: 1,
-              overflowY: "auto",
-              padding: "0 20px 32px"
+              flexShrink: 0,
+              padding: "0 20px 24px"
             }}
           >
-            {/* Profile Header */}
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  marginBottom: 32
+                }}
+              >
+                <img
+                  src={userPhoto || "/icons/profile.svg"}
+                  style={{
+                    width: 88,
+                    height: 88,
+                    borderRadius: "50%",
+                    objectFit: "cover",
+                    border: `3px solid ${SURFACE}`,
+                    boxShadow: "0 4px 12px rgba(0,0,0,0.08)"
+                  }}
+                />
+
+                <h2
+                  style={{
+                    margin: "16px 0 4px",
+                    fontSize: 24,
+                    fontWeight: 800,
+                    color: TEXT
+                  }}
+                >
+                  {userName || "Player"}
+                </h2>
+
+                <p
+                  style={{
+                    margin: 0,
+                    fontSize: 14,
+                    fontWeight: 600,
+                    color: TEXT_SECONDARY
+                  }}
+                >
+                  Article Fever Player
+                </p>
+              </div>
+            </div>
+
+            {/* Scrollable stats */}
+            <div style={{ flex: 1, minHeight: 0, position: "relative" }}>
+              <div
+                style={{
+                  height: "100%",
+                  overflowY: "auto",
+                  padding: "0 20px 32px"
+                }}
+              >
+              <div style={cardStyle}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
+                  <img src="/icons/chart.svg" width={22} height={22} />
+                  <h3 style={{ margin: 0, fontSize: 18, fontWeight: 800, color: TEXT }}>Overall Stats</h3>
+                </div>
+
+                <StatRow label="Total Answers" value="2841" />
+                <StatRow label="Correct Answers" value="2315" />
+                <StatRow label="Accuracy" value="81%" />
+              </div>
+
+              <div style={cardStyle}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
+                  <img src="/images/daily.png" width={22} height={22} />
+                  <h3 style={{ margin: 0, fontSize: 18, fontWeight: 800, color: TEXT }}>Daily Challenges</h3>
+                </div>
+
+                <StatRow label="Challenges Passed" value="42" />
+                <StatRow label="Current Streak" value="6" />
+                <StatRow label="Best Streak" value="18" />
+                <StatRow label="Accuracy" value="84%" />
+              </div>
+
+              <div style={cardStyle}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
+                  <img src="/icons/flame.svg" width={22} height={22} />
+                  <h3 style={{ margin: 0, fontSize: 18, fontWeight: 800, color: TEXT }}>Survival Mode</h3>
+                </div>
+
+                <StatRow label="Best Run" value="145" />
+                <StatRow label="Games Played" value="93" />
+                <StatRow label="Words Answered" value="864" />
+                <StatRow label="Accuracy" value="79%" />
+              </div>
+            </div>
+
+            {/* Bottom Fade */}
             <div
               style={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                marginBottom: 32
+                position: "absolute",
+                left: 0,
+                right: 0,
+                bottom: 0,
+                height: 64,
+                pointerEvents: "none",
+                background: `linear-gradient(to bottom, transparent, ${BG})`
               }}
-            >
-              <img
-                src={userPhoto || "/icons/profile.svg"}
-                style={{
-                  width: 88,
-                  height: 88,
-                  borderRadius: "50%",
-                  objectFit: "cover",
-                  border: `3px solid ${SURFACE}`,
-                  boxShadow: "0 4px 12px rgba(0,0,0,0.08)"
-                }}
-              />
-
-              <h2
-                style={{
-                  margin: "16px 0 4px",
-                  fontSize: 24,
-                  fontWeight: 800,
-                  color: TEXT
-                }}
-              >
-                {userName || "Player"}
-              </h2>
-
-              <p
-                style={{
-                  margin: 0,
-                  fontSize: 14,
-                  fontWeight: 600,
-                  color: TEXT_SECONDARY
-                }}
-              >
-                Article Fever Player
-              </p>
-            </div>
-
-            <div style={cardStyle}>
-              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
-                <img src="/icons/chart.svg" width={22} height={22} />
-                <h3 style={{ margin: 0, fontSize: 20, fontWeight: 800, color: TEXT }}>Overall Stats</h3>
-              </div>
-
-              <StatRow label="Total Answers" value="2841" />
-              <StatRow label="Correct Answers" value="2315" />
-              <StatRow label="Accuracy" value="81%" />
-            </div>
-
-            <div style={cardStyle}>
-              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
-                <img src="/images/daily.png" width={22} height={22} />
-                <h3 style={{ margin: 0, fontSize: 20, fontWeight: 800, color: TEXT }}>Daily Challenges</h3>
-              </div>
-
-              <StatRow label="Challenges Passed" value="42" />
-              <StatRow label="Current Streak" value="6" />
-              <StatRow label="Best Streak" value="18" />
-              <StatRow label="Accuracy" value="84%" />
-            </div>
-
-            <div style={cardStyle}>
-              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
-                <img src="/icons/flame.svg" width={22} height={22} />
-                <h3 style={{ margin: 0, fontSize: 20, fontWeight: 800, color: TEXT }}>Survival Mode</h3>
-              </div>
-
-              <StatRow label="Best Run" value="145" />
-              <StatRow label="Games Played" value="93" />
-              <StatRow label="Words Answered" value="864" />
-              <StatRow label="Accuracy" value="79%" />
-            </div>
+            />
 
 
           </div>
