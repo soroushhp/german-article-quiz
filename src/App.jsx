@@ -2384,7 +2384,7 @@ return (
             <div style={cardStyle}>
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
                 <img src="/icons/chart.svg" width={22} height={22} />
-                <h3 style={{ margin: 0, fontSize: 20, fontWeight: 800, color: TEXT }}>Overall</h3>
+                <h3 style={{ margin: 0, fontSize: 20, fontWeight: 800, color: TEXT }}>Overall Stats</h3>
               </div>
 
               <StatRow label="Total Answers" value="2841" />
@@ -2395,7 +2395,7 @@ return (
             <div style={cardStyle}>
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
                 <img src="/images/daily.png" width={22} height={22} />
-                <h3 style={{ margin: 0, fontSize: 20, fontWeight: 800, color: TEXT }}>Daily</h3>
+                <h3 style={{ margin: 0, fontSize: 20, fontWeight: 800, color: TEXT }}>Daily Challenges</h3>
               </div>
 
               <StatRow label="Challenges Passed" value="42" />
@@ -2407,7 +2407,7 @@ return (
             <div style={cardStyle}>
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
                 <img src="/icons/flame.svg" width={22} height={22} />
-                <h3 style={{ margin: 0, fontSize: 20, fontWeight: 800, color: TEXT }}>Survival</h3>
+                <h3 style={{ margin: 0, fontSize: 20, fontWeight: 800, color: TEXT }}>Survival Mode</h3>
               </div>
 
               <StatRow label="Best Run" value="145" />
