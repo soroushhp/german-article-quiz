@@ -1221,11 +1221,11 @@ return (
                   </div>
 
                   {/* Logo */}
-                  <div style={{ textAlign: "center", marginBottom: 48 }}>
+                  <div style={{ textAlign: "center", marginBottom: 48, marginTop: -36 }}>
                     <h1 style={{ fontSize: 32, fontWeight: 800, color: TEXT, letterSpacing: "0px", margin: 0 }}>
                       Article Fever
                     </h1>
-                    <div style={{ width: 146, height: 4, borderRadius: 999, margin: "0px auto",
+                    <div style={{ width: 148, height: 4, borderRadius: 999, margin: "0px auto",
                       background: "linear-gradient(to right, #000 33%, #DD0000 33% 66%, #FFCE00 66%)"
                     }} />
                     <h3 style={{fontSize: 14,fontWeight: 700, color: TEXT_SECONDARY, marginTop: 4 }}>
