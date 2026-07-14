@@ -1221,11 +1221,16 @@ return (
                   </div>
 
                   {/* Logo */}
-                  <div style={{ textAlign: "center", marginBottom: 32 }}>
-                    <img src="/favicon.svg" style={{ width: 72, height: 72, marginBottom: 8 }} />
-                    <h1 style={{ fontSize: 36, fontWeight: 800, color: TEXT, letterSpacing: "-1px", margin: 0 }}>
+                  <div style={{ textAlign: "center", marginBottom: 48 }}>
+                    <h1 style={{ fontSize: 34, fontWeight: 800, color: TEXT, letterSpacing: "0px", margin: 0 }}>
                       Article Fever
                     </h1>
+                    <div style={{ width: 170, height: 4, borderRadius: 999, margin: "0px auto",
+                      background: "linear-gradient(to right, #000 33%, #DD0000 33% 66%, #FFCE00 66%)"
+                    }} />
+                    <h3 style={{fontSize: 16,fontWeight: 700, color: TEXT_SECONDARY, marginTop: 4 }}>
+                      Master Der, Die & Das
+                    </h3>
                   </div>
 
                   {/* Mode toggle */}
