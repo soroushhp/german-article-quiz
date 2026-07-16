@@ -1219,7 +1219,6 @@ return (
                       top: topInset,
                       left: 16,
                       right: 16,
-                      marginBottom: 36,
                       display: "flex",
                       justifyContent: "space-between",
                       alignItems: "center",
