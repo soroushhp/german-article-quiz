@@ -599,8 +599,11 @@ export default function App() {
     tg.ready();
     tg.expand();
 
+    const isMobile =
+      /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
     try {
-      if (tg.isVersionAtLeast?.("8.0")) {
+      if (isMobile && tg.isVersionAtLeast?.("8.0")) {
         tg.requestFullscreen?.();
       }
     } catch (e) {
