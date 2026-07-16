@@ -540,22 +540,9 @@ export default function App() {
     window.Telegram?.WebApp?.HapticFeedback?.impactOccurred(type);
   };
 
-
-  const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-
-const updateInset = () => {
-  const liveInset = tg.contentSafeAreaInset?.top ?? 0;
-
-  if (isMobile && tg.isFullscreen) {
-      setTopInset(Math.max(HEADER_SAFE_MINIMUM, liveInset + 12));
-    } else {
-      setTopInset(16);
-    }
-  };
-
   // Telegram safe area inset detection
-  const HEADER_SAFE_MINIMUM = 110; // floor so header never collapses under Telegram's native row
-  const TOP_BAR_HEIGHT = 140; // approximate height of the fixed bar's own content, excluding topInset
+  const HEADER_SAFE_MINIMUM = 110;
+  const TOP_BAR_HEIGHT = 140;
 
   const [topInset, setTopInset] = useState(HEADER_SAFE_MINIMUM);
 
@@ -563,9 +550,13 @@ const updateInset = () => {
     const tg = window.Telegram?.WebApp;
     if (!tg) return;
 
+    const isMobile =
+      /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
     const updateInset = () => {
       const liveInset = tg.contentSafeAreaInset?.top ?? 0;
-      if (isMobile) {
+
+      if (isMobile && tg.isFullscreen) {
         setTopInset(Math.max(HEADER_SAFE_MINIMUM, liveInset + 12));
       } else {
         setTopInset(16);
@@ -573,8 +564,10 @@ const updateInset = () => {
     };
 
     updateInset();
+
     tg.onEvent?.("contentSafeAreaChanged", updateInset);
-    tg.onEvent?.("fullscreenChanged", updateInset); // fullscreen toggling can also change insets
+    tg.onEvent?.("fullscreenChanged", updateInset);
+
     return () => {
       tg.offEvent?.("contentSafeAreaChanged", updateInset);
       tg.offEvent?.("fullscreenChanged", updateInset);
