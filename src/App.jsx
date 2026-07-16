@@ -1275,7 +1275,7 @@ return (
 
 
               {/* Everything else — centered in the remaining space */}
-                  <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", marginTop: 32 }}>
+                  <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", paddingTop: 32 }}>
 
                     {/* Logo */}
                     <div style={{ textAlign: "center", marginBottom: 48 }}>
