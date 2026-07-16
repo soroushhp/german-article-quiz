@@ -431,6 +431,8 @@ export default function App() {
 
   const [dailyCountdown, setDailyCountdown] = useState("");
 
+  const [showTopFade, setShowTopFade] = useState(false);
+
   const cardStyle = {
     background: SURFACE,
     border: `2px solid ${BORDER}`,
@@ -539,6 +541,18 @@ export default function App() {
   };
 
 
+  const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+const updateInset = () => {
+  const liveInset = tg.contentSafeAreaInset?.top ?? 0;
+
+  if (isMobile && tg.isFullscreen) {
+      setTopInset(Math.max(HEADER_SAFE_MINIMUM, liveInset + 12));
+    } else {
+      setTopInset(16);
+    }
+  };
+
   // Telegram safe area inset detection
   const HEADER_SAFE_MINIMUM = 110; // floor so header never collapses under Telegram's native row
   const TOP_BAR_HEIGHT = 140; // approximate height of the fixed bar's own content, excluding topInset
@@ -551,7 +565,11 @@ export default function App() {
 
     const updateInset = () => {
       const liveInset = tg.contentSafeAreaInset?.top ?? 0;
-      setTopInset(Math.max(HEADER_SAFE_MINIMUM, liveInset + 12));
+      if (isMobile) {
+        setTopInset(Math.max(HEADER_SAFE_MINIMUM, liveInset + 12));
+      } else {
+        setTopInset(16);
+      }
     };
 
     updateInset();
@@ -2329,72 +2347,61 @@ return (
             </div>
           </div>
 
-          {/* Profile Header */}
+                
+          {/* Scrollable stats */}
           <div
             style={{
-              flexShrink: 0,
-              padding: "0 20px 24px"
+              flex: 1,
+              position: "relative",
+              minHeight: 0
             }}
           >
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  marginBottom: 32
-                }}
-              >
-                <img
-                  src={userPhoto || "/icons/profile.svg"}
+            <div
+              onScroll={(e) => {
+                setShowTopFade(e.currentTarget.scrollTop > 4);
+              }}
+              style={{
+                height: "100%",
+                overflowY: "auto",
+                padding: "0 20px 32px"
+              }}
+            >
+              {/* Profile Photo & Name */}
+              <div style={{ flexShrink: 0, padding: "0 20px 24px" }}>
+                <div
                   style={{
-                    width: 88,
-                    height: 88,
-                    borderRadius: "50%",
-                    objectFit: "cover",
-                    border: `3px solid ${SURFACE}`,
-                    boxShadow: "0 4px 12px rgba(0,0,0,0.08)"
-                  }}
-                />
-
-                <h2
-                  style={{
-                    margin: "16px 0 4px",
-                    fontSize: 24,
-                    fontWeight: 800,
-                    color: TEXT
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    marginBottom: 32
                   }}
                 >
-                  {userName || "Player"}
-                </h2>
-
-                <p
-                  style={{
-                    margin: 0,
-                    fontSize: 14,
-                    fontWeight: 600,
-                    color: TEXT_SECONDARY
-                  }}
-                >
-                  Article Fever Player
-                </p>
+                  <img
+                    src={userPhoto || "/icons/profile.svg"}
+                    style={{
+                      width: 88,
+                      height: 88,
+                      borderRadius: "50%",
+                      objectFit: "cover",
+                      border: `3px solid ${SURFACE}`,
+                      boxShadow: "0 4px 12px rgba(0,0,0,0.08)"
+                    }}
+                  />
+                  <h2 style={{ margin: "16px 0 4px", fontSize: 24, fontWeight: 800, color: TEXT }}>
+                    {userName || "Player"}
+                  </h2>
+                  <p style={{ margin: 0, fontSize: 14, fontWeight: 600, color: TEXT_SECONDARY }}>
+                    Article Fever Player
+                  </p>
+                </div>
               </div>
-            </div>
 
-            {/* Scrollable stats */}
-            <div style={{ flex: 1, minHeight: 0, position: "relative" }}>
-              <div
-                style={{
-                  height: "100%",
-                  overflowY: "auto",
-                  padding: "0 20px 32px"
-                }}
-              >
+              {/* Stats */}
               <div style={cardStyle}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
                   <img src="/icons/chart.svg" width={22} height={22} />
                   <h3 style={{ margin: 0, fontSize: 18, fontWeight: 800, color: TEXT }}>Overall Stats</h3>
                 </div>
-
                 <StatRow label="Total Answers" value="2841" />
                 <StatRow label="Correct Answers" value="2315" />
                 <StatRow label="Accuracy" value="81%" />
@@ -2405,7 +2412,6 @@ return (
                   <img src="/images/daily.png" width={22} height={22} />
                   <h3 style={{ margin: 0, fontSize: 18, fontWeight: 800, color: TEXT }}>Daily Challenges</h3>
                 </div>
-
                 <StatRow label="Challenges Passed" value="42" />
                 <StatRow label="Current Streak" value="6" />
                 <StatRow label="Best Streak" value="18" />
@@ -2417,13 +2423,28 @@ return (
                   <img src="/icons/flame.svg" width={22} height={22} />
                   <h3 style={{ margin: 0, fontSize: 18, fontWeight: 800, color: TEXT }}>Survival Mode</h3>
                 </div>
-
                 <StatRow label="Best Run" value="145" />
                 <StatRow label="Games Played" value="93" />
                 <StatRow label="Words Answered" value="864" />
                 <StatRow label="Accuracy" value="79%" />
               </div>
             </div>
+
+            {/* Top Fade — sibling of the scroller, so it stays fixed on top */}
+            <motion.div
+              animate={{ opacity: showTopFade ? 1 : 0 }}
+              transition={{ duration: 0.1 }}
+              style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                right: 0,
+                height: 48,
+                pointerEvents: "none",
+                zIndex: 2,
+                background: `linear-gradient(to bottom, ${BG}, transparent)`
+              }}
+            />
 
             {/* Bottom Fade */}
             <div
@@ -2432,13 +2453,11 @@ return (
                 left: 0,
                 right: 0,
                 bottom: 0,
-                height: 96,
+                height: 64,
                 pointerEvents: "none",
                 background: `linear-gradient(to bottom, transparent, ${BG})`
               }}
             />
-
-
           </div>
 
         </motion.div>
