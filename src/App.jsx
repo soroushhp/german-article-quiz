@@ -540,6 +540,12 @@ export default function App() {
     window.Telegram?.WebApp?.HapticFeedback?.impactOccurred(type);
   };
 
+  // Detect mobile once, reuse everywhere
+  const isMobile = useMemo(
+    () => /Android|iPhone|iPad|iPod/i.test(navigator.userAgent),
+    []
+  );
+
   // Telegram safe area inset detection
   const HEADER_SAFE_MINIMUM = 110;
   const TOP_BAR_HEIGHT = 140;
@@ -550,17 +556,13 @@ export default function App() {
     const tg = window.Telegram?.WebApp;
     if (!tg) return;
 
-    const isMobile =
-      /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-
     const updateInset = () => {
       const liveInset = tg.contentSafeAreaInset?.top ?? 0;
-
-      if (isMobile && tg.isFullscreen) {
-        setTopInset(Math.max(HEADER_SAFE_MINIMUM, liveInset + 12));
-      } else {
-        setTopInset(16);
-      }
+      setTopInset(
+        isMobile && tg.isFullscreen
+          ? Math.max(HEADER_SAFE_MINIMUM, liveInset + 12)
+          : 16
+      );
     };
 
     updateInset();
@@ -572,62 +574,59 @@ export default function App() {
       tg.offEvent?.("contentSafeAreaChanged", updateInset);
       tg.offEvent?.("fullscreenChanged", updateInset);
     };
-  }, []);
+  }, [isMobile]);
 
   // Telegram user detection
   useEffect(() => {
-  const tg = window.Telegram?.WebApp;
+    const tg = window.Telegram?.WebApp;
 
-  const loadUserData = async (id, name, photo) => {
-    setTelegramId(id);
-    if (name) setUserName(name);
-    if (photo) setUserPhoto(photo);
+    const loadUserData = async (id, name, photo) => {
+      setTelegramId(id);
+      if (name) setUserName(name);
+      if (photo) setUserPhoto(photo);
 
-    const scores = await loadHighScores(id);
-    setHighScores(scores);
+      const scores = await loadHighScores(id);
+      setHighScores(scores);
 
-    const unlocked = await loadUnlockedDifficulties(id);
-    setUnlockedLevels(unlocked);
+      const unlocked = await loadUnlockedDifficulties(id);
+      setUnlockedLevels(unlocked);
 
-    loadDailyStatuses(id);
+      loadDailyStatuses(id);
 
-    const migrated = localStorage.getItem("leaderboard_migrated");
-    if (!migrated) migrateLocalScores(id, name || "Anonymous");
-  };
+      const migrated = localStorage.getItem("leaderboard_migrated");
+      if (!migrated) migrateLocalScores(id, name || "Anonymous");
+    };
 
-  if (tg) {
-    tg.ready();
-    tg.expand();
+    if (tg) {
+      tg.ready();
+      tg.expand();
 
-    const isMobile =
-      /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-
-    try {
       if (isMobile && tg.isVersionAtLeast?.("8.0")) {
-        tg.requestFullscreen?.();
+        try {
+          tg.requestFullscreen?.();
+        } catch (e) {
+          console.warn("Fullscreen not supported on this client:", e);
+        }
       }
-    } catch (e) {
-      console.warn("Fullscreen not supported on this client:", e);
-    }
 
-    try {
-      tg.setHeaderColor?.(BG);
-    } catch (e) {
-      console.warn("setHeaderColor not supported:", e);
-    }
-
-    setTimeout(() => {
-      const user = tg.initDataUnsafe?.user;
-      if (user?.id) {
-        loadUserData(String(user.id), user.first_name, user.photo_url);
-      } else if (import.meta.env.DEV) {
-        loadUserData("999997", "Local Tester", null);
+      try {
+        tg.setHeaderColor?.(BG);
+      } catch (e) {
+        console.warn("setHeaderColor not supported:", e);
       }
-    }, 300);
-  } else if (import.meta.env.DEV) {
-    loadUserData("999997", "Local Tester", null);
-  }
-  }, []);
+
+      setTimeout(() => {
+        const user = tg.initDataUnsafe?.user;
+        if (user?.id) {
+          loadUserData(String(user.id), user.first_name, user.photo_url);
+        } else if (import.meta.env.DEV) {
+          loadUserData("999997", "Local Tester", null);
+        }
+      }, 300);
+    } else if (import.meta.env.DEV) {
+      loadUserData("999997", "Local Tester", null);
+    }
+  }, [isMobile]);
 
   const triggerHeartNotification = (type) => {
     setHeartNotification(type);
