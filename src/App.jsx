@@ -1274,11 +1274,11 @@ return (
                   </div>
 
 
-              {/* Everything else — centered in the remaining space */}
-                  <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center" }}>
+                {/* Everything else — centered in the remaining space */}
+                <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center" }}>
 
                     {/* Logo */}
-                    <div style={{ textAlign: "center", marginBottom: 48, paddingTop: 48 }}>
+                    <div style={{ textAlign: "center", marginBottom: 48 }}>
                       <h1 style={{ fontSize: 32, fontWeight: 800, color: TEXT, letterSpacing: "0px", margin: 0 }}>
                         Article Fever
                       </h1>
@@ -1506,7 +1506,7 @@ return (
                   </div>
                 </div>
               </div>
-            </motion.div> 
+          </motion.div> 
       )}
 
       {/* ── GAME ── */}
