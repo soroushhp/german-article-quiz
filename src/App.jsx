@@ -1219,6 +1219,7 @@ return (
                       top: topInset,
                       left: 16,
                       right: 16,
+                      marginBottom: 36,
                       display: "flex",
                       justifyContent: "space-between",
                       alignItems: "center",
@@ -2429,7 +2430,7 @@ return (
             {/* Top Fade — sibling of the scroller, so it stays fixed on top */}
             <motion.div
               animate={{ opacity: showTopFade ? 1 : 0 }}
-              transition={{ duration: 0.1 }}
+              transition={{ duration: 0.5 }}
               style={{
                 position: "absolute",
                 top: 0,
