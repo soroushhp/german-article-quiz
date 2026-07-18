@@ -1212,7 +1212,7 @@ return (
           <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", padding: `${topInset}px 32px 64px`, boxSizing: "border-box" }}>
             <div style={{ maxWidth: 420, width: "100%", margin: "0 auto", display: "flex", flexDirection: "column", height: "100%" }}>
 
-              {/* Top bar */}
+              {/* Top bar (fixed) */}
               <div
                 style={{
                   display: "flex",
@@ -1275,239 +1275,237 @@ return (
                 </div>
               </div>
 
+              {/* Fixed gap below top bar */}
               <div style={{ height: 32 }} />
 
-              {/* Everything else — centered in the remaining space */}
-              <div style={{ flex: 1, minHeight: 0, position: "relative" }}>
-                <div style={{ height: "100%", overflowY: "auto", padding: "0 10px 32px" }}>
+              {/* Logo (fixed) */}
+              <div style={{ textAlign: "center", marginBottom: 48, flexShrink: 0 }}>
+                <h1 style={{ fontSize: 30, fontWeight: 800, color: TEXT, letterSpacing: "0px", margin: 0 }}>
+                  Article Fever
+                </h1>
+                <div style={{
+                  width: 148, height: 4, borderRadius: 999, margin: "0px auto",
+                  background: "linear-gradient(to right, #000 33%, #DD0000 33% 66%, #FFCE00 66%)"
+                }} />
+                <h3 style={{ fontSize: 14, fontWeight: 700, color: TEXT_SECONDARY, marginTop: 4 }}>
+                  Master Der, Die & Das
+                </h3>
+              </div>
 
-                  {/* Logo */}
-                  <div style={{ textAlign: "center", marginBottom: 48 }}>
-                    <h1 style={{ fontSize: 30, fontWeight: 800, color: TEXT, letterSpacing: "0px", margin: 0 }}>
-                      Article Fever
-                    </h1>
-                    <div style={{
-                      width: 148, height: 4, borderRadius: 999, margin: "0px auto",
-                      background: "linear-gradient(to right, #000 33%, #DD0000 33% 66%, #FFCE00 66%)"
-                    }} />
-                    <h3 style={{ fontSize: 14, fontWeight: 700, color: TEXT_SECONDARY, marginTop: 4 }}>
-                      Master Der, Die & Das
-                    </h3>
-                  </div>
-
-                  {/* Mode toggle */}
-                  <div style={{ display: "flex", background: SURFACE, border: `2px solid ${BORDER}`, borderRadius: 48, padding: 4, marginBottom: 16, position: "relative" }}>
-                    {["daily", "free"].map(m => (
-                      <button
-                        key={m}
-                        onClick={() => { haptic("light"); setMode(m); }}
-                        style={{ flex: 1, padding: "12px 0", border: "none", borderRadius: 48, background: "transparent", color: mode === m ? SURFACE : TEXT_SECONDARY, fontSize: 15, fontWeight: 800, cursor: "pointer", position: "relative", zIndex: 1 }}
-                      >
-                        {mode === m && (
-                          <motion.div
-                            layoutId="homeModeTab"
-                            style={{ position: "absolute", inset: 0, background: PRIMARY, borderRadius: 48, zIndex: -1 }}
-                            transition={{ type: "spring", stiffness: 400, damping: 30 }}
+              {/* Mode toggle (fixed, not part of the slide animation) */}
+              <div style={{ display: "flex", background: SURFACE, border: `2px solid ${BORDER}`, borderRadius: 48, padding: 4, marginBottom: 16, position: "relative", flexShrink: 0 }}>
+                {["daily", "free"].map(m => (
+                  <button
+                    key={m}
+                    onClick={() => { haptic("light"); setMode(m); }}
+                    style={{ flex: 1, padding: "12px 0", border: "none", borderRadius: 48, background: "transparent", color: mode === m ? SURFACE : TEXT_SECONDARY, fontSize: 15, fontWeight: 800, cursor: "pointer", position: "relative", zIndex: 1 }}
+                  >
+                    {mode === m && (
+                      <motion.div
+                        layoutId="homeModeTab"
+                        style={{ position: "absolute", inset: 0, background: PRIMARY, borderRadius: 48, zIndex: -1 }}
+                        transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                      />
+                    )}
+                    {m === "daily"
+                      ? <span
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            gap: 4
+                          }}
+                        >
+                          <img
+                            src="/images/daily.png"
+                            style={{ width: 20, height: 20, filter: mode === m ? "brightness(0) invert(1)" : "none" }}
                           />
-                        )}
-                        {m === "daily"
-                          ? <span
-                              style={{
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                gap: 4
-                              }}
-                            >
-                              <img
-                                src="/images/daily.png"
-                                style={{ width: 20, height: 20, filter: mode === m ? "brightness(0) invert(1)" : "none" }}
-                              />
-                              Daily
-                            </span>
-                          : <span
-                              style={{
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                gap: 4
-                              }}
-                            >
-                              <img
-                                src="/icons/flame.svg"
-                                style={{ width: 20, height: 20, filter: mode === m ? "brightness(0) invert(1)" : "none" }}
-                              />
-                              Survival
-                            </span>}
-                      </button>
-                    ))}
-                  </div>
+                          Daily
+                        </span>
+                      : <span
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            gap: 4
+                          }}
+                        >
+                          <img
+                            src="/icons/flame.svg"
+                            style={{ width: 20, height: 20, filter: mode === m ? "brightness(0) invert(1)" : "none" }}
+                          />
+                          Survival
+                        </span>}
+                  </button>
+                ))}
+              </div>
 
-                  <AnimatePresence mode="wait">
-                    <motion.p
-                      key={mode}
-                      initial={{ opacity: 0, x: mode === "daily" ? -20 : 20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: mode === "daily" ? 20 : -20 }}
-                      transition={{ duration: 0.2 }}
-                      style={{
-                        margin: "4px 0 8px",
-                        textAlign: "center",
-                        fontSize: 14,
-                        fontWeight: 600,
-                        color: TEXT_SECONDARY
-                      }}
-                    >
-                      {menuInfo}
-                    </motion.p>
-                  </AnimatePresence>
+              {/* Animated wrapper — OUTSIDE the scroll container, so the slide is never clipped */}
+              <div style={{ flex: 1, minHeight: 0, position: "relative" }}>
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={mode}
+                    initial={{ opacity: 0, x: mode === "daily" ? -20 : 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: mode === "daily" ? 20 : -20 }}
+                    transition={{ duration: 0.2 }}
+                    style={{ height: "100%" }}
+                  >
+                    {/* Scroll container — vertical scroll only, lives inside the animated wrapper */}
+                    <div style={{ height: "100%", overflowY: "auto", paddingBottom: 32 }}>
 
-                  {/* Level buttons */}
-                  <AnimatePresence mode="wait">
-                    <motion.div
-                      key={mode}
-                      initial={{ opacity: 0, x: mode === "daily" ? -10 : 10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: mode === "daily" ? 10 : -10 }}
-                      transition={{ duration: 0.2 }}
-                      style={{ display: "flex", flexDirection: "column", gap: 8 }}
-                    >
-                      {mode === "daily" ? (
-                        ["beginner", "intermediate", "advanced", "artikelgott"].map(d => {
-                          const prereq = PREREQ_MAP[d];
-                          const prereqEntry = prereq ? dailyProgress[prereq] : null;
-                          const prereqPassed = !prereq || prereqEntry?.passed;
-                          const isLocked = !prereqPassed;
+                      {/* Subtitle */}
+                      <p
+                        style={{
+                          margin: "4px 0 8px",
+                          textAlign: "center",
+                          fontSize: 14,
+                          fontWeight: 600,
+                          color: TEXT_SECONDARY
+                        }}
+                      >
+                        {menuInfo}
+                      </p>
 
-                          const status = dailyProgress[d]?.status;
-                          const score = dailyProgress[d]?.score;
-                          const isCompleted = status === "completed";
-                          const isInProgress = status === "in_progress";
-                          const isDisabled = isLocked || isCompleted;
-                          const isInteractive = !isDisabled;
-                          const isPassed = dailyProgress[d]?.passed;
+                      {/* Level buttons */}
+                      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                        {mode === "daily" ? (
+                          ["beginner", "intermediate", "advanced", "artikelgott"].map(d => {
+                            const prereq = PREREQ_MAP[d];
+                            const prereqEntry = prereq ? dailyProgress[prereq] : null;
+                            const prereqPassed = !prereq || prereqEntry?.passed;
+                            const isLocked = !prereqPassed;
 
-                          let subtitle;
-                          if (isLocked)
-                            subtitle = (
-                              <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                                <img src="/icons/lock.svg" width={16} height={16} />
-                                <span>{LOCK_SUBTITLES[d]}</span>
-                              </span>
-                            );
-                          else if (isCompleted)
-                            subtitle = (
-                              <span style={{ color: isPassed ? GREEN : RED, fontWeight: 700 }}>
-                                {isPassed ? "✓ Completed" : "✗ Failed"}
-                              </span>
-                            );
-                          else if (isInProgress)
-                            subtitle = (
-                              <span
-                                style={{
-                                  display: "inline-flex",
-                                  alignItems: "center",
-                                  justifyContent: "center",
-                                  color: TEXT,
-                                  gap: 6
+                            const status = dailyProgress[d]?.status;
+                            const score = dailyProgress[d]?.score;
+                            const isCompleted = status === "completed";
+                            const isInProgress = status === "in_progress";
+                            const isDisabled = isLocked || isCompleted;
+                            const isInteractive = !isDisabled;
+                            const isPassed = dailyProgress[d]?.passed;
+
+                            let subtitle;
+                            if (isLocked)
+                              subtitle = (
+                                <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                                  <img src="/icons/lock.svg" width={16} height={16} />
+                                  <span>{LOCK_SUBTITLES[d]}</span>
+                                </span>
+                              );
+                            else if (isCompleted)
+                              subtitle = (
+                                <span style={{ color: isPassed ? GREEN : RED, fontWeight: 700 }}>
+                                  {isPassed ? "✓ Completed" : "✗ Failed"}
+                                </span>
+                              );
+                            else if (isInProgress)
+                              subtitle = (
+                                <span
+                                  style={{
+                                    display: "inline-flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    color: TEXT,
+                                    gap: 6
+                                  }}
+                                >
+                                  <img src="/icons/continue.svg" width={16} height={16} />
+                                  <span>Continue</span>
+                                </span>
+                              );
+                            else
+                              subtitle = (
+                                <span
+                                  style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 6, color: "#3f3f3e" }}
+                                >
+                                  <img src="/icons/sparkles.svg" width={16} height={16} />
+                                  <span>Ready to Play</span>
+                                </span>
+                              );
+
+                            return (
+                              <motion.button
+                                key={d}
+                                disabled={isDisabled}
+                                onClick={() => {
+                                  if (!isInteractive) return;
+                                  haptic("light");
+                                  setTimeout(() => startDaily(d), 120);
                                 }}
+                                whileTap={{ scale: isInteractive ? 0.97 : 1 }}
+                                whileHover={isInteractive ? { boxShadow: "0 6px 16px rgba(0,0,0,0.08)", background: "#FDEFD8" } : {}}
+                                style={getDailyButtonStyle(
+                                  isLocked ? "locked" : status,
+                                  isDisabled
+                                )}
                               >
-                                <img src="/icons/continue.svg" width={16} height={16} />
-                                <span>Continue</span>
-                              </span>
+                                <span style={{ display: "flex", alignItems: "center", gap: 6, opacity: isLocked ? 0.6 : 1 }}>
+                                  {d === "artikelgott" && (
+                                    <img src="/icons/crown.svg" width={20} height={20} />
+                                  )}
+                                  {d === "artikelgott" ? "Artikelgott" : DIFFICULTY_LABELS[d]}
+                                </span>
+                                <span style={{ fontSize: 14, color: TEXT_MUTED, fontWeight: 700 }}>
+                                  {subtitle}
+                                </span>
+                              </motion.button>
                             );
-                          else
-                            subtitle = (
-                              <span
-                                style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 6, color: "#3f3f3e" }}
-                              >
-                                <img src="/icons/sparkles.svg" width={16} height={16} />
-                                <span>Ready to Play</span>
-                              </span>
-                            );
-
-                          return (
+                          })
+                        ) : (
+                          ["beginner", "intermediate", "advanced", "artikelgott"].map(d => (
                             <motion.button
                               key={d}
-                              disabled={isDisabled}
                               onClick={() => {
-                                if (!isInteractive) return;
+                                if (!unlockedLevels[d]) return;
+
                                 haptic("light");
-                                setTimeout(() => startDaily(d), 120);
+                                setTimeout(() => startGame(d), 120);
                               }}
-                              whileTap={{ scale: isInteractive ? 0.97 : 1 }}
-                              whileHover={isInteractive ? { boxShadow: "0 6px 16px rgba(0,0,0,0.08)", background: "#FDEFD8" } : {}}
-                              style={getDailyButtonStyle(
-                                isLocked ? "locked" : status,
-                                isDisabled
-                              )}
+                              whileTap={{ scale: 0.97 }}
+                              whileHover={
+                                unlockedLevels[d]
+                                  ? { boxShadow: "0 6px 16px rgba(0,0,0,0.08)", background: "#FDEFD8" }
+                                  : {}
+                              }
+                              disabled={!unlockedLevels[d]}
+                              style={{
+                                opacity: unlockedLevels[d] ? 1 : 0.6,
+                                ...menuBtnStyle,
+                                cursor: unlockedLevels[d] ? "pointer" : "default",
+                              }}
                             >
-                              <span style={{ display: "flex", alignItems: "center", gap: 6, opacity: isLocked ? 0.6 : 1 }}>
+                              <span style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
                                 {d === "artikelgott" && (
                                   <img src="/icons/crown.svg" width={20} height={20} />
                                 )}
                                 {d === "artikelgott" ? "Artikelgott" : DIFFICULTY_LABELS[d]}
                               </span>
-                              <span style={{ fontSize: 14, color: TEXT_MUTED, fontWeight: 700 }}>
-                                {subtitle}
-                              </span>
-                            </motion.button>
-                          );
-                        })
-                      ) : (
-                        ["beginner", "intermediate", "advanced", "artikelgott"].map(d => (
-                          <motion.button
-                            key={d}
-                            onClick={() => {
-                              if (!unlockedLevels[d]) return;
-
-                              haptic("light");
-                              setTimeout(() => startGame(d), 120);
-                            }}
-                            whileTap={{ scale: 0.97 }}
-                            whileHover={
-                              unlockedLevels[d]
-                                ? { boxShadow: "0 6px 16px rgba(0,0,0,0.08)", background: "#FDEFD8" }  
-                                : {}
-                            }
-                            disabled={!unlockedLevels[d]}
-                            style={{
-                              opacity: unlockedLevels[d] ? 1 : 0.6,
-                              ...menuBtnStyle,
-                              cursor: unlockedLevels[d] ? "pointer" : "default",
-                            }}
-                          >
-                            <span style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
-                              {d === "artikelgott" && (
-                                <img src="/icons/crown.svg" width={20} height={20} />
+                              {unlockedLevels[d] ? (
+                                <span style={{ fontSize: 14, color: TEXT_SECONDARY }}>
+                                  Best: {highScores[d]}
+                                </span>
+                              ) : (
+                                <span
+                                  style={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    gap: 4,
+                                    color: TEXT_SECONDARY,
+                                    fontSize: 14
+                                  }}
+                                >
+                                  <img src="/icons/lock.svg" width={16} height={16} />
+                                  <span>{UNLOCK_REQUIREMENTS[d]}</span>
+                                </span>
                               )}
-                              {d === "artikelgott" ? "Artikelgott" : DIFFICULTY_LABELS[d]}
-                            </span>
-                            {unlockedLevels[d] ? (
-                              <span style={{ fontSize: 14, color: TEXT_SECONDARY }}>
-                                Best: {highScores[d]}
-                              </span>
-                            ) : (
-                              <span
-                                style={{
-                                  display: "flex",
-                                  alignItems: "center",
-                                  justifyContent: "center",
-                                  gap: 4,
-                                  color: TEXT_SECONDARY,
-                                  fontSize: 14
-                                }}
-                              >
-                                <img src="/icons/lock.svg" width={16} height={16} />
-                                <span>{UNLOCK_REQUIREMENTS[d]}</span>
-                              </span>
-                            )}
-                          </motion.button>
-                        ))
-                      )}
-                    </motion.div>
-                  </AnimatePresence>
-                </div>
+                            </motion.button>
+                          ))
+                        )}
+                      </div>
+                    </div>
+                  </motion.div>
+                </AnimatePresence>
 
                 {/* Bottom Fade */}
                 <motion.div
