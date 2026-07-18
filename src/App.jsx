@@ -1019,7 +1019,7 @@ export default function App() {
   const modalTitle = isLevelComplete ? "Level Complete!" : isNewHigh ? "New High Score!" : "Streak Broken!";
 
   const menuBtnStyle = {
-    padding: "14px 24px",
+    padding: "16px 24px",
     borderRadius: 48,
     border: `2px solid ${BORDER}`,
     background: SURFACE,
