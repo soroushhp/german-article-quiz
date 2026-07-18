@@ -1516,7 +1516,7 @@ return (
                     left: 0,
                     right: 0,
                     bottom: 0,
-                    height: 48,
+                    height: 24,
                     pointerEvents: "none",
                     background: `linear-gradient(to bottom, transparent, ${BG})`
                   }}
