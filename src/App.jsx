@@ -1279,7 +1279,7 @@ return (
 
               {/* Everything else — centered in the remaining space */}
               <div style={{ flex: 1, minHeight: 0, position: "relative" }}>
-                <div style={{ height: "100%", overflowY: "auto", paddingBottom: 32 }}>
+                <div style={{ height: "100%", overflowY: "auto", padding: "0 10px 32px" }}>
 
                   {/* Logo */}
                   <div style={{ textAlign: "center", marginBottom: 48 }}>
@@ -1366,9 +1366,9 @@ return (
                   <AnimatePresence mode="wait">
                     <motion.div
                       key={mode}
-                      initial={{ opacity: 0, x: mode === "daily" ? -20 : 20 }}
+                      initial={{ opacity: 0, x: mode === "daily" ? -10 : 10 }}
                       animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: mode === "daily" ? 20 : -20 }}
+                      exit={{ opacity: 0, x: mode === "daily" ? 10 : -10 }}
                       transition={{ duration: 0.2 }}
                       style={{ display: "flex", flexDirection: "column", gap: 8 }}
                     >
@@ -1436,7 +1436,7 @@ return (
                                 setTimeout(() => startDaily(d), 120);
                               }}
                               whileTap={{ scale: isInteractive ? 0.97 : 1 }}
-                              whileHover={isInteractive ? { scale: 1.02, background: "#FDEFD8" } : {}}
+                              whileHover={isInteractive ? { boxShadow: "0 6px 16px rgba(0,0,0,0.08)", background: "#FDEFD8" } : {}}
                               style={getDailyButtonStyle(
                                 isLocked ? "locked" : status,
                                 isDisabled
@@ -1467,7 +1467,7 @@ return (
                             whileTap={{ scale: 0.97 }}
                             whileHover={
                               unlockedLevels[d]
-                                ? { scale: 1.02, background: "#FDEFD8" }
+                                ? { boxShadow: "0 6px 16px rgba(0,0,0,0.08)", background: "#FDEFD8" }  
                                 : {}
                             }
                             disabled={!unlockedLevels[d]}
