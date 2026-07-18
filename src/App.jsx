@@ -2075,7 +2075,7 @@ return (
                 transition={PAGE_EASING}
                 style={{ ...PAGE_LAYOUT, zIndex: 20 }}
               >
-          <div style={{ display: "flex", flexDirection: "column", height: "100vh", maxWidth: 480, margin: "0 auto", boxSizing: "border-box" }}>
+          <div style={{ display: "flex", flexDirection: "column", height: "100%", maxWidth: 480, margin: "0 auto", boxSizing: "border-box" }}>
 
             {/* Header */}
             <div style={{ flexShrink: 0, background: BG, padding: `${topInset}px 16px 12px` }}>
@@ -2147,6 +2147,7 @@ return (
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: leaderboardMode === "daily" ? 20 : -20 }}
               transition={{ duration: 0.2 }}
+              style={{flex: 1, display: "flex", flexDirection: "column", minHeight: 0}}
             >
               {/* Difficulty Tabs */}
               <div style={{ padding: "0 20px" }}>
