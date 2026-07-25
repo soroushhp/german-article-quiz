@@ -215,7 +215,6 @@ async function loadHighScores(telegramId) {
   return scores;
 }
 
-
 async function migrateLocalScores(telegramId, username) {
   const difficulties = ["beginner", "intermediate", "advanced", "artikelgott"];
   for (const diff of difficulties) {
@@ -280,7 +279,6 @@ async function loadUnlockedDifficulties(telegramId) {
   return unlocked;
 }
 
-
 async function unlockDifficulty(telegramId, difficulty) {
   const { error } = await supabase
     .from("user_unlocks")
@@ -309,7 +307,6 @@ async function isDifficultyUnlocked(telegramId, difficulty) {
 
   return difficulty === "beginner" || !!data?.unlocked;
 }
-
 
 async function fetchSurvivalLeaderboardData(diff, telegramId) {
   const { data: top10 } = await supabase
@@ -365,6 +362,56 @@ async function fetchDailyLeaderboardData(diff, telegramId) {
     .gt("passed_challenges", userRow.passed_challenges)
 
   return { top10: top10 || [], userRow, userRank: count + 1 };
+}
+
+async function createUserOverallStats(telegramId) {
+  const { error } = await supabase
+    .from("user_overall_stats")
+    .upsert(
+      { telegram_id: telegramId },
+      {
+        onConflict: "telegram_id",
+        ignoreDuplicates: true,
+      }
+    );
+
+  if (error) {
+    console.error("Failed to create overall stats:", error);
+  }
+}
+
+async function loadOverallStats(telegramId) {
+  const { data, error } = await supabase
+    .from("user_overall_stats")
+    .select("*")
+    .eq("telegram_id", telegramId)
+    .single();
+
+  if (error) {
+    console.error("Failed to load overall stats:", error);
+    return null;
+  }
+
+  return data;
+}
+
+async function incrementOverallStats(
+  telegramId,
+  answersToAdd,
+  correctToAdd
+) {
+  const { data, error } = await supabase.rpc("increment_overall_stats", {
+    p_telegram_id: telegramId,
+    p_answers_to_add: answersToAdd,
+    p_correct_to_add: correctToAdd,
+  });
+
+  if (error) {
+    console.error("Failed to update overall stats:", error);
+    return null;
+  }
+
+  return data[0];
 }
 
 // ── App ────────────────────────────────────────────────────
@@ -432,6 +479,13 @@ export default function App() {
   const [dailyCountdown, setDailyCountdown] = useState("");
 
   const [showTopFade, setShowTopFade] = useState(false);
+
+  const [overallStats, setOverallStats] = useState({
+    totalAnswers: 0,
+    correctAnswers: 0,
+    accuracy: 0,
+    level: 1,
+  });
 
   const cardStyle = {
     background: SURFACE,
@@ -580,6 +634,9 @@ export default function App() {
 
   const loadUserData = async (id, name, photo) => {
     setTelegramId(id);
+
+    await createUserOverallStats(id);
+
     if (name) setUserName(name);
     if (photo) setUserPhoto(photo);
 
@@ -589,7 +646,21 @@ export default function App() {
     const unlocked = await loadUnlockedDifficulties(id);
     setUnlockedLevels(unlocked);
 
-    loadDailyStatuses(id);
+    await loadDailyStatuses(id);
+
+    const stats = await loadOverallStats(id);
+
+    if (stats) {
+      setOverallStats({
+        totalAnswers: stats.total_answers,
+        correctAnswers: stats.correct_answers,
+        accuracy:
+          stats.total_answers === 0
+            ? 0
+            : Math.round((stats.correct_answers / stats.total_answers) * 100),
+        level: 1, // temporary
+      });
+    }
 
     const migrated = localStorage.getItem("leaderboard_migrated");
     if (!migrated) migrateLocalScores(id, name || "Anonymous");
@@ -923,6 +994,26 @@ export default function App() {
     if (isHeartMoment)    { sounds.heartGain.play(); haptic("rigid"); }
     else if (isHeartLose) { sounds.heartLose.play(); haptic("heavy"); }
     else                  { sounds[isCorrect ? "correct" : "wrong"].play(); }
+
+    incrementOverallStats(
+      telegramId,
+      1,
+      isCorrect ? 1 : 0
+    ).then(stats => {
+      if (stats) {
+        setOverallStats({
+          totalAnswers: stats.total_answers,
+          correctAnswers: stats.correct_answers,
+          accuracy:
+            stats.total_answers === 0
+              ? 0
+              : Math.round(
+                  (stats.correct_answers / stats.total_answers) * 100
+                ),
+          level: 1, // temporary
+        });
+      }
+    });
 
     if (mode === "daily") handleDailyAnswer(isCorrect);
     else handleFreeAnswer(isCorrect, art);
@@ -2413,11 +2504,25 @@ return (
               <div style={cardStyle}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
                   <img src="/icons/chart.svg" width={22} height={22} />
-                  <h3 style={{ margin: 0, fontSize: 18, fontWeight: 800, color: TEXT }}>Overall Stats</h3>
+                  <h3 style={{ margin: 0, fontSize: 18, fontWeight: 800, color: TEXT }}>
+                    Overall Stats
+                  </h3>
                 </div>
-                <StatRow label="Total Answers" value="2841" />
-                <StatRow label="Correct Answers" value="2315" />
-                <StatRow label="Accuracy" value="81%" />
+
+                <StatRow
+                  label="Total Answers"
+                  value={overallStats.totalAnswers}
+                />
+
+                <StatRow
+                  label="Correct Answers"
+                  value={overallStats.correctAnswers}
+                />
+
+                <StatRow
+                  label="Accuracy"
+                  value={`${overallStats.accuracy}%`}
+                />
               </div>
 
               <div style={cardStyle}>
