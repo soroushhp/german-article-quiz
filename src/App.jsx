@@ -2546,10 +2546,10 @@ return (
                   <div
                     style={{
                       background: SURFACE,
+                      border: `2px solid ${BORDER}`,
                       borderRadius: 20,
-                      overflow: "hidden",
-                      border: `1px solid ${BORDER_LIGHT}`,
-                      marginBottom: 24
+                      marginBottom: 16,
+                      boxShadow: "0 4px 8px rgba(0,0,0,0.04)"
                     }}
                   >
                     <div
