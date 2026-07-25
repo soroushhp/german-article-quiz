@@ -2562,8 +2562,8 @@ return (
                       <img
                         src={userPhoto || "/icons/profile.svg"}
                         style={{
-                          width: 76,
-                          height: 76,
+                          width: 96,
+                          height: 96,
                           borderRadius: "50%",
                           objectFit: "cover",
                           border: `4px solid ${SURFACE}`,
@@ -2571,7 +2571,7 @@ return (
                         }}
                       />
                       <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 10 }}>
-                        <h2 style={{ margin: 0, fontSize: 19, fontWeight: 800, color: TEXT }}>
+                        <h2 style={{ margin: 0, fontSize: 22, fontWeight: 800, color: TEXT }}>
                           {userName || "Player"}
                         </h2>
                         <span
