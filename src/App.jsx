@@ -122,6 +122,52 @@ function getDailyWords(words, count = 10) {
   return result.slice(0, actualCount);
 }
 
+function getLevel(correctAnswers) {
+  const thresholds = [
+    0,   // Level 1
+    10,  // Level 2
+    25,  // Level 3
+    45,  // Level 4
+    70,  // Level 5
+    100, // Level 6
+    140, // Level 7
+    190, // Level 8
+    250, // Level 9
+    325, // Level 10
+    400, // Level 11
+    500, // Level 12
+    650, // Level 13
+    800, // Level 14
+    1000, // Level 15
+    1200, // Level 16
+    1500, // Level 17
+    2000, // Level 18
+    2750, // Level 19
+    4000, // Level 20
+  ];
+
+  const maxLevelIndex = thresholds.length - 1;
+
+  for (let i = maxLevelIndex; i >= 0; i--) {
+    if (correctAnswers >= thresholds[i]) {
+      const isMaxLevel = i === maxLevelIndex;
+      return {
+        level: i + 1,
+        currentLevelMin: thresholds[i],
+        nextLevelMin: isMaxLevel ? null : thresholds[i + 1],
+        isMaxLevel,
+      };
+    }
+  }
+
+  return {
+    level: 1,
+    currentLevelMin: 0,
+    nextLevelMin: thresholds[1],
+    isMaxLevel: false,
+  };
+}
+
 // ── Sounds ─────────────────────────────────────────────────
 const sounds = {
   correct:       new Howl({ src: ["/sounds/correct.mp3"],       volume: 0.2, preload: true }),
@@ -484,7 +530,10 @@ export default function App() {
     totalAnswers: 0,
     correctAnswers: 0,
     accuracy: 0,
+
     level: 1,
+    currentLevelMin: 0,
+    nextLevelMin: 10,
   });
 
   const cardStyle = {
@@ -651,6 +700,8 @@ export default function App() {
     const stats = await loadOverallStats(id);
 
     if (stats) {
+      const levelInfo = getLevel(stats.correct_answers);
+
       setOverallStats({
         totalAnswers: stats.total_answers,
         correctAnswers: stats.correct_answers,
@@ -658,7 +709,10 @@ export default function App() {
           stats.total_answers === 0
             ? 0
             : Math.round((stats.correct_answers / stats.total_answers) * 100),
-        level: 1, // temporary
+
+        level: levelInfo.level,
+        currentLevelMin: levelInfo.currentLevelMin,
+        nextLevelMin: levelInfo.nextLevelMin,
       });
     }
 
@@ -1001,16 +1055,19 @@ export default function App() {
       isCorrect ? 1 : 0
     ).then(stats => {
       if (stats) {
+        const levelInfo = getLevel(stats.correct_answers);
+
         setOverallStats({
           totalAnswers: stats.total_answers,
           correctAnswers: stats.correct_answers,
           accuracy:
             stats.total_answers === 0
               ? 0
-              : Math.round(
-                  (stats.correct_answers / stats.total_answers) * 100
-                ),
-          level: 1, // temporary
+              : Math.round((stats.correct_answers / stats.total_answers) * 100),
+
+          level: levelInfo.level,
+          currentLevelMin: levelInfo.currentLevelMin,
+          nextLevelMin: levelInfo.nextLevelMin,
         });
       }
     });
@@ -2471,34 +2528,93 @@ return (
               }}
             >
               {/* Profile Photo & Name */}
-              <div style={{ flexShrink: 0, padding: "0 20px 24px" }}>
-                <div
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    marginBottom: 32
-                  }}
-                >
-                  <img
-                    src={userPhoto || "/icons/profile.svg"}
+              {(() => {
+                const { currentLevelMin, nextLevelMin, isMaxLevel } = getLevel(overallStats.correctAnswers);
+                const progressPct = isMaxLevel
+                  ? 100
+                  : Math.min(
+                      100,
+                      Math.round(
+                        ((overallStats.correctAnswers - currentLevelMin) /
+                          (nextLevelMin - currentLevelMin)) *
+                          100
+                      )
+                    );
+                const remaining = isMaxLevel ? 0 : nextLevelMin - overallStats.correctAnswers;
+
+                return (
+                  <div
                     style={{
-                      width: 88,
-                      height: 88,
-                      borderRadius: "50%",
-                      objectFit: "cover",
-                      border: `3px solid ${SURFACE}`,
-                      boxShadow: "0 4px 12px rgba(0,0,0,0.08)"
+                      background: SURFACE,
+                      borderRadius: 20,
+                      overflow: "hidden",
+                      border: `1px solid ${BORDER_LIGHT}`,
+                      marginBottom: 24
                     }}
-                  />
-                  <h2 style={{ margin: "16px 0 4px", fontSize: 24, fontWeight: 800, color: TEXT }}>
-                    {userName || "Player"}
-                  </h2>
-                  <p style={{ margin: 0, fontSize: 14, fontWeight: 600, color: TEXT_SECONDARY }}>
-                    Article Fever Player
-                  </p>
-                </div>
-              </div>
+                  >
+                    <div
+                      style={{
+                        height: 64,
+                        background: `linear-gradient(90deg, ${GREEN}1A, ${PRIMARY}1A)`
+                      }}
+                    />
+                    <div style={{ padding: "0 20px 22px", marginTop: -40 }}>
+                      <img
+                        src={userPhoto || "/icons/profile.svg"}
+                        style={{
+                          width: 76,
+                          height: 76,
+                          borderRadius: "50%",
+                          objectFit: "cover",
+                          border: `4px solid ${SURFACE}`,
+                          display: "block"
+                        }}
+                      />
+                      <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 10 }}>
+                        <h2 style={{ margin: 0, fontSize: 19, fontWeight: 800, color: TEXT }}>
+                          {userName || "Player"}
+                        </h2>
+                        <span
+                          style={{
+                            background: `${PRIMARY}1A`,
+                            color: PRIMARY,
+                            fontSize: 12,
+                            fontWeight: 800,
+                            padding: "3px 10px",
+                            borderRadius: 999
+                          }}
+                        >
+                          Lv {overallStats.level}
+                        </span>
+                      </div>
+                      <div style={{ marginTop: 12 }}>
+                        <div
+                          style={{
+                            height: 8,
+                            background: `${GREEN}1A`,
+                            borderRadius: 999,
+                            overflow: "hidden"
+                          }}
+                        >
+                          <div
+                            style={{
+                              height: "100%",
+                              width: `${progressPct}%`,
+                              background: GREEN,
+                              borderRadius: 999
+                            }}
+                          />
+                        </div>
+                        <p style={{ margin: "6px 0 0", fontSize: 12, fontWeight: 700, color: TEXT_SECONDARY }}>
+                          {isMaxLevel
+                            ? "Max level reached"
+                            : `${remaining} more correct answer${remaining === 1 ? "" : "s"} to Level ${overallStats.level + 1}`}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
 
               {/* Stats */}
               <div style={cardStyle}>
