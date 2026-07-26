@@ -2545,7 +2545,7 @@ return (
                 const STROKE = 6;
                 const RADIUS = (RING_SIZE - STROKE) / 2;
                 const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
-                const dashOffset = CIRCUMFERENCE * (1 - progressPct / 100);
+                const dashOffset = CIRCUMFERENCE * 0.98 * (1 - progressPct / 100);
 
                 return (
                   <div
@@ -2560,7 +2560,7 @@ return (
                       <svg
                         width={RING_SIZE}
                         height={RING_SIZE}
-                        style={{ position: "absolute", top: 0, left: 0, transform: "rotate(-90deg)" }}
+                        style={{ position: "absolute", top: 0, left: 0, transform: "rotate(65deg)" }}
                       >
                         <circle
                           cx={RING_SIZE / 2}
@@ -2616,7 +2616,7 @@ return (
                         {overallStats.level}
                       </div>
                     </div>
-                    <h2 style={{ margin: "14px 0 2px", fontSize: 20, fontWeight: 800, color: TEXT }}>
+                    <h2 style={{ margin: "14px 0 2px", fontSize: 24, fontWeight: 800, color: TEXT }}>
                       {userName || "Player"}
                     </h2>
                     <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: GREEN, textAlign: "center" }}>
@@ -2624,9 +2624,7 @@ return (
                         "Max level reached"
                       ) : (
                         <>
-                          {progressPct}% to Level {overallStats.level + 1}
-                          <br />
-                          {overallStats.correctAnswers}/{nextLevelMin} Correct Words
+                          {nextLevelMin - overallStats.correctAnswers} correct answers to next level
                         </>
                       )}
                     </p>
