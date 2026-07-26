@@ -2545,72 +2545,71 @@ return (
                 return (
                   <div
                     style={{
-                      background: SURFACE,
-                      border: `2px solid ${BORDER}`,
-                      borderRadius: 20,
-                      marginBottom: 16,
-                      boxShadow: "0 4px 8px rgba(0,0,0,0.04)"
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      marginBottom: 32
                     }}
                   >
-                    <div
+                    <img
+                      src={userPhoto || "/icons/profile.svg"}
                       style={{
-                        height: 64,
-                        background: `linear-gradient(90deg, ${GREEN}1A, ${PRIMARY}1A)`
+                        width: 88,
+                        height: 88,
+                        borderRadius: "50%",
+                        objectFit: "cover",
+                        border: `3px solid ${SURFACE}`,
+                        boxShadow: "0 4px 12px rgba(0,0,0,0.08)"
                       }}
                     />
-                    <div style={{ padding: "0 20px 22px", marginTop: -40 }}>
-                      <img
-                        src={userPhoto || "/icons/profile.svg"}
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 16 }}>
+                      <h2 style={{ margin: 0, fontSize: 24, fontWeight: 800, color: TEXT }}>
+                        {userName || "Player"}
+                      </h2>
+                      <span
                         style={{
-                          width: 96,
-                          height: 96,
-                          borderRadius: "50%",
-                          objectFit: "cover",
-                          border: `4px solid ${SURFACE}`,
-                          display: "block"
+                          background: `${PRIMARY}1A`,
+                          color: PRIMARY,
+                          fontSize: 12,
+                          fontWeight: 800,
+                          padding: "3px 10px",
+                          borderRadius: 999
                         }}
-                      />
-                      <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 10 }}>
-                        <h2 style={{ margin: 0, fontSize: 22, fontWeight: 800, color: TEXT }}>
-                          {userName || "Player"}
-                        </h2>
-                        <span
-                          style={{
-                            background: `${PRIMARY}1A`,
-                            color: PRIMARY,
-                            fontSize: 12,
-                            fontWeight: 800,
-                            padding: "3px 10px",
-                            borderRadius: 999
-                          }}
-                        >
-                          Lv {overallStats.level}
-                        </span>
-                      </div>
-                      <div style={{ marginTop: 12 }}>
+                      >
+                        Lv {overallStats.level}
+                      </span>
+                    </div>
+                    <div style={{ width: 250, marginTop: 14 }}>
+                      <div
+                        style={{
+                          height: 8,
+                          background: `${GREEN}1A`,
+                          borderRadius: 999,
+                          overflow: "hidden"
+                        }}
+                      >
                         <div
                           style={{
-                            height: 8,
-                            background: `${GREEN}1A`,
-                            borderRadius: 999,
-                            overflow: "hidden"
+                            height: "100%",
+                            width: `${progressPct}%`,
+                            background: GREEN,
+                            borderRadius: 999
                           }}
-                        >
-                          <div
-                            style={{
-                              height: "100%",
-                              width: `${progressPct}%`,
-                              background: GREEN,
-                              borderRadius: 999
-                            }}
-                          />
-                        </div>
-                        <p style={{ margin: "6px 0 0", fontSize: 12, fontWeight: 700, color: TEXT_SECONDARY }}>
-                          {isMaxLevel
-                            ? "Max level reached"
-                            : `${remaining} more correct answer${remaining === 1 ? "" : "s"} to Level ${overallStats.level + 1}`}
-                        </p>
+                        />
                       </div>
+                      <p
+                        style={{
+                          margin: "6px 0 0",
+                          fontSize: 12,
+                          fontWeight: 700,
+                          color: TEXT_SECONDARY,
+                          textAlign: "center"
+                        }}
+                      >
+                        {isMaxLevel
+                          ? "Max level reached"
+                          : `${remaining} more correct answer${remaining === 1 ? "" : "s"} to Level ${overallStats.level + 1}`}
+                      </p>
                     </div>
                   </div>
                 );
