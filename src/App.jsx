@@ -2540,7 +2540,12 @@ return (
                           100
                       )
                     );
-                const remaining = isMaxLevel ? 0 : nextLevelMin - overallStats.correctAnswers;
+
+                const RING_SIZE = 104;
+                const STROKE = 6;
+                const RADIUS = (RING_SIZE - STROKE) / 2;
+                const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
+                const dashOffset = CIRCUMFERENCE * (1 - progressPct / 100);
 
                 return (
                   <div
@@ -2551,66 +2556,80 @@ return (
                       marginBottom: 32
                     }}
                   >
-                    <img
-                      src={userPhoto || "/icons/profile.svg"}
-                      style={{
-                        width: 88,
-                        height: 88,
-                        borderRadius: "50%",
-                        objectFit: "cover",
-                        border: `3px solid ${SURFACE}`,
-                        boxShadow: "0 4px 12px rgba(0,0,0,0.08)"
-                      }}
-                    />
-                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 16 }}>
-                      <h2 style={{ margin: 0, fontSize: 24, fontWeight: 800, color: TEXT }}>
-                        {userName || "Player"}
-                      </h2>
-                      <span
-                        style={{
-                          background: `${PRIMARY}1A`,
-                          color: PRIMARY,
-                          fontSize: 12,
-                          fontWeight: 800,
-                          padding: "3px 10px",
-                          borderRadius: 999
-                        }}
+                    <div style={{ position: "relative", width: RING_SIZE, height: RING_SIZE }}>
+                      <svg
+                        width={RING_SIZE}
+                        height={RING_SIZE}
+                        style={{ position: "absolute", top: 0, left: 0, transform: "rotate(-90deg)" }}
                       >
-                        Lv {overallStats.level}
-                      </span>
-                    </div>
-                    <div style={{ width: 250, marginTop: 14 }}>
+                        <circle
+                          cx={RING_SIZE / 2}
+                          cy={RING_SIZE / 2}
+                          r={RADIUS}
+                          fill="none"
+                          stroke={`${GREEN}1A`}
+                          strokeWidth={STROKE}
+                        />
+                        <circle
+                          cx={RING_SIZE / 2}
+                          cy={RING_SIZE / 2}
+                          r={RADIUS}
+                          fill="none"
+                          stroke={GREEN}
+                          strokeWidth={STROKE}
+                          strokeLinecap="round"
+                          strokeDasharray={CIRCUMFERENCE}
+                          strokeDashoffset={dashOffset}
+                        />
+                      </svg>
+                      <img
+                        src={userPhoto || "/icons/profile.svg"}
+                        style={{
+                          position: "absolute",
+                          top: STROKE + 4,
+                          left: STROKE + 4,
+                          width: RING_SIZE - (STROKE + 4) * 2,
+                          height: RING_SIZE - (STROKE + 4) * 2,
+                          borderRadius: "50%",
+                          objectFit: "cover",
+                          border: `2px solid ${SURFACE}`
+                        }}
+                      />
                       <div
                         style={{
-                          height: 8,
-                          background: `${GREEN}1A`,
-                          borderRadius: 999,
-                          overflow: "hidden"
+                          position: "absolute",
+                          bottom: -2,
+                          right: -2,
+                          background: GREEN,
+                          color: "#fff",
+                          fontSize: 16,
+                          fontWeight: 800,
+                          width: 36,
+                          height: 36,
+                          borderRadius: "50%",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          border: `3px solid ${SURFACE}`
                         }}
                       >
-                        <div
-                          style={{
-                            height: "100%",
-                            width: `${progressPct}%`,
-                            background: GREEN,
-                            borderRadius: 999
-                          }}
-                        />
+                        {overallStats.level}
                       </div>
-                      <p
-                        style={{
-                          margin: "6px 0 0",
-                          fontSize: 12,
-                          fontWeight: 700,
-                          color: TEXT_SECONDARY,
-                          textAlign: "center"
-                        }}
-                      >
-                        {isMaxLevel
-                          ? "Max level reached"
-                          : `${remaining} more correct answer${remaining === 1 ? "" : "s"} to Level ${overallStats.level + 1}`}
-                      </p>
                     </div>
+                    <h2 style={{ margin: "14px 0 2px", fontSize: 20, fontWeight: 800, color: TEXT }}>
+                      {userName || "Player"}
+                    </h2>
+                    <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: GREEN, textAlign: "center" }}>
+                      {isMaxLevel ? (
+                        "Max level reached"
+                      ) : (
+                        <>
+                          {progressPct}% to Level {overallStats.level + 1}
+                          <br />
+                          {overallStats.correctAnswers}/{nextLevelMin} Correct Words
+                        </>
+                      )}
+                    </p>
                   </div>
                 );
               })()}
