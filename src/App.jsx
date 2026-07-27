@@ -2586,6 +2586,8 @@ return (
                             width: RING_SIZE,
                             height: RING_SIZE,
                             cursor: "pointer",
+                            WebkitTapHighlightColor: "transparent",
+                            userSelect: "none",
                           }}
                         >
                         <div style={{ position: "relative", width: RING_SIZE, height: RING_SIZE }}>
@@ -2678,11 +2680,7 @@ return (
                           </svg>
                           </div>
                         </div>
-                        </div> 
-                        <h2 style={{ margin: "14px 0 2px", fontSize: 24, fontWeight: 800, color: TEXT }}>
-                          {userName || "Player"}
-                        </h2>
-                       {showLevelInfo && (
+                        {showLevelInfo && (
                         <div
                           style={{
                             position: "absolute",
@@ -2732,6 +2730,10 @@ return (
                             : `${nextLevelMin - overallStats.correctAnswers} correct answers to Level ${overallStats.level + 1}.`}
                         </div>
                       )}
+                        </div> 
+                        <h2 style={{ margin: "14px 0 2px", fontSize: 24, fontWeight: 800, color: TEXT }}>
+                          {userName || "Player"}
+                        </h2>
                       </div>
                     );
                   })()}
