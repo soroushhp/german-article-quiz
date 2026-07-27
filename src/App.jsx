@@ -2570,9 +2570,7 @@ return (
                     const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
                     const dashOffset = CIRCUMFERENCE * 0.98 * (1 - progressPct / 100);
 
-                    return (
-
-                                   
+                    return (       
                       <div
                         style={{
                           display: "flex",
@@ -2620,8 +2618,8 @@ return (
                             src={userPhoto || "/icons/profile.svg"}
                             style={{
                               position: "absolute",
-                              top: STROKE + 4,
-                              left: STROKE + 4,
+                              top: STROKE + 2,
+                              left: STROKE + 2,
                               width: RING_SIZE - (STROKE + 2) * 2,
                               height: RING_SIZE - (STROKE + 2) * 2,
                               borderRadius: "50%",
