@@ -2518,16 +2518,16 @@ return (
                 </svg>
               </motion.button>
 
-              <h1
+              <h2
                 style={{
                   margin: "0 0 0 12px",
-                  fontSize: 24,
-                  fontWeight: 800,
+                  fontSize: 18,
+                  fontWeight: 700,
                   color: TEXT
                 }}
               >
                 Profile
-              </h1>
+              </h2>
             </div>
           </div>
 
