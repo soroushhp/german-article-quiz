@@ -4,6 +4,7 @@ import NOUNS from "./data/nouns.json";
 import confetti from "canvas-confetti";
 import { Howl } from "howler";
 import { supabase } from "./supabase";
+import { useRef } from "react";
 
 // ── Constants ──────────────────────────────────────────────
 const ARTICLES = ["der", "die", "das"];
@@ -522,6 +523,8 @@ export default function App() {
   const [telegramId, setTelegramId] = useState(null);
   const [userPhoto, setUserPhoto] = useState(null);
 
+  const [showLevelInfo, setShowLevelInfo] = useState(false);
+
   const [dailyCountdown, setDailyCountdown] = useState("");
 
   const [showTopFade, setShowTopFade] = useState(false);
@@ -758,6 +761,24 @@ export default function App() {
     setHeartNotification(type);
     setTimeout(() => setHeartNotification(null), 900);
   };
+
+
+  const timerRef = useRef(null);
+  const toggleLevelInfo = () => {
+  if (showLevelInfo) {
+    clearTimeout(timerRef.current);
+    setShowLevelInfo(false);
+    return;
+  }
+
+  setShowLevelInfo(true);
+
+  clearTimeout(timerRef.current);
+
+  timerRef.current = setTimeout(() => {
+    setShowLevelInfo(false);
+  }, 2500);
+};
 
   // ── Leaderboard loading ────────────────────────────────
   const fetchLeaderboard = (diff) =>
@@ -1151,6 +1172,8 @@ export default function App() {
       alert("Score copied to clipboard!");
     }
   };
+
+  
 
   // ── Styles ─────────────────────────────────────────────
   const current = queue[idx];
@@ -2528,110 +2551,193 @@ return (
               }}
             >
               {/* Profile Photo & Name */}
-              {(() => {
-                const { currentLevelMin, nextLevelMin, isMaxLevel } = getLevel(overallStats.correctAnswers);
-                const progressPct = isMaxLevel
-                  ? 100
-                  : Math.min(
-                      100,
-                      Math.round(
-                        ((overallStats.correctAnswers - currentLevelMin) /
-                          (nextLevelMin - currentLevelMin)) *
-                          100
-                      )
-                    );
+                  {(() => {
+                    const { currentLevelMin, nextLevelMin, isMaxLevel } = getLevel(overallStats.correctAnswers);
+                    const progressPct = isMaxLevel
+                      ? 100
+                      : Math.min(
+                          100,
+                          Math.round(
+                            ((overallStats.correctAnswers - currentLevelMin) /
+                              (nextLevelMin - currentLevelMin)) *
+                              100
+                          )
+                        );
 
-                const RING_SIZE = 104;
-                const STROKE = 6;
-                const RADIUS = (RING_SIZE - STROKE) / 2;
-                const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
-                const dashOffset = CIRCUMFERENCE * 0.98 * (1 - progressPct / 100);
+                    const RING_SIZE = 104;
+                    const STROKE = 6;
+                    const RADIUS = (RING_SIZE - STROKE) / 2;
+                    const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
+                    const dashOffset = CIRCUMFERENCE * 0.98 * (1 - progressPct / 100);
 
-                return (
-                  <div
-                    style={{
-                      display: "flex",
-                      flexDirection: "column",
-                      alignItems: "center",
-                      marginBottom: 32
-                    }}
-                  >
-                    <div style={{ position: "relative", width: RING_SIZE, height: RING_SIZE }}>
-                      <svg
-                        width={RING_SIZE}
-                        height={RING_SIZE}
-                        style={{ position: "absolute", top: 0, left: 0, transform: "rotate(65deg)" }}
-                      >
-                        <circle
-                          cx={RING_SIZE / 2}
-                          cy={RING_SIZE / 2}
-                          r={RADIUS}
-                          fill="none"
-                          stroke={`${GREEN}1A`}
-                          strokeWidth={STROKE}
-                        />
-                        <circle
-                          cx={RING_SIZE / 2}
-                          cy={RING_SIZE / 2}
-                          r={RADIUS}
-                          fill="none"
-                          stroke={GREEN}
-                          strokeWidth={STROKE}
-                          strokeLinecap="round"
-                          strokeDasharray={CIRCUMFERENCE}
-                          strokeDashoffset={dashOffset}
-                        />
-                      </svg>
-                      <img
-                        src={userPhoto || "/icons/profile.svg"}
-                        style={{
-                          position: "absolute",
-                          top: STROKE + 4,
-                          left: STROKE + 4,
-                          width: RING_SIZE - (STROKE + 4) * 2,
-                          height: RING_SIZE - (STROKE + 4) * 2,
-                          borderRadius: "50%",
-                          objectFit: "cover",
-                          border: `2px solid ${SURFACE}`
-                        }}
-                      />
+                    return (
+
+                                   
                       <div
                         style={{
-                          position: "absolute",
-                          bottom: -2,
-                          right: -2,
-                          background: GREEN,
-                          color: "#fff",
-                          fontSize: 16,
-                          fontWeight: 800,
-                          width: 36,
-                          height: 36,
-                          borderRadius: "50%",
                           display: "flex",
+                          flexDirection: "column",
                           alignItems: "center",
-                          justifyContent: "center",
-                          border: `3px solid ${SURFACE}`
+                          marginBottom: 32
                         }}
                       >
-                        {overallStats.level}
-                      </div>
-                    </div>
-                    <h2 style={{ margin: "14px 0 2px", fontSize: 24, fontWeight: 800, color: TEXT }}>
-                      {userName || "Player"}
-                    </h2>
-                    <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: GREEN, textAlign: "center" }}>
-                      {isMaxLevel ? (
-                        "Max level reached"
-                      ) : (
-                        <>
-                          {nextLevelMin - overallStats.correctAnswers} correct answers to next level
-                        </>
-                      )}
-                    </p>
-                  </div>
-                );
-              })()}
+                        <div
+                          onClick={toggleLevelInfo}
+                          style={{
+                            position: "relative",
+                            width: RING_SIZE,
+                            height: RING_SIZE,
+                            cursor: "pointer",
+                          }}
+                        >
+                        <div style={{ position: "relative", width: RING_SIZE, height: RING_SIZE }}>
+                          <svg
+                            width={RING_SIZE}
+                            height={RING_SIZE}
+                            style={{ position: "absolute", top: 0, left: 0, transform: "rotate(65deg)" }}
+                          >
+                            <circle
+                              cx={RING_SIZE / 2}
+                              cy={RING_SIZE / 2}
+                              r={RADIUS}
+                              fill="none"
+                              stroke={`${PRIMARY}1A`}
+                              strokeWidth={STROKE}
+                            />
+                            <circle
+                              cx={RING_SIZE / 2}
+                              cy={RING_SIZE / 2}
+                              r={RADIUS}
+                              fill="none"
+                              stroke={PRIMARY}
+                              strokeWidth={STROKE}
+                              strokeLinecap="round"
+                              strokeDasharray={CIRCUMFERENCE}
+                              strokeDashoffset={dashOffset}
+                            />
+                          </svg>
+                          <img
+                            src={userPhoto || "/icons/profile.svg"}
+                            style={{
+                              position: "absolute",
+                              top: STROKE + 4,
+                              left: STROKE + 4,
+                              width: RING_SIZE - (STROKE + 2) * 2,
+                              height: RING_SIZE - (STROKE + 2) * 2,
+                              borderRadius: "50%",
+                              objectFit: "cover",
+                              border: `2px solid ${SURFACE}`
+                            }}
+                          />
+                          <div
+                            style={{
+                              position: "absolute",
+                              bottom: -4,
+                              right: -4,
+                              width: 42,
+                              height: 42,
+                              zIndex: 2,
+                            }}
+                          >
+                          <svg
+                            width="42"
+                            height="42"
+                            viewBox="0 0 100 100"
+                            style={{ display: "block" }}
+                          >
+                            <path
+                              d="
+                                M28 8
+                                H72
+                                C82 8 90 16 90 26
+                                V60
+                                C90 68 85 75 77 80
+                                L50 95
+                                L23 80
+                                C15 75 10 68 10 60
+                                V26
+                                C10 16 18 8 28 8
+                                Z
+                              "
+                              fill={PRIMARY}
+                              stroke={SURFACE}
+                              strokeWidth="7"
+                              strokeLinejoin="round"
+                            />
 
+                            <text
+                              x="50"
+                              y="48"
+                              textAnchor="middle"
+                              dominantBaseline="middle"
+                              fill="#fff"
+                              fontSize="34"
+                              fontWeight="800"
+                              fontFamily="system-ui, sans-serif"
+                            >
+                              {overallStats.level}
+                            </text>
+                          </svg>
+                          </div>
+                        </div>
+                        </div> 
+                        <h2 style={{ margin: "14px 0 2px", fontSize: 24, fontWeight: 800, color: TEXT }}>
+                          {userName || "Player"}
+                        </h2>
+                       {showLevelInfo && (
+                        <div
+                          style={{
+                            position: "absolute",
+                            top: RING_SIZE + 14,
+                            left: "50%",
+                            transform: "translateX(-50%)",
+                            background: SURFACE,
+                            color: TEXT,
+                            padding: "8px 8px",
+                            borderRadius: 12,
+                            boxShadow: "0 6px 18px rgba(0,0,0,.15)",
+                            border: `1px solid ${BORDER}`,
+                            width: 220,
+                            textAlign: "center",
+                            zIndex: 20,
+                            fontSize: 13,
+                            lineHeight: 1.4,
+                            pointerEvents: "none",
+                          }}
+                        >
+                          <div
+                        style={{
+                          position: "absolute",
+                          top: -6,
+                          left: "50%",
+                          transform: "translateX(-50%) rotate(45deg)",
+                          width: 12,
+                          height: 12,
+                          background: SURFACE,
+                          borderLeft: `1px solid ${BORDER}`,
+                          borderTop: `1px solid ${BORDER}`,
+                        }}
+                      />
+                          <div
+                            style={{
+                              fontWeight: 800,
+                              fontSize: 16,
+                              color: PRIMARY,
+                              marginBottom: 0,
+                            }}
+                          >
+                            Level {overallStats.level}
+                          </div>
+
+                          {isMaxLevel
+                            ? "You've reached the maximum level."
+                            : `${nextLevelMin - overallStats.correctAnswers} correct answers to Level ${overallStats.level + 1}.`}
+                        </div>
+                      )}
+                      </div>
+                    );
+                  })()}
+               
               {/* Stats */}
               <div style={cardStyle}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
