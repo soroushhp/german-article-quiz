@@ -442,6 +442,23 @@ async function loadOverallStats(telegramId) {
   return data;
 }
 
+async function loadDailyStats(telegramId) {
+  const { data, error } = await supabase
+    .from("user_daily_stats")
+    .select("*")
+    .eq("telegram_id", telegramId)
+    .maybeSingle();
+
+  if (error) throw error;
+
+  return {
+    daysPlayed: data?.days_played ?? 0,
+    currentStreak: data?.current_streak ?? 0,
+    bestStreak: data?.best_streak ?? 0,
+    artikelgottWins: data?.artikelgott_wins ?? 0,
+  };
+}
+
 async function incrementOverallStats(
   telegramId,
   answersToAdd,
@@ -459,6 +476,27 @@ async function incrementOverallStats(
   }
 
   return data[0];
+}
+
+async function recordDailyParticipation(telegramId, playedDate) {
+  const { error } = await supabase.rpc("record_daily_participation", {
+    p_telegram_id: telegramId,
+    p_played_date: playedDate,
+  });
+
+  if (error) {
+    console.error("Failed to record daily participation:", error);
+  }
+}
+
+async function recordArtikelgottWin(telegramId) {
+  const { error } = await supabase.rpc("record_artikelgott_win", {
+    p_telegram_id: telegramId,
+  });
+
+  if (error) {
+    console.error("Failed to record Artikelgott win:", error);
+  }
 }
 
 // ── App ────────────────────────────────────────────────────
@@ -537,6 +575,13 @@ export default function App() {
     level: 1,
     currentLevelMin: 0,
     nextLevelMin: 10,
+  });
+
+  const [dailyStats, setDailyStats] = useState({
+    daysPlayed: 0,
+    currentStreak: 0,
+    bestStreak: 0,
+    artikelgottWins: 0,
   });
 
   const cardStyle = {
@@ -718,6 +763,9 @@ export default function App() {
         nextLevelMin: levelInfo.nextLevelMin,
       });
     }
+
+    const dailyStats = await loadDailyStats(id);
+    setDailyStats(dailyStats);
 
     const migrated = localStorage.getItem("leaderboard_migrated");
     if (!migrated) migrateLocalScores(id, name || "Anonymous");
@@ -968,6 +1016,15 @@ export default function App() {
     });
 
     if (isComplete) {
+
+      // Record participation only after completing Easy
+      if (difficulty === "easy") {
+        await recordDailyParticipation(
+          telegramId,
+          new Date().toISOString().slice(0, 10)
+        );
+      }
+
       if (score >= 8) {
         await saveDailyChallengePassed(
           telegramId,
@@ -975,6 +1032,14 @@ export default function App() {
           difficulty
         );
       }
+
+      // Record Artikelgott win only if the hardest level was passed
+      if (difficulty === "artikelgott") {
+        await recordArtikelgottWin(telegramId);
+      }
+
+      const stats = await loadDailyStats(telegramId);
+      setDailyStats(stats);
 
       await loadDailyStatuses();
 
@@ -2766,12 +2831,15 @@ return (
               <div style={cardStyle}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
                   <img src="/images/daily.png" width={22} height={22} />
-                  <h3 style={{ margin: 0, fontSize: 18, fontWeight: 800, color: TEXT }}>Daily Challenges</h3>
+                  <h3 style={{ margin: 0, fontSize: 18, fontWeight: 800, color: TEXT }}>
+                    Daily Challenges
+                  </h3>
                 </div>
-                <StatRow label="Challenges Passed" value="42" />
-                <StatRow label="Current Streak" value="6" />
-                <StatRow label="Best Streak" value="18" />
-                <StatRow label="Accuracy" value="84%" />
+
+                <StatRow label="Days Played" value={dailyStats.daysPlayed} />
+                <StatRow label="Current Streak" value={dailyStats.currentStreak} />
+                <StatRow label="Best Streak" value={dailyStats.bestStreak} />
+                <StatRow label="Artikelgott Wins" value={dailyStats.artikelgottWins} />
               </div>
 
               <div style={cardStyle}>
