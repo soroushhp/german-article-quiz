@@ -2789,7 +2789,7 @@ return (
             {/* Top Fade — sibling of the scroller, so it stays fixed on top */}
             <motion.div
               animate={{ opacity: showTopFade ? 1 : 0 }}
-              transition={{ duration: 0.5 }}
+              transition={{ duration: 0.15 }}
               style={{
                 position: "absolute",
                 top: 0,
