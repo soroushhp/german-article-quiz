@@ -1018,7 +1018,7 @@ export default function App() {
     if (isComplete) {
 
       // Record participation only after completing Easy
-      if (difficulty === "easy") {
+      if (difficulty === "beginner") {
         await recordDailyParticipation(
           telegramId,
           new Date().toISOString().slice(0, 10)
