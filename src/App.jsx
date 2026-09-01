@@ -459,6 +459,58 @@ async function loadDailyStats(telegramId) {
   };
 }
 
+function formatSurvivalStats(data) {
+  const wordsAnswered = data?.words_answered ?? 0;
+  const correctAnswers = data?.correct_answers ?? 0;
+
+  return {
+    bestRun: data?.best_run ?? 0,
+    gamesPlayed: data?.games_played ?? 0,
+    wordsAnswered,
+    correctAnswers,
+    accuracy:
+      wordsAnswered === 0
+        ? 0
+        : Math.round((correctAnswers / wordsAnswered) * 100),
+  };
+}
+
+async function loadSurvivalStats(telegramId) {
+  const { data, error } = await supabase
+    .from("user_survival_stats")
+    .select("best_run, games_played, words_answered, correct_answers")
+    .eq("telegram_id", telegramId)
+    .maybeSingle();
+
+  if (error) {
+    console.error("Failed to load Survival stats:", error);
+    return null;
+  }
+
+  return formatSurvivalStats(data);
+}
+
+async function recordSurvivalGame(
+  telegramId,
+  score,
+  wordsAnswered,
+  correctAnswers
+) {
+  const { data, error } = await supabase.rpc("record_survival_game", {
+    p_telegram_id: telegramId,
+    p_score: score,
+    p_words_answered: wordsAnswered,
+    p_correct_answers: correctAnswers,
+  });
+
+  if (error) {
+    console.error("Failed to record Survival game:", error);
+    return null;
+  }
+
+  return formatSurvivalStats(Array.isArray(data) ? data[0] : data);
+}
+
 async function incrementOverallStats(
   telegramId,
   answersToAdd,
@@ -582,6 +634,14 @@ export default function App() {
     currentStreak: 0,
     bestStreak: 0,
     artikelgottWins: 0,
+  });
+
+  const [survivalStats, setSurvivalStats] = useState({
+    bestRun: 0,
+    gamesPlayed: 0,
+    wordsAnswered: 0,
+    correctAnswers: 0,
+    accuracy: 0,
   });
 
   const cardStyle = {
@@ -766,6 +826,17 @@ export default function App() {
 
     const dailyStats = await loadDailyStats(id);
     setDailyStats(dailyStats);
+
+    const survivalStats = await loadSurvivalStats(id);
+    if (survivalStats) {
+      setSurvivalStats({
+        ...survivalStats,
+        bestRun: Math.max(
+          survivalStats.bestRun,
+          ...Object.values(scores)
+        ),
+      });
+    }
 
     const migrated = localStorage.getItem("leaderboard_migrated");
     if (!migrated) migrateLocalScores(id, name || "Anonymous");
@@ -1060,10 +1131,10 @@ export default function App() {
     }, 600);
   };
 
-  const handleFreeAnswer = (isCorrect, selectedArticle) => {
+  const handleFreeAnswer = (isCorrect, selectedArticle, updatedHistory) => {
         if (!isCorrect) {
           if (hearts <= 0) {
-            endGameOver();
+            endGameOver(updatedHistory);
             return;
           }
 
@@ -1097,7 +1168,7 @@ export default function App() {
         const nextIdx = idx + 1;
 
         if (nextIdx >= queue.length) {
-          endLevelComplete(newStreak);
+          endLevelComplete(newStreak, updatedHistory);
           return;
         }
 
@@ -1112,8 +1183,8 @@ export default function App() {
 
     const isCorrect = art === queue[idx].article;
 
-    setAnswerHistory(prev => [
-      ...prev,
+    const updatedHistory = [
+      ...answerHistory,
       {
         word: queue[idx].word,
         meaning: queue[idx].meaning,
@@ -1121,7 +1192,9 @@ export default function App() {
         selected: art,
         correct: isCorrect
       }
-    ]);
+    ];
+
+    setAnswerHistory(updatedHistory);
 
     const isHeartMoment = isCorrect && (heartStreak + 1) % 10 === 0 && hearts < 3;
     const isHeartLose   = !isCorrect && hearts > 0;
@@ -1159,7 +1232,7 @@ export default function App() {
     });
 
     if (mode === "daily") handleDailyAnswer(isCorrect);
-    else handleFreeAnswer(isCorrect, art);
+    else handleFreeAnswer(isCorrect, art, updatedHistory);
   };
 
   const handleContinue = () => {
@@ -1177,7 +1250,7 @@ export default function App() {
   };
 
 
-  const endGameOver = async () => {
+  const endGameOver = async (completedHistory = answerHistory) => {
     const prev = highScores[difficulty];
     setPreviousBest(prev);
 
@@ -1191,6 +1264,15 @@ export default function App() {
         const scores = await loadHighScores(telegramId);
         setHighScores(scores);
       }
+    }
+    if (telegramId) {
+      const stats = await recordSurvivalGame(
+        telegramId,
+        Math.max(streak, ...Object.values(highScores)),
+        completedHistory.length,
+        completedHistory.filter(answer => answer.correct).length
+      );
+      if (stats) setSurvivalStats(stats);
     }
     checkAndUnlock(difficulty, streak);
     setFinalScore(streak);
@@ -1209,7 +1291,7 @@ export default function App() {
   };
 
 
-  const endLevelComplete = async (finalStr) => {
+  const endLevelComplete = async (finalStr, completedHistory = answerHistory) => {
     sounds.levelComplete.play();
     confetti({ particleCount: 160, spread: 90, origin: { y: 0.6 } });
 
@@ -1217,6 +1299,14 @@ export default function App() {
       await saveScore(telegramId, userName || "Anonymous", difficulty, finalStr);
       const scores = await loadHighScores(telegramId);
       setHighScores(scores);
+
+      const stats = await recordSurvivalGame(
+        telegramId,
+        Math.max(finalStr, ...Object.values(highScores)),
+        completedHistory.length,
+        completedHistory.filter(answer => answer.correct).length
+      );
+      if (stats) setSurvivalStats(stats);
     }
 
     await checkAndUnlock(difficulty, finalStr);
@@ -2847,10 +2937,10 @@ return (
                   <img src="/icons/flame.svg" width={22} height={22} />
                   <h3 style={{ margin: 0, fontSize: 18, fontWeight: 800, color: TEXT }}>Survival Mode</h3>
                 </div>
-                <StatRow label="Best Run" value="145" />
-                <StatRow label="Games Played" value="93" />
-                <StatRow label="Words Answered" value="864" />
-                <StatRow label="Accuracy" value="79%" />
+                <StatRow label="Best Run" value={survivalStats.bestRun} />
+                <StatRow label="Games Played" value={survivalStats.gamesPlayed} />
+                <StatRow label="Words Answered" value={survivalStats.wordsAnswered} />
+                <StatRow label="Accuracy" value={`${survivalStats.accuracy}%`} />
               </div>
             </div>
 
@@ -2891,4 +2981,3 @@ return (
     </div>
   );
 }
-        
