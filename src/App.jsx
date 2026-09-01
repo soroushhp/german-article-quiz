@@ -792,20 +792,29 @@ export default function App() {
   const loadUserData = async (id, name, photo) => {
     setTelegramId(id);
 
-    await createUserOverallStats(id);
-
     if (name) setUserName(name);
     if (photo) setUserPhoto(photo);
 
-    const scores = await loadHighScores(id);
+    const overallStatsPromise = createUserOverallStats(id)
+      .then(() => loadOverallStats(id));
+
+    const [
+      scores,
+      unlocked,
+      stats,
+      loadedDailyStats,
+      loadedSurvivalStats,
+    ] = await Promise.all([
+      loadHighScores(id),
+      loadUnlockedDifficulties(id),
+      overallStatsPromise,
+      loadDailyStats(id),
+      loadSurvivalStats(id),
+      loadDailyStatuses(id),
+    ]);
+
     setHighScores(scores);
-
-    const unlocked = await loadUnlockedDifficulties(id);
     setUnlockedLevels(unlocked);
-
-    await loadDailyStatuses(id);
-
-    const stats = await loadOverallStats(id);
 
     if (stats) {
       const levelInfo = getLevel(stats.correct_answers);
@@ -824,15 +833,13 @@ export default function App() {
       });
     }
 
-    const dailyStats = await loadDailyStats(id);
-    setDailyStats(dailyStats);
+    setDailyStats(loadedDailyStats);
 
-    const survivalStats = await loadSurvivalStats(id);
-    if (survivalStats) {
+    if (loadedSurvivalStats) {
       setSurvivalStats({
-        ...survivalStats,
+        ...loadedSurvivalStats,
         bestRun: Math.max(
-          survivalStats.bestRun,
+          loadedSurvivalStats.bestRun,
           ...Object.values(scores)
         ),
       });
@@ -1053,24 +1060,13 @@ export default function App() {
     setScreen("game");
   };
 
-  const handleDailyAnswer = async (isCorrect) => {
+  const handleDailyAnswer = async (isCorrect, updatedHistory) => {
     const nextIdx = idx + 1;
     const nextResults = [...dailyResults, isCorrect];
     const score = nextResults.filter(Boolean).length;
     const isComplete = nextIdx >= queue.length;
 
     setDailyResults(nextResults);
-
-    const updatedHistory = [
-      ...answerHistory,
-      {
-        word: queue[idx].word,
-        meaning: queue[idx].meaning,
-        article: queue[idx].article,
-        selected,
-        correct: isCorrect
-      }
-    ];
 
     await saveDailyProgress({
       telegram_id: telegramId,
@@ -1231,7 +1227,7 @@ export default function App() {
       }
     });
 
-    if (mode === "daily") handleDailyAnswer(isCorrect);
+    if (mode === "daily") handleDailyAnswer(isCorrect, updatedHistory);
     else handleFreeAnswer(isCorrect, art, updatedHistory);
   };
 
