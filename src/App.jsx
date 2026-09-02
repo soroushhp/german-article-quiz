@@ -2423,7 +2423,7 @@ return (
                   style={{ width: 40, height: 40, border: "none", background: "transparent", borderRadius: "50%", color: TEXT_SECONDARY, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", padding: 0 }}>
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M20 12H4M10 18L4 12L10 6" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
                 </motion.button>
-                <h1 style={{ margin: "0 0 0 12px", fontSize: 24, fontWeight: 800, color: TEXT }}>Leaderboard</h1>
+                <h1 style={{ margin: "0 0 0 12px", fontSize: 18, fontWeight: 700, color: TEXT }}>Leaderboard</h1>
               </div>
 
               {/* Mode Tabs */}
