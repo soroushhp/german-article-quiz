@@ -374,21 +374,29 @@ async function isDifficultyUnlocked(telegramId, difficulty) {
 }
 
 async function fetchSurvivalLeaderboardData(diff, telegramId) {
-  const { data: top10 } = await supabase
+  const top10Query = supabase
     .from("leaderboard")
     .select("*")
     .eq("difficulty", diff)
     .order("best_score", { ascending: false })
     .limit(10);
 
-  if (!telegramId) return { top10: top10 || [], userRow: null, userRank: null };
+  if (!telegramId) {
+    const { data: top10 } = await top10Query;
+    return { top10: top10 || [], userRow: null, userRank: null };
+  }
 
-  const { data: userRow } = await supabase
+  const userRowQuery = supabase
     .from("leaderboard")
     .select("*")
     .eq("telegram_id", telegramId)
     .eq("difficulty", diff)
     .maybeSingle();
+
+  const [
+    { data: top10 },
+    { data: userRow },
+  ] = await Promise.all([top10Query, userRowQuery]);
 
   if (!userRow) return { top10: top10 || [], userRow: null, userRank: null };
 
@@ -402,21 +410,29 @@ async function fetchSurvivalLeaderboardData(diff, telegramId) {
 }
 
 async function fetchDailyLeaderboardData(diff, telegramId) {
-  const { data: top10 } = await supabase
+  const top10Query = supabase
     .from("daily_leaderboard")
     .select("*")
     .eq("difficulty", diff)
     .order("passed_challenges", { ascending: false })
     .limit(10);
 
-  if (!telegramId) return { top10: top10 || [], userRow: null, userRank: null };
+  if (!telegramId) {
+    const { data: top10 } = await top10Query;
+    return { top10: top10 || [], userRow: null, userRank: null };
+  }
 
-  const { data: userRow } = await supabase
+  const userRowQuery = supabase
     .from("daily_leaderboard")
     .select("*")
     .eq("telegram_id", telegramId)
     .eq("difficulty", diff)
     .maybeSingle();
+
+  const [
+    { data: top10 },
+    { data: userRow },
+  ] = await Promise.all([top10Query, userRowQuery]);
 
   if (!userRow) return { top10: top10 || [], userRow: null, userRank: null };
 
