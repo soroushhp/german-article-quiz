@@ -1254,23 +1254,30 @@ export default function App() {
     if (isNew) {
       confetti({ particleCount: 160, spread: 90, origin: { y: 0.6 } });
       sounds.highscore.play();
-
-      if (telegramId) {
-        await saveScore(telegramId, userName || "Anonymous", difficulty, streak);
-        const scores = await loadHighScores(telegramId);
-        setHighScores(scores);
-      }
     }
+
     if (telegramId) {
-      const stats = await recordSurvivalGame(
+      const leaderboardPromise = isNew
+        ? saveScore(telegramId, userName || "Anonymous", difficulty, streak)
+            .then(() => loadHighScores(telegramId))
+        : Promise.resolve(null);
+      const survivalStatsPromise = recordSurvivalGame(
         telegramId,
         Math.max(streak, ...Object.values(highScores)),
         completedHistory.length,
         completedHistory.filter(answer => answer.correct).length
       );
+
+      const [scores, stats] = await Promise.all([
+        leaderboardPromise,
+        survivalStatsPromise,
+        checkAndUnlock(difficulty, streak),
+      ]);
+
+      if (scores) setHighScores(scores);
       if (stats) setSurvivalStats(stats);
     }
-    checkAndUnlock(difficulty, streak);
+
     setFinalScore(streak);
     setIsNewHigh(isNew);
     setScreen("end");
@@ -1292,20 +1299,28 @@ export default function App() {
     confetti({ particleCount: 160, spread: 90, origin: { y: 0.6 } });
 
     if (telegramId) {
-      await saveScore(telegramId, userName || "Anonymous", difficulty, finalStr);
-      const scores = await loadHighScores(telegramId);
-      setHighScores(scores);
-
-      const stats = await recordSurvivalGame(
+      const leaderboardPromise = saveScore(
+        telegramId,
+        userName || "Anonymous",
+        difficulty,
+        finalStr
+      ).then(() => loadHighScores(telegramId));
+      const survivalStatsPromise = recordSurvivalGame(
         telegramId,
         Math.max(finalStr, ...Object.values(highScores)),
         completedHistory.length,
         completedHistory.filter(answer => answer.correct).length
       );
+
+      const [scores, stats] = await Promise.all([
+        leaderboardPromise,
+        survivalStatsPromise,
+        checkAndUnlock(difficulty, finalStr),
+      ]);
+
+      if (scores) setHighScores(scores);
       if (stats) setSurvivalStats(stats);
     }
-
-    await checkAndUnlock(difficulty, finalStr);
 
     setFinalScore(finalStr);
     setIsLevelComplete(true);
