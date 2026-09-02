@@ -9,6 +9,20 @@ import { useRef } from "react";
 // ── Constants ──────────────────────────────────────────────
 const ARTICLES = ["der", "die", "das"];
 const DIFFICULTY_LABELS = { beginner: "Easy", intermediate: "Medium", advanced: "Hard", artikelgott: "Artikelgott" };
+const SHARE_MESSAGE_TEMPLATES = {
+  daily: {
+    beginner: (score) => `🔥 I scored ${score}/10 on today's Easy challenge in Article Fever!\nHave you played your Daily Challenge yet?`,
+    intermediate: (score) => `🔥 I scored ${score}/10 on today's Medium challenge in Article Fever!\nHave you played your Daily Challenge yet?`,
+    advanced: (score) => `🔥 I scored ${score}/10 on today's Hard challenge in Article Fever!\nHave you played your Daily Challenge yet?`,
+    artikelgott: (score) => `🔥 I scored ${score}/10 on today's Artikelgott challenge in Article Fever!\nHave you played your Daily Challenge yet?`
+  },
+  free: {
+    beginner: (score) => `🔥 I survived ${score} words on Easy in Article Fever!\nCan you beat me?`,
+    intermediate: (score) => `🔥 I survived ${score} words on Medium in Article Fever!\nCan you beat me?`,
+    advanced: (score) => `🔥 I survived ${score} words on Hard in Article Fever!\nCan you beat me?`,
+    artikelgott: (score) => `🔥 I survived ${score} words on Artikelgott in Article Fever!\nCan you beat me?`
+  }
+};
 const nextDifficulty = {
   beginner: "intermediate",
   intermediate: "advanced",
@@ -1336,7 +1350,7 @@ export default function App() {
   };
 
   const shareScore = () => {
-    const text = `🔥 I scored ${finalScore} on ${DIFFICULTY_LABELS[difficulty]} in Article Fever!\nCan you beat me?`;
+    const text = SHARE_MESSAGE_TEMPLATES[mode][difficulty](finalScore);
     const url  = `https://t.me/ArticleFever_bot`;
     const tg   = window.Telegram?.WebApp;
     if (tg?.openTelegramLink) {
