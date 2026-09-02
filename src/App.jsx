@@ -264,10 +264,14 @@ async function loadHighScores(telegramId) {
 
 async function migrateLocalScores(telegramId, username) {
   const difficulties = ["beginner", "intermediate", "advanced", "artikelgott"];
-  for (const diff of difficulties) {
-    const score = getHS(diff);
-    if (score > 0) await saveScore(telegramId, username, diff, score);
-  }
+  await Promise.all(
+    difficulties.map(diff => {
+      const score = getHS(diff);
+      return score > 0
+        ? saveScore(telegramId, username, diff, score)
+        : Promise.resolve();
+    })
+  );
   localStorage.setItem("leaderboard_migrated", "true");
 }
 
@@ -846,7 +850,11 @@ export default function App() {
     }
 
     const migrated = localStorage.getItem("leaderboard_migrated");
-    if (!migrated) migrateLocalScores(id, name || "Anonymous");
+    if (!migrated) {
+      await migrateLocalScores(id, name || "Anonymous");
+      const migratedScores = await loadHighScores(id);
+      if (migratedScores) setHighScores(migratedScores);
+    }
   };
 
   if (tg) {
