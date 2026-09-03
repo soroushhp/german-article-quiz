@@ -191,6 +191,8 @@ const sounds = {
   heartLose:     new Howl({ src: ["/sounds/heartlose.mp3"],     volume: 0.2, preload: true }),
   highscore:     new Howl({ src: ["/sounds/highscore.mp3"],     volume: 0.2, preload: true }),
   levelComplete: new Howl({ src: ["/sounds/levelcomplete.mp3"], volume: 0.2, preload: true }),
+  dailyLevelComplete: new Howl({ src: ["/sounds/dailylevelcomplete.mp3"], volume: 0.2, preload: true }),
+  dailyLevelFail:     new Howl({ src: ["/sounds/dailylevelfail.mp3"],     volume: 0.2, preload: true }),
 };
 
 // ── Supabase ───────────────────────────────────────────────
@@ -701,6 +703,7 @@ export default function App() {
   const [gameOver, setGameOver] = useState(false);
   const [isNewHigh, setIsNewHigh] = useState(false);
   const [isLevelComplete, setIsLevelComplete] = useState(false);
+  const [endResult, setEndResult] = useState(null);
 
   const [finalScore, setFinalScore] = useState(0);
 
@@ -1138,6 +1141,12 @@ export default function App() {
     setStreak(0);
     setHeartStreak(0);
     setHearts(3);
+    setDailyResults([]);
+    setDailyPassed(false);
+    setDifficulty(diff);
+    setQueue(getDailyWords(NOUNS[diff], 10));
+    setIdx(0);
+    setScreen("game");
 
     const today = new Date().toISOString().slice(0, 10);
     const existing = await getDailyProgress(telegramId, today, diff);
@@ -1149,7 +1158,6 @@ export default function App() {
       setQueue(getDailyWords(NOUNS[diff], 10));
       setIdx(existing.current_word || 0);
       await loadDailyStatuses();
-      setScreen("game");
       return;
     }
 
@@ -1173,13 +1181,7 @@ export default function App() {
       last_played_at: new Date().toISOString()
     });
 
-    setDailyResults([]);
-    setDailyPassed(false);
-    setDifficulty(diff);
-    setQueue(getDailyWords(NOUNS[diff], 10));
-    setIdx(0);
     await loadDailyStatuses();
-    setScreen("game");
   };
 
   const startGame = (diff) => {
@@ -1256,6 +1258,7 @@ export default function App() {
       setDailyLastMistake(lastMistake);
       setFinalScore(score);
       setDailyPassed(score >= 8);
+      setEndResult(score >= 8 ? "dailyComplete" : "dailyFail");
       setScreen("end");
       return;
     }
@@ -1390,10 +1393,6 @@ export default function App() {
     setPreviousBest(prev);
 
     const isNew = streak > prev;
-    if (isNew) {
-      confetti({ particleCount: 160, spread: 90, origin: { y: 0.6 } });
-      sounds.highscore.play();
-    }
 
     if (telegramId) {
       const leaderboardPromise = isNew
@@ -1419,6 +1418,7 @@ export default function App() {
 
     setFinalScore(streak);
     setIsNewHigh(isNew);
+    setEndResult(isNew ? "survivalHighScore" : "survivalGameOver");
     setScreen("end");
   };
 
@@ -1434,9 +1434,6 @@ export default function App() {
 
 
   const endLevelComplete = async (finalStr, completedHistory = answerHistory) => {
-    sounds.levelComplete.play();
-    confetti({ particleCount: 160, spread: 90, origin: { y: 0.6 } });
-
     if (telegramId) {
       const leaderboardPromise = saveScore(
         telegramId,
@@ -1463,8 +1460,29 @@ export default function App() {
 
     setFinalScore(finalStr);
     setIsLevelComplete(true);
+    setEndResult("survivalLevelComplete");
     setScreen("end");
   };
+
+  useEffect(() => {
+    if (screen !== "end" || !endResult) return;
+
+    const frame = requestAnimationFrame(() => {
+      if (endResult === "dailyComplete") {
+        sounds.dailyLevelComplete.play();
+      } else if (endResult === "dailyFail") {
+        sounds.dailyLevelFail.play();
+      } else if (endResult === "survivalLevelComplete") {
+        sounds.levelComplete.play();
+        confetti({ particleCount: 160, spread: 90, origin: { y: 0.6 } });
+      } else if (endResult === "survivalHighScore") {
+        sounds.highscore.play();
+        confetti({ particleCount: 160, spread: 90, origin: { y: 0.6 } });
+      }
+    });
+
+    return () => cancelAnimationFrame(frame);
+  }, [screen, endResult]);
 
   const shareScore = () => {
     const text = SHARE_MESSAGE_TEMPLATES[mode][difficulty](finalScore);
