@@ -194,42 +194,81 @@ const sounds = {
 };
 
 // ── Supabase ───────────────────────────────────────────────
+function logSupabaseError(operation, error) {
+  console.error(`Supabase ${operation} failed:`, error);
+}
+
 async function saveScore(telegramId, username, difficulty, score) {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("leaderboard")
     .select("*")
     .eq("telegram_id", telegramId)
     .eq("difficulty", difficulty)
     .maybeSingle();
 
+  if (error) {
+    logSupabaseError("score lookup", error);
+    return false;
+  }
+
   if (!data) {
-    await supabase.from("leaderboard").insert({ telegram_id: telegramId, username, difficulty, best_score: score });
-    return;
+    const { error: insertError } = await supabase
+      .from("leaderboard")
+      .insert({ telegram_id: telegramId, username, difficulty, best_score: score });
+
+    if (insertError) {
+      logSupabaseError("score creation", insertError);
+      return false;
+    }
+
+    return true;
   }
+
   if (score > data.best_score) {
-    await supabase.from("leaderboard").update({ best_score: score, username, updated_at: new Date().toISOString() }).eq("id", data.id);
+    const { error: updateError } = await supabase
+      .from("leaderboard")
+      .update({ best_score: score, username, updated_at: new Date().toISOString() })
+      .eq("id", data.id);
+
+    if (updateError) {
+      logSupabaseError("score update", updateError);
+      return false;
+    }
   }
+
+  return true;
 }
 
 async function saveDailyChallengePassed(telegramId, username, difficulty) {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("daily_leaderboard")
     .select("*")
     .eq("telegram_id", telegramId)
     .eq("difficulty", difficulty)
     .maybeSingle();
 
+  if (error) {
+    logSupabaseError("Daily leaderboard lookup", error);
+    return false;
+  }
+
   if (!data) {
-    await supabase.from("daily_leaderboard").insert({
+    const { error: insertError } = await supabase.from("daily_leaderboard").insert({
       telegram_id: telegramId,
       username,
       difficulty,
       passed_challenges: 1
     });
-    return;
+
+    if (insertError) {
+      logSupabaseError("Daily leaderboard creation", insertError);
+      return false;
+    }
+
+    return true;
   }
 
-  await supabase
+  const { error: updateError } = await supabase
     .from("daily_leaderboard")
     .update({
       passed_challenges: data.passed_challenges + 1,
@@ -237,6 +276,13 @@ async function saveDailyChallengePassed(telegramId, username, difficulty) {
       updated_at: new Date().toISOString()
     })
     .eq("id", data.id);
+
+  if (updateError) {
+    logSupabaseError("Daily leaderboard update", updateError);
+    return false;
+  }
+
+  return true;
 }
 
 async function getDailyStatuses(telegramId, date) {
@@ -247,7 +293,7 @@ async function getDailyStatuses(telegramId, date) {
     .eq("date", date);
 
   if (error) {
-    console.error(error);
+    logSupabaseError("daily status load", error);
     return [];
   }
 
@@ -255,19 +301,24 @@ async function getDailyStatuses(telegramId, date) {
 }
 
 async function loadHighScores(telegramId) {
-  if (!telegramId) return;
-
-  const { data } = await supabase
-    .from("leaderboard")
-    .select("difficulty,best_score")
-    .eq("telegram_id", telegramId);
-
   const scores = {
     beginner: 0,
     intermediate: 0,
     advanced: 0,
     artikelgott: 0,
   };
+
+  if (!telegramId) return scores;
+
+  const { data, error } = await supabase
+    .from("leaderboard")
+    .select("difficulty,best_score")
+    .eq("telegram_id", telegramId);
+
+  if (error) {
+    logSupabaseError("high-score load", error);
+    return scores;
+  }
 
   data?.forEach(row => {
     scores[row.difficulty] = row.best_score;
@@ -294,7 +345,7 @@ async function saveDailyProgress(data) {
     .from("daily_challenges")
     .upsert(data, { onConflict: "telegram_id,date,difficulty" });
 
-  if (error) console.error(error);
+  if (error) logSupabaseError("Daily progress save", error);
 }
 
 async function getDailyProgress(telegramId, date, difficulty) {
@@ -307,7 +358,7 @@ async function getDailyProgress(telegramId, date, difficulty) {
     .maybeSingle();
 
   if (error) {
-    console.error(error);
+    logSupabaseError("Daily progress load", error);
     return null;
   }
 
@@ -321,7 +372,7 @@ async function loadUnlockedDifficulties(telegramId) {
     .eq("telegram_id", telegramId);
 
   if (error) {
-    console.error(error);
+    logSupabaseError("difficulty unlock load", error);
     return {
       beginner: true,
       intermediate: false,
@@ -359,16 +410,18 @@ async function unlockDifficulty(telegramId, difficulty) {
       }
     );
 
-  if (error) console.error(error);
+  if (error) logSupabaseError("difficulty unlock save", error);
 }
 
 async function isDifficultyUnlocked(telegramId, difficulty) {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("user_unlocks")
     .select("unlocked")
     .eq("telegram_id", telegramId)
     .eq("difficulty", difficulty)
     .maybeSingle();
+
+  if (error) logSupabaseError("difficulty unlock check", error);
 
   return difficulty === "beginner" || !!data?.unlocked;
 }
@@ -382,7 +435,8 @@ async function fetchSurvivalLeaderboardData(diff, telegramId) {
     .limit(10);
 
   if (!telegramId) {
-    const { data: top10 } = await top10Query;
+    const { data: top10, error } = await top10Query;
+    if (error) throw error;
     return { top10: top10 || [], userRow: null, userRank: null };
   }
 
@@ -394,17 +448,22 @@ async function fetchSurvivalLeaderboardData(diff, telegramId) {
     .maybeSingle();
 
   const [
-    { data: top10 },
-    { data: userRow },
+    { data: top10, error: top10Error },
+    { data: userRow, error: userRowError },
   ] = await Promise.all([top10Query, userRowQuery]);
+
+  if (top10Error) throw top10Error;
+  if (userRowError) throw userRowError;
 
   if (!userRow) return { top10: top10 || [], userRow: null, userRank: null };
 
-  const { count } = await supabase
+  const { count, error: rankError } = await supabase
     .from("leaderboard")
     .select("*", { count: "exact", head: true })
     .eq("difficulty", diff)
     .gt("best_score", userRow.best_score);
+
+  if (rankError) throw rankError;
 
   return { top10: top10 || [], userRow, userRank: count + 1 };
 }
@@ -418,7 +477,8 @@ async function fetchDailyLeaderboardData(diff, telegramId) {
     .limit(10);
 
   if (!telegramId) {
-    const { data: top10 } = await top10Query;
+    const { data: top10, error } = await top10Query;
+    if (error) throw error;
     return { top10: top10 || [], userRow: null, userRank: null };
   }
 
@@ -430,17 +490,22 @@ async function fetchDailyLeaderboardData(diff, telegramId) {
     .maybeSingle();
 
   const [
-    { data: top10 },
-    { data: userRow },
+    { data: top10, error: top10Error },
+    { data: userRow, error: userRowError },
   ] = await Promise.all([top10Query, userRowQuery]);
+
+  if (top10Error) throw top10Error;
+  if (userRowError) throw userRowError;
 
   if (!userRow) return { top10: top10 || [], userRow: null, userRank: null };
 
-  const { count } = await supabase
+  const { count, error: rankError } = await supabase
     .from("daily_leaderboard")
     .select("*", { count: "exact", head: true })
     .eq("difficulty", diff)
-    .gt("passed_challenges", userRow.passed_challenges)
+    .gt("passed_challenges", userRow.passed_challenges);
+
+  if (rankError) throw rankError;
 
   return { top10: top10 || [], userRow, userRank: count + 1 };
 }
@@ -457,7 +522,7 @@ async function createUserOverallStats(telegramId) {
     );
 
   if (error) {
-    console.error("Failed to create overall stats:", error);
+    logSupabaseError("overall stats creation", error);
   }
 }
 
@@ -469,7 +534,7 @@ async function loadOverallStats(telegramId) {
     .single();
 
   if (error) {
-    console.error("Failed to load overall stats:", error);
+    logSupabaseError("overall stats load", error);
     return null;
   }
 
@@ -483,7 +548,9 @@ async function loadDailyStats(telegramId) {
     .eq("telegram_id", telegramId)
     .maybeSingle();
 
-  if (error) throw error;
+  if (error) {
+    logSupabaseError("Daily stats load", error);
+  }
 
   return {
     daysPlayed: data?.days_played ?? 0,
@@ -517,7 +584,7 @@ async function loadSurvivalStats(telegramId) {
     .maybeSingle();
 
   if (error) {
-    console.error("Failed to load Survival stats:", error);
+    logSupabaseError("Survival stats load", error);
     return null;
   }
 
@@ -538,7 +605,7 @@ async function recordSurvivalGame(
   });
 
   if (error) {
-    console.error("Failed to record Survival game:", error);
+    logSupabaseError("Survival game recording", error);
     return null;
   }
 
@@ -557,7 +624,7 @@ async function incrementOverallStats(
   });
 
   if (error) {
-    console.error("Failed to update overall stats:", error);
+    logSupabaseError("overall stats update", error);
     return null;
   }
 
@@ -571,7 +638,7 @@ async function recordDailyParticipation(telegramId, playedDate) {
   });
 
   if (error) {
-    console.error("Failed to record daily participation:", error);
+    logSupabaseError("Daily participation recording", error);
   }
 }
 
@@ -581,7 +648,7 @@ async function recordArtikelgottWin(telegramId) {
   });
 
   if (error) {
-    console.error("Failed to record Artikelgott win:", error);
+    logSupabaseError("Artikelgott win recording", error);
   }
 }
 
@@ -779,6 +846,7 @@ export default function App() {
   });
 
   const [lbLoading, setLbLoading] = useState(false);
+  const [lbError, setLbError] = useState(null);
 
   // Telegram haptic API
   const haptic = (type = "light") => {
@@ -826,6 +894,7 @@ export default function App() {
   const loadUserData = async (id, name, photo) => {
     setTelegramId(id);
 
+    try {
     if (name) setUserName(name);
     if (photo) setUserPhoto(photo);
 
@@ -884,6 +953,9 @@ export default function App() {
       await migrateLocalScores(id, name || "Anonymous");
       const migratedScores = await loadHighScores(id);
       if (migratedScores) setHighScores(migratedScores);
+    }
+    } catch (error) {
+      logSupabaseError("profile data load", error);
     }
   };
 
@@ -956,19 +1028,28 @@ export default function App() {
     setOverlay("leaderboard");
     setLbTab(initialTab);
     setLbLoading(true);
-    const result = await fetchLeaderboard(initialTab);
-    if (leaderboardMode === "daily") {
-      setDailyLbData(prev => ({ ...prev, [initialTab]: result }));
-    } else {
-      setSurvivalLbData(prev => ({ ...prev, [initialTab]: result }));
+    setLbError(null);
+
+    try {
+      const result = await fetchLeaderboard(initialTab);
+      if (leaderboardMode === "daily") {
+        setDailyLbData(prev => ({ ...prev, [initialTab]: result }));
+      } else {
+        setSurvivalLbData(prev => ({ ...prev, [initialTab]: result }));
+      }
+    } catch (error) {
+      logSupabaseError("leaderboard load", error);
+      setLbError("Could not load the leaderboard. Please try again.");
+    } finally {
+      setLbLoading(false);
     }
-    setLbLoading(false);
   };
 
   const switchLeaderboardMode = async (mode) => {
-  if (mode === leaderboardMode) return;
+  if (mode === leaderboardMode || lbLoading) return;
 
     setLeaderboardMode(mode);
+    setLbError(null);
 
     const cache =
       mode === "daily"
@@ -979,22 +1060,30 @@ export default function App() {
 
     setLbLoading(true);
 
-    const result =
-      mode === "daily"
-        ? await fetchDailyLeaderboardData(lbTab, telegramId)
-        : await fetchSurvivalLeaderboardData(lbTab, telegramId);
+    try {
+      const result =
+        mode === "daily"
+          ? await fetchDailyLeaderboardData(lbTab, telegramId)
+          : await fetchSurvivalLeaderboardData(lbTab, telegramId);
 
-    if (mode === "daily") {
-      setDailyLbData(prev => ({ ...prev, [lbTab]: result }));
-    } else {
-      setSurvivalLbData(prev => ({ ...prev, [lbTab]: result }));
+      if (mode === "daily") {
+        setDailyLbData(prev => ({ ...prev, [lbTab]: result }));
+      } else {
+        setSurvivalLbData(prev => ({ ...prev, [lbTab]: result }));
+      }
+    } catch (error) {
+      logSupabaseError("leaderboard mode switch", error);
+      setLbError("Could not load the leaderboard. Please try again.");
+    } finally {
+      setLbLoading(false);
     }
-
-    setLbLoading(false);
   };
 
   const switchTab = async (diff) => {
+    if (lbLoading) return;
+
     setLbTab(diff);
+    setLbError(null);
 
     const currentData =
       leaderboardMode === "daily"
@@ -1005,26 +1094,38 @@ export default function App() {
 
     setLbLoading(true);
 
-    const result = await fetchLeaderboard(diff);
+    try {
+      const result = await fetchLeaderboard(diff);
 
-    if (leaderboardMode === "daily") {
-      setDailyLbData(prev => ({ ...prev, [diff]: result }));
-    } else {
-      setSurvivalLbData(prev => ({ ...prev, [diff]: result }));
+      if (leaderboardMode === "daily") {
+        setDailyLbData(prev => ({ ...prev, [diff]: result }));
+      } else {
+        setSurvivalLbData(prev => ({ ...prev, [diff]: result }));
+      }
+    } catch (error) {
+      logSupabaseError("leaderboard tab switch", error);
+      setLbError("Could not load the leaderboard. Please try again.");
+    } finally {
+      setLbLoading(false);
     }
-
-    setLbLoading(false);
   };
 
   // ── Game control ───────────────────────────────────────
   const loadDailyStatuses = async (id = telegramId) => {
     if (!id) return;
-    const today = new Date().toISOString().slice(0, 10);
-    const rows = await getDailyStatuses(id, today);
-    const map = {};
-    rows.forEach(row => { map[row.difficulty] = row; });
-    setDailyProgress(map);
-    setDailyStatusesLoaded(true);
+
+    try {
+      const today = new Date().toISOString().slice(0, 10);
+      const rows = await getDailyStatuses(id, today);
+      const map = {};
+      rows.forEach(row => { map[row.difficulty] = row; });
+      setDailyProgress(map);
+    } catch (error) {
+      logSupabaseError("daily status load", error);
+      setDailyProgress({});
+    } finally {
+      setDailyStatusesLoaded(true);
+    }
   };
 
   const startDaily = async (diff) => {
@@ -2593,6 +2694,16 @@ return (
                     transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
                     style={{ width: 32, height: 32, border: `3px solid ${BORDER_LIGHT}`, borderTop: `3px solid ${PRIMARY}`, borderRadius: "50%" }}
                   />
+                </div>
+              ) : lbError ? (
+                <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 12, padding: 32, textAlign: "center" }}>
+                  <p style={{ margin: 0, color: TEXT_SECONDARY, fontSize: 15 }}>{lbError}</p>
+                  <button
+                    onClick={() => switchTab(lbTab)}
+                    style={{ padding: "10px 20px", borderRadius: 24, border: `2px solid ${PRIMARY}`, background: SURFACE, color: PRIMARY, fontSize: 14, fontWeight: 800, cursor: "pointer" }}
+                  >
+                    Try Again
+                  </button>
                 </div>
               ) : currentLbData ? (
                 <>
