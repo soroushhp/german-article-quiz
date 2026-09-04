@@ -1485,13 +1485,13 @@ export default function App() {
   }, [screen, endResult]);
 
   const shareScore = () => {
-    const text = SHARE_MESSAGE_TEMPLATES[mode][difficulty](finalScore);
-    const url  = `https://t.me/ArticleFever_bot`;
+    const text = `${SHARE_MESSAGE_TEMPLATES[mode][difficulty](finalScore)}\n\n`;
+    const url  = "https://t.me/ArticleFever_bot";
     const tg   = window.Telegram?.WebApp;
     if (tg?.openTelegramLink) {
       tg.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`);
     } else {
-      navigator.clipboard.writeText(`${text}\n${url}`);
+      navigator.clipboard.writeText(`${text}${url}`);
       alert("Score copied to clipboard!");
     }
   };
